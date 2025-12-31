@@ -59,7 +59,7 @@
     .everything {
       position: relative;
       width: 400px;
-      height: 430px; /* extra height for action bar */
+      height: 460px; /* extra height for action bar rows */
     }
 
     /* Background behind everything */
@@ -225,14 +225,21 @@
       width: 400px;
       margin: 4px auto 0;
       display: none; /* HIDDEN BY DEFAULT – will be enabled for host in JS */
-      justify-content: space-around;
+      flex-wrap: wrap;
+      justify-content: space-between;
       align-items: center;
       font-size: 12px;
       gap: 4px;
     }
+    .action-row {
+      width: 100%;
+      display: flex;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
     .action-btn {
       flex: 1;
-      margin: 0 2px;
+      margin: 0;
       padding: 4px 0;
       border-radius: 0; /* no rounded corners */
       border: 1px solid #000;
@@ -460,18 +467,39 @@
 
   <!-- Action bar (host-only functional) -->
   <div class="action-bar">
-    <button class="action-btn" data-action="sleep">
-      😴 <span class="key">Z</span> sleep
-    </button>
-    <button class="action-btn" data-action="table">
-      🍽 <span class="key">T</span> table
-    </button>
-    <button class="action-btn" data-action="piano">
-      🎹 <span class="key">P</span> piano
-    </button>
-    <button class="action-btn" data-action="water">
-      🌳 <span class="key">W</span> water
-    </button>
+    <div class="action-row">
+      <button class="action-btn" data-action="sleep">
+        😴 <span class="key">Z</span>
+      </button>
+      <button class="action-btn" data-action="table">
+        🍽 <span class="key">T</span>
+      </button>
+      <button class="action-btn" data-action="piano">
+        🎹 <span class="key">P</span>
+      </button>
+      <button class="action-btn" data-action="water">
+        🌳 <span class="key">W</span>
+      </button>
+    </div>
+    <div class="action-row">
+      <button class="action-btn" data-action="shower">
+        🚿 <span class="key">S</span>
+      </button>
+      <button class="action-btn" data-action="brush">
+        🦷 <span class="key">B</span>
+      </button>
+      <button class="action-btn" data-action="dinner">
+        🍲 <span class="key">D</span>
+      </button>
+      <button class="action-btn" data-action="tvOn">
+        📺 <span class="key">1</span>
+      </button>
+    </div>
+    <div class="action-row">
+      <button class="action-btn" data-action="tvOff">
+        ⏹ <span class="key">0</span>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -487,6 +515,7 @@
   let currentRoom = 'room2';       // controlled character's room (red for players, blue for host)
   let hostRoom    = 'room2';       // global host room (for display on non-host clients)
   let currentAudio = null;
+  let tvAudio = null;              // separate audio for looping TV
   window.currentRoom = currentRoom; // used in inline onclicks
 
   // Show action bar only for host
@@ -548,6 +577,73 @@
   };
 
   const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
+
+  /* === RANDOM SOUND POOLS (5 slots each – you can swap/extend these) === */
+  const soundPools = {
+    sleep: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3'
+    ],
+    table: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
+    ],
+    piano: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3'
+    ],
+    water: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3'
+    ],
+    shower: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3'
+    ],
+    brush: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3'
+    ],
+    dinner: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3'
+    ],
+    tvOn: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
+    ]
+  };
+
+  function pickRandomFromPool(poolName) {
+    const pool = soundPools[poolName];
+    if (!pool || !pool.length) return null;
+    const idx = Math.floor(Math.random() * pool.length);
+    return pool[idx];
+  }
 
   function playSound(url) {
     if (!url) return;
@@ -703,28 +799,77 @@
     setTimeout(() => btn.classList.remove('active-flash'), 300);
   }
 
+  function stopTvLoop() {
+    if (tvAudio) {
+      try {
+        tvAudio.pause();
+        tvAudio.currentTime = 0;
+      } catch (e) {}
+      tvAudio = null;
+    }
+  }
+
   function triggerHostAction(kind) {
     if (!isHost) return;
+
+    if (kind === 'tvOff') {
+      flashButton('tvOff');
+      stopTvLoop();
+      return;
+    }
 
     flashButton(kind);
 
     switch (kind) {
-      case 'sleep':
-        // bed sound
-        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');
+      case 'sleep': {
+        const url = pickRandomFromPool('sleep');
+        playSound(url);
         break;
-      case 'table':
-        showObjectPopup('Host is dressing the table…');
-        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');
+      }
+      case 'table': {
+        const url = pickRandomFromPool('table');
+        playSound(url);
         break;
-      case 'piano':
-        showObjectPopup('Host is playing the piano…');
-        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');
+      }
+      case 'piano': {
+        const url = pickRandomFromPool('piano');
+        playSound(url);
         break;
-      case 'water':
-        showObjectPopup('Host is watering a tree…');
-        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');
+      }
+      case 'water': {
+        const url = pickRandomFromPool('water');
+        playSound(url);
         break;
+      }
+      case 'shower': {
+        const url = pickRandomFromPool('shower');
+        playSound(url);
+        break;
+      }
+      case 'brush': {
+        const url = pickRandomFromPool('brush');
+        playSound(url);
+        break;
+      }
+      case 'dinner': {
+        const url = pickRandomFromPool('dinner');
+        playSound(url);
+        break;
+      }
+      case 'tvOn': {
+        flashButton('tvOn');
+        stopTvLoop();
+        const url = pickRandomFromPool('tvOn');
+        if (!url) return;
+        try {
+          tvAudio = new Audio(url);
+          tvAudio.loop = true;
+          tvAudio.play().catch(() => {});
+        } catch (e) {
+          console.error(e);
+        }
+        break;
+      }
     }
   }
 
@@ -772,6 +917,24 @@
         case 'w':
         case 'W':
           triggerHostAction('water');
+          break;
+        case 's':
+        case 'S':
+          triggerHostAction('shower');
+          break;
+        case 'b':
+        case 'B':
+          triggerHostAction('brush');
+          break;
+        case 'd':
+        case 'D':
+          triggerHostAction('dinner');
+          break;
+        case '1':
+          triggerHostAction('tvOn');
+          break;
+        case '0':
+          triggerHostAction('tvOff');
           break;
       }
     }
