@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta id="vp" name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>room_2 – multiplayer</title>
+  <style>
+    /* Hide external site header (e.g. WordPress theme header) */
+    header,
+    .site-header {
+      display: none !important;
+    }
+
+    /* General reset and centering */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+      overflow: hidden;
+      background-color: transparent;
+    }
+
+    /* Slight scale-down on some phones */
+    @media screen and (max-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+      body {
+        transform: scale(0.95);
+        transform-origin: top;
+        overflow: visible;
+      }
+    }
+
+    @media screen and (max-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) {
+      body {
+        transform: scale(0.93);
+        transform-origin: top;
+        overflow: visible;
+      }
+    }
+
+    /* Optional glitch keyframes (no longer used for punishment) */
+    @keyframes glitch {
+      0% { transform: translate(1px, 0) skewX(0deg); }
+      10% { transform: translate(-1px, -1px) skewX(-2deg); }
+      20% { transform: translate(-1px, 1px) skewX(2deg); }
+      30% { transform: translate(1px, -1px) skewX(-2deg); }
+      40% { transform: translate(-1px, 1px) skewX(2deg); }
+      50% { transform: translate(1px, -1px) skewX(-2deg); }
+      60% { transform: translate(-1px, 0) skewX(0deg); }
+      100% { transform: translate(0, 0) skewX(0deg); }
+    }
+
+    .everything {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
+
+    /* Background behind everything */
+    .background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 414px;
+      height: 750px;
+      background-size: cover;
+      background-position: center;
+      z-index: -1;
+      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/background1.png');
+    }
+
+    /* Map container */
+    #map {
+      position: relative;
+      -webkit-tap-highlight-color: transparent;
+      background-color: transparent;
+      width: 400px;
+      height: 400px;
+      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/laag1binnen.png');
+      background-size: 400px;
+      background-repeat: no-repeat;
+      overflow: visible;
+      background-position: 0 -3px;
+      border: 2px solid #333;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 5px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    @media screen and (max-width: 479px) {
+      #map { overflow: hidden; }
+    }
+
+    /* Rooms = invisible full-click areas */
+    .room {
+      position: absolute;
+      background-color: transparent;
+      border: 2px solid transparent; /* hitbox only */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      color: #555;
+      text-align: center;
+      cursor: pointer;
+      opacity: 1;
+      transition: transform 0.35s ease-in-out, opacity 0.35s ease-in-out;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 1;
+    }
+
+    .room.active {
+      transform: scale(1.01);
+      z-index: 4;
+      opacity: 1;
+    }
+
+    .room-label {
+      display: none;
+    }
+
+    /* Player (red character – local client) */
+    .player {
+      width: 20px;
+      height: 36px;
+      z-index: 999;
+      background:
+        url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png')
+        no-repeat center center / contain;
+      position: absolute;
+      display: block;
+      transition: transform 0.42s cubic-bezier(0.25, 0.1, 0.25, 1);
+      will-change: transform;
+      -webkit-tap-highlight-color: transparent;
+      pointer-events: none;
+    }
+
+    /* Host (blue character – synchronized via server) */
+    .random-object {
+      width: 20px;
+      height: 36px;
+      background:
+        url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png')
+        no-repeat center center / contain;
+      position: absolute;
+      cursor: pointer;
+      z-index: 1001;
+      transition: transform 0.35s ease-in-out;
+    }
+
+    /* Doors */
+    .door {
+      position: absolute;
+      background-color: #131313;
+      border: 1px solid #000;
+      cursor: pointer;
+      z-index: 2;
+      transition: background-color 0.3s ease, transform 0.15s ease;
+      pointer-events: none; /* enabled only in active room for this client */
+      -webkit-tap-highlight-color: transparent;
+    }
+    .door-horizontal {
+      width: 40px;
+      height: 9px;
+      border-radius: 1px;
+    }
+    .door-vertical {
+      width: 9px;
+      height: 40px;
+      border-radius: 1px;
+    }
+    .door:hover {
+      background-color: #ff9900;
+      transform: scale(1.03);
+    }
+
+    .door-popup {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 0.6em;
+      padding: 3px;
+      border-radius: 5px;
+      display: none;
+      z-index: 100;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .clickable-region {
+      position: absolute;
+      cursor: pointer;
+    }
+
+    /* Small message popup */
+    .popup-message {
+      position: fixed;
+      top: 20px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+      z-index: 1000;
+    }
+
+    /* Object name / instruction box */
+    .instruction-box {
+      display: none;
+      position: fixed;
+      bottom: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgb(255, 238, 51);
+      color: black;
+      padding: 1px 6px;
+      border: 2px solid black;
+      font-size: 16px;
+      text-align: center;
+      z-index: 1005;
+      width: auto;
+      max-width: 300px;
+    }
+    @media (max-width: 768px) {
+      .instruction-box {
+        bottom: 20%;
+        max-width: 350px;
+      }
+    }
+
+    /* Room positions */
+    .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
+    .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
+    .room3 { top: 139px; left: 319px; width: 72px;  height: 131px; }
+    .room4 { top: 188px; left: 9px;   width: 72px;  height: 81px;  }
+    .room5 { top: 188px; left: 90px;  width: 159px; height: 81px;  }
+    .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
+    .room7 { top: 278px; left: 257px; width: 134px; height: 90px;  }
+    .room8 { top: 0px;   left: 0px;   width: 400px; height: 400px; z-index: 0; display: none; }
+
+    /* Door positions (your original layout) */
+    .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
+    .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
+
+    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
+    .room2 .door2 { right: -11px; top: 50%; transform: translateY(-50%); }
+    .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
+    .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }
+
+    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); }
+    .room3 .door3 { top: -12px; left: 50%; transform: translateX(-50%); }
+
+    .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); }
+    .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
+
+    .room5 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
+    .room5 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
+    .room5 .door3 { top: -11px; left: 82%; transform: translateX(-50%); }
+    .room5 .door4 { bottom: -11px; left: 55%; transform: translateX(-50%); }
+
+    .room6 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
+    .room6 .door2 { bottom: -12px; left: 50%; transform: translateX(-50%); }
+    .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }
+    .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
+
+    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
+
+    .room8 .door1 { right: 79px;  top: 27%;  transform: translateY(-50%); }
+    .room8 .door2 { right: 2px;   top: 32%;  transform: translateX(-50%); }
+    .room8 .door3 { right: 178px; top: 66.5%;transform: translateX(-50%); }
+  </style>
+</head>
+<body>
+<div class="background"></div>
+
+<div class="everything">
+  <div id="instructionBox" class="instruction-box"></div>
+  <div class="popup-message" id="popup-message"></div>
+
+  <!-- MAP -->
+  <div id="map">
+    <!-- local player (red) -->
+    <div id="player" class="player"></div>
+    <!-- host (blue) -->
+    <div id="host" class="random-object"></div>
+
+    <!-- ROOM 1 -->
+    <div id="room1" class="room room1">
+      <div class="room-label"></div>
+      <div class="door door1 door-horizontal" data-target="room4" data-popup="popup-room1-4"></div>
+      <div class="door door2 door-vertical" data-target="room2" data-popup="popup-room1-2"></div>
+
+      <div class="door-popup" id="popup-room1-4">Going to Room 4</div>
+      <div class="door-popup" id="popup-room1-2">Going to Room 2</div>
+
+      <div class="clickable-region"
+           style="left: 5px; top: 3px; width: 55px; height: 50px;"
+           onclick="if(currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 3px; bottom: 3px; width: 55px; height: 45px;"
+           onclick="if(currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+      </div>
+    </div>
+
+    <!-- ROOM 2 – computer lab -->
+    <div id="room2" class="room room2">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room1" data-popup="popup-room2-1"></div>
+      <div class="door door2 door-vertical" data-target="room3" data-popup="popup-room2-3"></div>
+      <div class="door door3 door-horizontal" data-target="room5" data-popup="popup-room2-5"></div>
+      <div class="door door4 door-horizontal" data-target="room6" data-popup="popup-room2-6"></div>
+
+      <div class="door-popup" id="popup-room2-1">Going to Room 1</div>
+      <div class="door-popup" id="popup-room2-3">Going to Room 3</div>
+      <div class="door-popup" id="popup-room2-5">Going to Room 5</div>
+      <div class="door-popup" id="popup-room2-6">Going to Room 6</div>
+
+      <div class="clickable-region"
+           style="left: 98px; top: 5px; width: 38px; height: 30px;"
+           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 94px; top: 105px; width: 25px; height: 27px;"
+           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('3D printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
+           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="right: 3px; top: 3px; width: 60px; height: 46px;"
+           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 3px; top: 3px; width: 80px; height: 46px;"
+           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 3px; bottom: 3px; width: 80px; height: 46px;"
+           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+      </div>
+    </div>
+
+    <!-- ROOM 3 – kitchen -->
+    <div id="room3" class="room room3">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room2" data-popup="popup-room3-2"></div>
+      <div class="door door3 door-horizontal" data-target="room6" data-popup="popup-room3-6"></div>
+
+      <div class="door-popup" id="popup-room3-2">Going to Room 2</div>
+      <div class="door-popup" id="popup-room3-6">Going to Room 6</div>
+
+      <div class="clickable-region"
+           style="left: 10px; top: 11px; width: 43px; height: 65px;"
+           onclick="if(currentRoom==='room3'){playClickSound(); showObjectPopup('Dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 8px; bottom: 1px; width: 13px; height: 11px;"
+           onclick="if(currentRoom==='room3'){playClickSound(); showObjectPopup('Stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 34px; bottom: 1px; width: 14px; height: 11px;"
+           onclick="if(currentRoom==='room3'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
+      </div>
+    </div>
+
+    <!-- ROOM 4 – bathroom -->
+    <div id="room4" class="room room4">
+      <div class="room-label"></div>
+      <div class="door door1 door-horizontal" data-target="room1" data-popup="popup-room4-1"></div>
+      <div class="door door2 door-vertical" data-target="room5" data-popup="popup-room4-5"></div>
+
+      <div class="door-popup" id="popup-room4-1">Going to Room 1</div>
+      <div class="door-popup" id="popup-room4-5">Going to Room 5</div>
+
+      <div class="clickable-region"
+           style="left: 0px; top: 0px; width: 24px; height: 24px;"
+           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 21px; top: 62px; width: 14px; height: 15px;"
+           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 0px; top: 33px; width: 8px; height: 22px;"
+           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="right: 0px; top: 45px; width: 8px; height: 25px;"
+           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
+      </div>
+    </div>
+
+    <!-- ROOM 5 – living -->
+    <div id="room5" class="room room5">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room4" data-popup="popup-room5-4"></div>
+      <div class="door door2 door-vertical" data-target="room6" data-popup="popup-room5-6"></div>
+      <div class="door door3 door-horizontal" data-target="room2" data-popup="popup-room5-2"></div>
+      <div class="door door4 door-horizontal" data-target="room8" data-popup="popup-room5-8"></div>
+
+      <div class="door-popup" id="popup-room5-4">Going to Room 4</div>
+      <div class="door-popup" id="popup-room5-6">Going to Room 6</div>
+      <div class="door-popup" id="popup-room5-2">Going to Room 2</div>
+      <div class="door-popup" id="popup-room5-8">Going to Room 8</div>
+
+      <div class="clickable-region"
+           style="left: 94px; top: 25px; width: 55px; height: 45px;"
+           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 24px; top: 2px; width: 34px; height: 8px;"
+           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 5px; bottom: 2px; width: 34px; height: 34px;"
+           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('Couch');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
+           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat');}">
+      </div>
+    </div>
+
+    <!-- ROOM 6 – hall -->
+    <div id="room6" class="room room6">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room5" data-popup="popup-room6-5"></div>
+      <div class="door door2 door-horizontal" data-target="room7" data-popup="popup-room6-7"></div>
+      <div class="door door3 door-vertical" data-target="room3" data-popup="popup-room6-3"></div>
+      <div class="door door4 door-horizontal" data-target="room2" data-popup="popup-room6-2"></div>
+
+      <div class="door-popup" id="popup-room6-5">Going to Room 5</div>
+      <div class="door-popup" id="popup-room6-7">Going to Room 7</div>
+      <div class="door-popup" id="popup-room6-3">Going to Room 3</div>
+      <div class="door-popup" id="popup-room6-2">Going to Room 2</div>
+    </div>
+
+    <!-- ROOM 7 – bedroom -->
+    <div id="room7" class="room room7">
+      <div class="room-label"></div>
+      <div class="door door1 door-horizontal" data-target="room6" data-popup="popup-room7-6"></div>
+      <div class="door-popup" id="popup-room7-6">Going to Room 6</div>
+
+      <div class="clickable-region"
+           style="left: 75px; top: 19px; width: 55px; height: 47px;"
+           onclick="if(currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
+      </div>
+    </div>
+
+    <!-- ROOM 8 – outside -->
+    <div id="room8" class="room room8">
+      <div class="door door1 door-vertical" data-target="room5" data-popup="popup-room8-5"></div>
+      <div class="door door2 door-horizontal" data-target="room3" data-popup="popup-room8-3"></div>
+      <div class="door door3 door-horizontal" data-target="room2" data-popup="popup-room8-2"></div>
+
+      <div class="door-popup" id="popup-room8-5">Going to Room 5</div>
+      <div class="door-popup" id="popup-room8-3">Going to Room 3</div>
+      <div class="door-popup" id="popup-room8-2">Going to Room 2</div>
+
+      <div class="clickable-region"
+           style="left: 17px; top: 309px; width: 39px; height: 66px;"
+           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Car'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/car5.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 87px; top: 270px; width: 37px; height: 10px;"
+           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 200px; top: 270px; width: 37px; height: 10px;"
+           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 233px; top: 321px; width: 10px; height: 38px;"
+           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="right: 68px; top: 35px; width: 10px; height: 38px;"
+           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="right: 20px; top: 18px; width: 40px; height: 95px;"
+           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Steep footpath');}">
+      </div>
+    </div>
+
+  </div><!-- /map -->
+</div>
+
+<!-- Socket.IO client -->
+<script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
+<script>
+  // Multiplayer config
+  const isHost = window.location.search.includes('host=1'); // host opens URL with ?host=1
+  const socket = io('http://localhost:3000'); // change port if your server uses another
+
+  let currentRoom = 'room2';       // controlled character's room (red for players, blue for host)
+  let hostRoom    = 'room2';       // global host room (for display on non-host clients)
+  let currentAudio = null;
+
+  const rooms = ['room1','room2','room3','room4','room5','room6','room7','room8'];
+
+  // Room connections: hall (room6) connected to kitchen (room3) & computer lab (room2)
+  const roomGraph = {
+    room1: ['room2','room4'],
+    room2: ['room1','room3','room5','room6','room8'],
+    room3: ['room2','room6','room8'],
+    room4: ['room1','room5'],
+    room5: ['room2','room4','room6','room8'],
+    room6: ['room2','room3','room5','room7'],
+    room7: ['room6'],
+    room8: ['room2','room3','room5']
+  };
+
+  const mapEl         = document.getElementById('map');
+  const playerEl      = document.getElementById('player');
+  const hostEl        = document.getElementById('host');
+  const instructionBox= document.getElementById('instructionBox');
+  const popupMsgEl    = document.getElementById('popup-message');
+
+  function playSound(url) {
+    if (!url) return;
+    try {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+      currentAudio = new Audio(url);
+      currentAudio.play().catch(() => {});
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function playClickSound() {
+    // Add a subtle click sound here if you like:
+    // playSound('CLICK_SOUND_URL');
+  }
+
+  function showObjectPopup(text) {
+    instructionBox.textContent = text;
+    instructionBox.style.display = 'block';
+    clearTimeout(showObjectPopup._timeout);
+    showObjectPopup._timeout = setTimeout(() => {
+      instructionBox.style.display = 'none';
+    }, 2000);
+  }
+
+  function showMessage(text) {
+    popupMsgEl.textContent = text;
+    popupMsgEl.style.display = 'block';
+    clearTimeout(showMessage._timeout);
+    showMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, 1500);
+  }
+
+  function moveElementToRoom(el, roomId) {
+    const room = document.getElementById(roomId);
+    if (!room || !el) return;
+
+    const mapRect  = mapEl.getBoundingClientRect();
+    const roomRect = room.getBoundingClientRect();
+
+    const x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2;
+    const y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2;
+
+    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  }
+
+  function updateActiveRoom(roomId) {
+    document.querySelectorAll('.room').forEach(r => {
+      r.classList.toggle('active', r.id === roomId);
+    });
+
+    // Enable only this room's doors for this client
+    document.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'none');
+    const room = document.getElementById(roomId);
+    room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
+
+    // Show outside layout when in room8
+    if (roomId === 'room8') {
+      document.getElementById('room8').style.display = 'block';
+    }
+  }
+
+  function goToRoom(targetRoom) {
+    if (targetRoom === currentRoom) return;
+    if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) {
+      showMessage('You cannot go there from here.');
+      return;
+    }
+
+    currentRoom = targetRoom;
+    updateActiveRoom(currentRoom);
+
+    if (isHost) {
+      // Host controls BLUE character and broadcasts movement
+      hostRoom = currentRoom;
+      moveElementToRoom(hostEl, hostRoom);
+      socket.emit('hostMove', { roomId: hostRoom });
+    } else {
+      // Player controls RED character locally
+      moveElementToRoom(playerEl, currentRoom);
+    }
+  }
+
+  // --- SOCKET.IO SETUP ---
+
+  socket.on('connect', () => {
+    socket.emit('join', { role: isHost ? 'host' : 'player' });
+  });
+
+  // Normal players: receive host position updates
+  if (!isHost) {
+    socket.on('hostPosition', (data) => {
+      if (!data || !data.roomId) return;
+      hostRoom = data.roomId;
+      moveElementToRoom(hostEl, hostRoom);
+    });
+  }
+
+  // Host may optionally get a sync when joining
+  socket.on('initialHostPosition', (data) => {
+    if (!isHost) return;
+    if (data && data.roomId) {
+      hostRoom = data.roomId;
+      currentRoom = hostRoom;
+      updateActiveRoom(currentRoom);
+      moveElementToRoom(hostEl, hostRoom);
+    }
+  });
+
+  // --- DOM EVENTS ---
+
+  // Host click: just a friendly interaction
+  hostEl.addEventListener('click', () => {
+    playClickSound();
+    showObjectPopup('You interact with the host.');
+  });
+
+  // Doors: allow navigation + hover text
+  document.querySelectorAll('.door').forEach(door => {
+    const popupId = door.dataset.popup;
+    const popup   = popupId ? document.getElementById(popupId) : null;
+    const target  = door.dataset.target;
+
+    door.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (target) goToRoom(target);
+    });
+
+    if (!popup) return;
+
+    door.addEventListener('mouseenter', () => {
+      const rect    = door.getBoundingClientRect();
+      const mapRect = mapEl.getBoundingClientRect();
+      popup.style.left = (rect.left - mapRect.left + rect.width + 5) + 'px';
+      popup.style.top  = (rect.top  - mapRect.top) + 'px';
+      popup.style.display = 'block';
+    });
+
+    door.addEventListener('mouseleave', () => {
+      popup.style.display = 'none';
+    });
+  });
+
+  // FULL room clickability: any click inside tries to move there
+  document.querySelectorAll('.room').forEach(room => {
+    room.addEventListener('click', () => {
+      goToRoom(room.id);
+    });
+  });
+
+  // Init layout
+  window.addEventListener('load', () => {
+    if (isHost) {
+      // Host controls blue, hide red
+      playerEl.style.display = 'none';
+      currentRoom = hostRoom;
+      updateActiveRoom(currentRoom);
+      moveElementToRoom(hostEl, hostRoom);
+    } else {
+      // Players control red, host will be moved when data arrives
+      hostRoom = 'room2';
+      currentRoom = 'room2';
+      updateActiveRoom(currentRoom);
+      moveElementToRoom(playerEl, currentRoom);
+    }
+  });
+</script>
+</body>
+</html>
