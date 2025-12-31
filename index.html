@@ -59,7 +59,7 @@
     .everything {
       position: relative;
       width: 400px;
-      height: 400px;
+      height: 430px; /* extra height for action bar */
     }
 
     /* Background behind everything */
@@ -113,7 +113,7 @@
       text-align: center;
       cursor: pointer;
       opacity: 1;
-      transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out; /* faster */
+      transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
       z-index: 1;
@@ -139,7 +139,7 @@
         no-repeat center center / contain;
       position: absolute;
       display: block;
-      transition: transform 0.18s cubic-bezier(0.25, 0.1, 0.25, 1); /* faster */
+      transition: none; /* instant movement */
       will-change: transform;
       -webkit-tap-highlight-color: transparent;
       pointer-events: none;
@@ -155,7 +155,7 @@
       position: absolute;
       cursor: pointer;
       z-index: 1001;
-      transition: transform 0.18s ease-in-out; /* faster */
+      transition: none; /* instant movement */
     }
 
     /* Doors */
@@ -165,7 +165,7 @@
       border: 1px solid #000;
       cursor: pointer;
       z-index: 2;
-      transition: background-color 0.15s ease, transform 0.1s ease; /* snappier */
+      transition: background-color 0.1s ease, transform 0.08s ease;
       pointer-events: none; /* enabled only in active room for this client */
       -webkit-tap-highlight-color: transparent;
     }
@@ -184,17 +184,9 @@
       transform: scale(1.03);
     }
 
+    /* Door popup: completely disabled */
     .door-popup {
-      position: absolute;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 0.6em;
-      padding: 3px;
-      border-radius: 5px;
-      display: none;
-      z-index: 100;
-      pointer-events: none;
-      white-space: nowrap;
+      display: none !important;
     }
 
     .clickable-region {
@@ -202,28 +194,69 @@
       cursor: pointer;
     }
 
-    /* Object name / instruction box */
+    /* Object name / instruction box – digital style */
     .instruction-box {
       display: none;
       position: fixed;
       bottom: 15%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: rgb(255, 238, 51);
-      color: black;
-      padding: 1px 6px;
-      border: 2px solid black;
+      background-color: #ffffff;
+      color: #00ff55;
+      padding: 4px 8px;
+      border: 2px solid #00ff55;
       font-size: 16px;
       text-align: center;
       z-index: 1005;
       width: auto;
       max-width: 300px;
+      box-shadow: 0 0 6px rgba(0, 255, 85, 0.4);
+      letter-spacing: 0.5px;
     }
     @media (max-width: 768px) {
       .instruction-box {
         bottom: 20%;
         max-width: 350px;
       }
+    }
+
+    /* Action bar (host-only controls) */
+    .action-bar {
+      width: 400px;
+      margin: 4px auto 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 12px;
+      gap: 4px;
+    }
+    .action-btn {
+      flex: 1;
+      margin: 0 2px;
+      padding: 4px 0;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background: #f5f5f5;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .action-btn span.key {
+      display: inline-block;
+      min-width: 14px;
+      padding: 1px 3px;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      font-family: monospace;
+      font-size: 10px;
+      background: #fff;
+    }
+    .action-btn:active {
+      transform: scale(0.97);
     }
 
     /* Room positions */
@@ -235,7 +268,7 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 134px; height: 90px;  }
 
-    /* Door positions (your original layout) */
+    /* Door positions (original layout, minus room8 stuff) */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
@@ -298,7 +331,7 @@
     <div id="room2" class="room room2">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room1" data-popup="popup-room2-1"></div>
-      <!-- door2 (to room3) stays in layout but logic will disallow it -->
+      <!-- door2 visually goes to room3 but will be blocked by logic -->
       <div class="door door2 door-vertical" data-target="room3" data-popup="popup-room2-3"></div>
       <div class="door door3 door-horizontal" data-target="room5" data-popup="popup-room2-5"></div>
       <div class="door door4 door-horizontal" data-target="room6" data-popup="popup-room2-6"></div>
@@ -337,7 +370,7 @@
     <!-- ROOM 3 – kitchen -->
     <div id="room3" class="room room3">
       <div class="room-label"></div>
-      <!-- keep door1 visually, but logic will not allow room2 <-> room3 -->
+      <!-- door1 visually to room2 but blocked in logic -->
       <div class="door door1 door-vertical" data-target="room2" data-popup="popup-room3-2"></div>
       <div class="door door3 door-horizontal" data-target="room6" data-popup="popup-room3-6"></div>
 
@@ -441,6 +474,22 @@
     </div>
 
   </div><!-- /map -->
+
+  <!-- Action bar (host-only functional) -->
+  <div class="action-bar">
+    <button class="action-btn" data-action="sleep">
+      😴 <span class="key">Z</span> sleep
+    </button>
+    <button class="action-btn" data-action="table">
+      🍽 <span class="key">T</span> table
+    </button>
+    <button class="action-btn" data-action="piano">
+      🎹 <span class="key">P</span> piano
+    </button>
+    <button class="action-btn" data-action="water">
+      🌳 <span class="key">W</span> water
+    </button>
+  </div>
 </div>
 
 <!-- Socket.IO client (from your server) -->
@@ -459,17 +508,27 @@
   // No more room8
   const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
-  // Room connections
+  // Room connections: SECONDARY graph for validity
   // - hall (room6) connected to kitchen (room3) & computer lab (room2)
-  // - computer lab (room2) is NOT connected to kitchen (room3) anymore
+  // - computer lab (room2) is NOT connected directly to kitchen (room3)
   const roomGraph = {
     room1: ['room2','room4'],
     room2: ['room1','room5','room6'],   // removed room3, room8
     room3: ['room6'],                   // only via hall
     room4: ['room1','room5'],
-    room5: ['room2','room4','room6'],   // removed room8
+    room5: ['room2','room4','room6'],
     room6: ['room2','room3','room5','room7'],
     room7: ['room6']
+  };
+
+  const arrowNav = {
+    room1: { up: null,    down: 'room4', left: null,    right: 'room2' },
+    room2: { up: null,    down: 'room5', left: 'room1', right: 'room6' },
+    room3: { up: null,    down: null,    left: 'room6', right: null },
+    room4: { up: 'room1', down: null,    left: null,    right: 'room5' },
+    room5: { up: 'room2', down: null,    left: 'room4', right: 'room6' },
+    room6: { up: 'room2', down: 'room7', left: 'room5', right: 'room3' },
+    room7: { up: 'room6', down: null,    left: null,    right: null }
   };
 
   const mapEl         = document.getElementById('map');
@@ -499,6 +558,8 @@
     }
   };
 
+  const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
+
   function playSound(url) {
     if (!url) return;
     try {
@@ -514,8 +575,7 @@
   }
 
   function playClickSound() {
-    // Optional click sound
-    // playSound('CLICK_SOUND_URL');
+    playSound(CLICK_SOUND_URL);
   }
 
   function showObjectPopup(text) {
@@ -553,13 +613,15 @@
     // Enable only this room's doors for this client
     document.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'none');
     const room = document.getElementById(roomId);
-    room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
+    if (room) {
+      room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
+    }
   }
 
   function goToRoom(targetRoom) {
     if (targetRoom === currentRoom) return;
     if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) {
-      // No popup, just ignore invalid move
+      // silently ignore invalid moves
       return;
     }
 
@@ -608,31 +670,30 @@
 
   // --- DOM EVENTS ---
 
-  // NO more host click popup
+  // Host click: only works when player is in same room
+  hostEl.addEventListener('click', () => {
+    // Only do this on the player side (non-host), and only if in same room
+    if (isHost) return;
+    if (currentRoom !== hostRoom) return;
 
-  // Doors: allow navigation + hover text
+    playClickSound();
+
+    // temporary size bump
+    const originalTransform = hostEl.style.transform;
+    hostEl.style.transform = originalTransform + ' scale(1.1)';
+    setTimeout(() => {
+      // re-position to clean reset
+      moveElementToRoom(hostEl, hostRoom, 'host');
+    }, 50);
+  });
+
+  // Doors: allow navigation (no hover text)
   document.querySelectorAll('.door').forEach(door => {
-    const popupId = door.dataset.popup;
-    const popup   = popupId ? document.getElementById(popupId) : null;
     const target  = door.dataset.target;
 
     door.addEventListener('click', (e) => {
       e.stopPropagation();
       if (target) goToRoom(target);
-    });
-
-    if (!popup) return;
-
-    door.addEventListener('mouseenter', () => {
-      const rect    = door.getBoundingClientRect();
-      const mapRect = mapEl.getBoundingClientRect();
-      popup.style.left = (rect.left - mapRect.left + rect.width + 5) + 'px';
-      popup.style.top  = (rect.top  - mapRect.top) + 'px';
-      popup.style.display = 'block';
-    });
-
-    door.addEventListener('mouseleave', () => {
-      popup.style.display = 'none';
     });
   });
 
@@ -641,6 +702,80 @@
     room.addEventListener('click', () => {
       goToRoom(room.id);
     });
+  });
+
+  // Host-only actions (keys + buttons)
+  function triggerHostAction(kind) {
+    if (!isHost) return;
+
+    switch (kind) {
+      case 'sleep':
+        showObjectPopup('Host is sleeping…');
+        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');
+        break;
+      case 'table':
+        showObjectPopup('Host is dressing the table…');
+        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');
+        break;
+      case 'piano':
+        showObjectPopup('Host is playing the piano…');
+        // reuse a sound you like; here using hologram as placeholder
+        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');
+        break;
+      case 'water':
+        showObjectPopup('Host is watering a tree…');
+        playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');
+        break;
+    }
+  }
+
+  // Buttons click
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      triggerHostAction(action);
+    });
+  });
+
+  // Keyboard controls: host-only
+  document.addEventListener('keydown', (e) => {
+    if (isHost) {
+      // Arrow navigation between rooms
+      const dirKeyMap = {
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        ArrowLeft: 'left',
+        ArrowRight: 'right'
+      };
+      const dir = dirKeyMap[e.key];
+      if (dir) {
+        e.preventDefault();
+        const nav = arrowNav[currentRoom];
+        if (nav && nav[dir]) {
+          goToRoom(nav[dir]);
+        }
+      }
+
+      // Action hotkeys
+      switch (e.key) {
+        case 'z':
+        case 'Z':
+          triggerHostAction('sleep');
+          break;
+        case 't':
+        case 'T':
+          triggerHostAction('table');
+          break;
+        case 'p':
+        case 'P':
+          triggerHostAction('piano');
+          break;
+        case 'w':
+        case 'W':
+          triggerHostAction('water');
+          break;
+      }
+    }
   });
 
   // Init layout
