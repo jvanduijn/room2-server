@@ -113,7 +113,7 @@
       text-align: center;
       cursor: pointer;
       opacity: 1;
-      transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+      transition: transform 0.35s ease-in-out, opacity 0.2s ease-in-out;
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
       z-index: 1;
@@ -194,6 +194,21 @@
       cursor: pointer;
     }
 
+    /* Small message popup (for host actions like "The host is sleeping...") */
+    .popup-message {
+      position: fixed;
+      top: 18px;
+      right: 12px;
+      background-color: rgba(0, 0, 0, 0.85);
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      display: none;
+      z-index: 1000;
+      max-width: 200px;
+    }
+
     /* Object name / instruction box – digital style with slightly darker green */
     .instruction-box {
       display: none;
@@ -220,25 +235,18 @@
       }
     }
 
-    /* Action bar (host-only controls) */
+    /* Action bar (host-only controls) – 8 equal buttons per row */
     .action-bar {
       width: 400px;
       margin: 4px auto 0;
-      display: none; /* HIDDEN BY DEFAULT – will be enabled for host in JS */
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
+      display: none; /* shown only for host in JS */
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 4px;
       font-size: 12px;
-      gap: 4px;
     }
-    .action-row {
-      width: 100%;
-      display: flex;
-      gap: 4px;
-      margin-bottom: 2px;
-    }
+
     .action-btn {
-      flex: 1;
       margin: 0;
       padding: 4px 0;
       border-radius: 0; /* no rounded corners */
@@ -251,8 +259,9 @@
       justify-content: center;
       gap: 4px;
       user-select: none;
-      font-family: Arial, Helvetica, sans-serif; /* more neutral */
+      font-family: Arial, Helvetica, sans-serif;
     }
+
     .action-btn span.key {
       display: inline-block;
       min-width: 14px;
@@ -262,7 +271,9 @@
       font-family: Arial, Helvetica, sans-serif;
       font-size: 10px;
       background: #f5f5f5;
+      text-align: center;
     }
+
     .action-btn:active {
       transform: scale(0.97);
     }
@@ -275,6 +286,11 @@
       color: #000;
     }
 
+    /* Let the last button sit in the 2nd row with same width */
+    .action-btn[data-action="tvOff"] {
+      grid-column: span 1;
+    }
+
     /* Room positions */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
@@ -282,19 +298,19 @@
     .room4 { top: 188px; left: 9px;   width: 72px;  height: 81px;  }
     .room5 { top: 188px; left: 90px;  width: 159px; height: 81px;  }
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
-    .room7 { top: 278px; left: 257px; width: 134px; height: 90px;  }
+    .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
-    /* Door positions (original layout, minus outside stuff) */
+    /* Door positions (original-ish layout, minus outside stuff) */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
     .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
-    /* door2 removed */
+    /* right door removed */
     .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
     .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }
 
     .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); }
-    /* door3 removed */
+    /* top door removed */
 
     .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); }
     .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
@@ -316,6 +332,7 @@
 
 <div class="everything">
   <div id="instructionBox" class="instruction-box"></div>
+  <div id="popup-message" class="popup-message"></div>
 
   <!-- MAP -->
   <div id="map">
@@ -458,7 +475,7 @@
       <div class="door door1 door-horizontal" data-target="room6"></div>
 
       <div class="clickable-region"
-           style="left: 75px; top: 19px; width: 55px; height: 47px;"
+           style="left: 40px; top: 19px; width: 55px; height: 47px;"
            onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
       </div>
     </div>
@@ -467,39 +484,33 @@
 
   <!-- Action bar (host-only functional) -->
   <div class="action-bar">
-    <div class="action-row">
-      <button class="action-btn" data-action="sleep">
-        😴 <span class="key">Z</span>
-      </button>
-      <button class="action-btn" data-action="table">
-        🍽 <span class="key">T</span>
-      </button>
-      <button class="action-btn" data-action="piano">
-        🎹 <span class="key">P</span>
-      </button>
-      <button class="action-btn" data-action="water">
-        🌳 <span class="key">W</span>
-      </button>
-    </div>
-    <div class="action-row">
-      <button class="action-btn" data-action="shower">
-        🚿 <span class="key">S</span>
-      </button>
-      <button class="action-btn" data-action="brush">
-        🦷 <span class="key">B</span>
-      </button>
-      <button class="action-btn" data-action="dinner">
-        🍲 <span class="key">D</span>
-      </button>
-      <button class="action-btn" data-action="tvOn">
-        📺 <span class="key">1</span>
-      </button>
-    </div>
-    <div class="action-row">
-      <button class="action-btn" data-action="tvOff">
-        ⏹ <span class="key">0</span>
-      </button>
-    </div>
+    <button class="action-btn" data-action="sleep">
+      😴 <span class="key">Z</span>
+    </button>
+    <button class="action-btn" data-action="table">
+      🍽 <span class="key">T</span>
+    </button>
+    <button class="action-btn" data-action="piano">
+      🎹 <span class="key">P</span>
+    </button>
+    <button class="action-btn" data-action="water">
+      🌳 <span class="key">W</span>
+    </button>
+    <button class="action-btn" data-action="shower">
+      🚿 <span class="key">S</span>
+    </button>
+    <button class="action-btn" data-action="brush">
+      🦷 <span class="key">B</span>
+    </button>
+    <button class="action-btn" data-action="dinner">
+      🍲 <span class="key">D</span>
+    </button>
+    <button class="action-btn" data-action="tvOn">
+      📺 <span class="key">1</span>
+    </button>
+    <button class="action-btn" data-action="tvOff">
+      ⏹ <span class="key">0</span>
+    </button>
   </div>
 </div>
 
@@ -521,14 +532,12 @@
   // Show action bar only for host
   const actionBarEl = document.querySelector('.action-bar');
   if (isHost && actionBarEl) {
-    actionBarEl.style.display = 'flex';
+    actionBarEl.style.display = 'grid';
   }
 
   const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
   // Room connections:
-  // - hall (room6) connected to kitchen (room3) & computer lab (room2)
-  // - computer lab (room2) is NOT connected directly to kitchen (room3)
   const roomGraph = {
     room1: ['room2','room4'],
     room2: ['room1','room5','room6'],   // no direct room3
@@ -553,6 +562,7 @@
   const playerEl      = document.getElementById('player');
   const hostEl        = document.getElementById('host');
   const instructionBox= document.getElementById('instructionBox');
+  const popupMsgEl    = document.getElementById('popup-message');
 
   // Distinct positions for player and host per room
   const positionOffsets = {
@@ -578,7 +588,7 @@
 
   const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
 
-  /* === RANDOM SOUND POOLS (5 slots each – you can swap/extend these) === */
+  /* === RANDOM SOUND POOLS (5 slots each – placeholder duplicates, you can vary later) === */
   const soundPools = {
     sleep: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
@@ -637,6 +647,28 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
     ]
   };
+
+  const actionMessages = {
+    sleep:  'The host is sleeping…',
+    table:  'The host is dressing the table…',
+    piano:  'The host is playing the piano…',
+    water:  'The host is watering a tree…',
+    shower: 'The host is taking a shower…',
+    brush:  'The host is brushing their teeth…',
+    dinner: 'The host is making dinner…',
+    tvOn:   'The host turned the TV on…',
+    tvOff:  'The host turned the TV off…'
+  };
+
+  function showMessage(text) {
+    if (!popupMsgEl || !text) return;
+    popupMsgEl.textContent = text;
+    popupMsgEl.style.display = 'block';
+    clearTimeout(showMessage._timeout);
+    showMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, 1800);
+  }
 
   function pickRandomFromPool(poolName) {
     const pool = soundPools[poolName];
@@ -757,9 +789,9 @@
 
   // --- DOM EVENTS ---
 
-  // Host click: only works when player is in same room
+  // Host click: only works when player is in same room (on the player client)
   hostEl.addEventListener('click', () => {
-    // Only do this on the player side (non-host), and only if in same room
+    // Only react on the player side, and only if in same room
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
 
@@ -812,6 +844,9 @@
   function triggerHostAction(kind) {
     if (!isHost) return;
 
+    const msg = actionMessages[kind];
+    if (msg) showMessage(msg);
+
     if (kind === 'tvOff') {
       flashButton('tvOff');
       stopTvLoop();
@@ -857,7 +892,6 @@
         break;
       }
       case 'tvOn': {
-        flashButton('tvOn');
         stopTvLoop();
         const url = pickRandomFromPool('tvOn');
         if (!url) return;
