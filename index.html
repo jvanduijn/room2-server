@@ -45,7 +45,6 @@
       }
     }
 
-    /* Optional glitch keyframes (no longer used for punishment) */
     @keyframes glitch {
       0% { transform: translate(1px, 0) skewX(0deg); }
       10% { transform: translate(-1px, -1px) skewX(-2deg); }
@@ -114,7 +113,7 @@
       text-align: center;
       cursor: pointer;
       opacity: 1;
-      transition: transform 0.35s ease-in-out, opacity 0.35s ease-in-out;
+      transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out; /* faster */
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
       z-index: 1;
@@ -140,7 +139,7 @@
         no-repeat center center / contain;
       position: absolute;
       display: block;
-      transition: transform 0.42s cubic-bezier(0.25, 0.1, 0.25, 1);
+      transition: transform 0.18s cubic-bezier(0.25, 0.1, 0.25, 1); /* faster */
       will-change: transform;
       -webkit-tap-highlight-color: transparent;
       pointer-events: none;
@@ -156,7 +155,7 @@
       position: absolute;
       cursor: pointer;
       z-index: 1001;
-      transition: transform 0.35s ease-in-out;
+      transition: transform 0.18s ease-in-out; /* faster */
     }
 
     /* Doors */
@@ -166,7 +165,7 @@
       border: 1px solid #000;
       cursor: pointer;
       z-index: 2;
-      transition: background-color 0.3s ease, transform 0.15s ease;
+      transition: background-color 0.15s ease, transform 0.1s ease; /* snappier */
       pointer-events: none; /* enabled only in active room for this client */
       -webkit-tap-highlight-color: transparent;
     }
@@ -203,19 +202,6 @@
       cursor: pointer;
     }
 
-    /* Small message popup */
-    .popup-message {
-      position: fixed;
-      top: 20px;
-      right: 10px;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      display: none;
-      z-index: 1000;
-    }
-
     /* Object name / instruction box */
     .instruction-box {
       display: none;
@@ -248,7 +234,6 @@
     .room5 { top: 188px; left: 90px;  width: 159px; height: 81px;  }
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 134px; height: 90px;  }
-    .room8 { top: 0px;   left: 0px;   width: 400px; height: 400px; z-index: 0; display: none; }
 
     /* Door positions (your original layout) */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
@@ -268,7 +253,6 @@
     .room5 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
     .room5 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
     .room5 .door3 { top: -11px; left: 82%; transform: translateX(-50%); }
-    .room5 .door4 { bottom: -11px; left: 55%; transform: translateX(-50%); }
 
     .room6 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
     .room6 .door2 { bottom: -12px; left: 50%; transform: translateX(-50%); }
@@ -276,10 +260,6 @@
     .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
 
     .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
-
-    .room8 .door1 { right: 79px;  top: 27%;  transform: translateY(-50%); }
-    .room8 .door2 { right: 2px;   top: 32%;  transform: translateX(-50%); }
-    .room8 .door3 { right: 178px; top: 66.5%;transform: translateX(-50%); }
   </style>
 </head>
 <body>
@@ -287,7 +267,6 @@
 
 <div class="everything">
   <div id="instructionBox" class="instruction-box"></div>
-  <div class="popup-message" id="popup-message"></div>
 
   <!-- MAP -->
   <div id="map">
@@ -319,6 +298,7 @@
     <div id="room2" class="room room2">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room1" data-popup="popup-room2-1"></div>
+      <!-- door2 (to room3) stays in layout but logic will disallow it -->
       <div class="door door2 door-vertical" data-target="room3" data-popup="popup-room2-3"></div>
       <div class="door door3 door-horizontal" data-target="room5" data-popup="popup-room2-5"></div>
       <div class="door door4 door-horizontal" data-target="room6" data-popup="popup-room2-6"></div>
@@ -357,6 +337,7 @@
     <!-- ROOM 3 – kitchen -->
     <div id="room3" class="room room3">
       <div class="room-label"></div>
+      <!-- keep door1 visually, but logic will not allow room2 <-> room3 -->
       <div class="door door1 door-vertical" data-target="room2" data-popup="popup-room3-2"></div>
       <div class="door door3 door-horizontal" data-target="room6" data-popup="popup-room3-6"></div>
 
@@ -410,12 +391,10 @@
       <div class="door door1 door-vertical" data-target="room4" data-popup="popup-room5-4"></div>
       <div class="door door2 door-vertical" data-target="room6" data-popup="popup-room5-6"></div>
       <div class="door door3 door-horizontal" data-target="room2" data-popup="popup-room5-2"></div>
-      <div class="door door4 door-horizontal" data-target="room8" data-popup="popup-room5-8"></div>
 
       <div class="door-popup" id="popup-room5-4">Going to Room 4</div>
       <div class="door-popup" id="popup-room5-6">Going to Room 6</div>
       <div class="door-popup" id="popup-room5-2">Going to Room 2</div>
-      <div class="door-popup" id="popup-room5-8">Going to Room 8</div>
 
       <div class="clickable-region"
            style="left: 94px; top: 25px; width: 55px; height: 45px;"
@@ -461,47 +440,11 @@
       </div>
     </div>
 
-    <!-- ROOM 8 – outside -->
-    <div id="room8" class="room room8">
-      <div class="door door1 door-vertical" data-target="room5" data-popup="popup-room8-5"></div>
-      <div class="door door2 door-horizontal" data-target="room3" data-popup="popup-room8-3"></div>
-      <div class="door door3 door-horizontal" data-target="room2" data-popup="popup-room8-2"></div>
-
-      <div class="door-popup" id="popup-room8-5">Going to Room 5</div>
-      <div class="door-popup" id="popup-room8-3">Going to Room 3</div>
-      <div class="door-popup" id="popup-room8-2">Going to Room 2</div>
-
-      <div class="clickable-region"
-           style="left: 17px; top: 309px; width: 39px; height: 66px;"
-           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Car'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/car5.mp3');}">
-      </div>
-      <div class="clickable-region"
-           style="left: 87px; top: 270px; width: 37px; height: 10px;"
-           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
-      </div>
-      <div class="clickable-region"
-           style="left: 200px; top: 270px; width: 37px; height: 10px;"
-           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
-      </div>
-      <div class="clickable-region"
-           style="left: 233px; top: 321px; width: 10px; height: 38px;"
-           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
-      </div>
-      <div class="clickable-region"
-           style="right: 68px; top: 35px; width: 10px; height: 38px;"
-           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Plants'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3');}">
-      </div>
-      <div class="clickable-region"
-           style="right: 20px; top: 18px; width: 40px; height: 95px;"
-           onclick="if(currentRoom==='room8'){playClickSound(); showObjectPopup('Steep footpath');}">
-      </div>
-    </div>
-
   </div><!-- /map -->
 </div>
 
-<!-- Socket.IO client -->
-<script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
+<!-- Socket.IO client (from your server) -->
+<script src="/socket.io/socket.io.js"></script>
 <script>
   // Multiplayer config
   const isHost = window.location.search.includes('host=1'); // host opens URL with ?host=1
@@ -513,25 +456,48 @@
   let hostRoom    = 'room2';       // global host room (for display on non-host clients)
   let currentAudio = null;
 
-  const rooms = ['room1','room2','room3','room4','room5','room6','room7','room8'];
+  // No more room8
+  const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
-  // Room connections: hall (room6) connected to kitchen (room3) & computer lab (room2)
+  // Room connections
+  // - hall (room6) connected to kitchen (room3) & computer lab (room2)
+  // - computer lab (room2) is NOT connected to kitchen (room3) anymore
   const roomGraph = {
     room1: ['room2','room4'],
-    room2: ['room1','room3','room5','room6','room8'],
-    room3: ['room2','room6','room8'],
+    room2: ['room1','room5','room6'],   // removed room3, room8
+    room3: ['room6'],                   // only via hall
     room4: ['room1','room5'],
-    room5: ['room2','room4','room6','room8'],
+    room5: ['room2','room4','room6'],   // removed room8
     room6: ['room2','room3','room5','room7'],
-    room7: ['room6'],
-    room8: ['room2','room3','room5']
+    room7: ['room6']
   };
 
   const mapEl         = document.getElementById('map');
   const playerEl      = document.getElementById('player');
   const hostEl        = document.getElementById('host');
   const instructionBox= document.getElementById('instructionBox');
-  const popupMsgEl    = document.getElementById('popup-message');
+
+  // Distinct positions for player and host per room
+  const positionOffsets = {
+    player: {
+      room1: { dx: -8,  dy: 10 },
+      room2: { dx: -12, dy: 5  },
+      room3: { dx: -10, dy: 0  },
+      room4: { dx: -8,  dy: 5  },
+      room5: { dx: -10, dy: 8  },
+      room6: { dx: -6,  dy: 2  },
+      room7: { dx: -10, dy: 0  }
+    },
+    host: {
+      room1: { dx: 8,  dy: -10 },
+      room2: { dx: 12, dy: -5  },
+      room3: { dx: 10, dy: 0   },
+      room4: { dx: 8,  dy: -5  },
+      room5: { dx: 10, dy: -8  },
+      room6: { dx: 6,  dy: -2  },
+      room7: { dx: 10, dy: 0   }
+    }
+  };
 
   function playSound(url) {
     if (!url) return;
@@ -548,7 +514,7 @@
   }
 
   function playClickSound() {
-    // Add a subtle click sound here if you like:
+    // Optional click sound
     // playSound('CLICK_SOUND_URL');
   }
 
@@ -561,24 +527,20 @@
     }, 2000);
   }
 
-  function showMessage(text) {
-    popupMsgEl.textContent = text;
-    popupMsgEl.style.display = 'block';
-    clearTimeout(showMessage._timeout);
-    showMessage._timeout = setTimeout(() => {
-      popupMsgEl.style.display = 'none';
-    }, 1500);
-  }
-
-  function moveElementToRoom(el, roomId) {
+  function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
 
     const mapRect  = mapEl.getBoundingClientRect();
     const roomRect = room.getBoundingClientRect();
 
-    const x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2;
-    const y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2;
+    let x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2;
+    let y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2;
+
+    const offsetsByRole = positionOffsets[role] || {};
+    const off = offsetsByRole[roomId] || { dx: 0, dy: 0 };
+    x += off.dx;
+    y += off.dy;
 
     el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
@@ -592,17 +554,12 @@
     document.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'none');
     const room = document.getElementById(roomId);
     room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
-
-    // Show outside layout when in room8
-    if (roomId === 'room8') {
-      document.getElementById('room8').style.display = 'block';
-    }
   }
 
   function goToRoom(targetRoom) {
     if (targetRoom === currentRoom) return;
     if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) {
-      showMessage('You cannot go there from here.');
+      // No popup, just ignore invalid move
       return;
     }
 
@@ -612,12 +569,11 @@
     if (isHost) {
       // Host controls BLUE character and broadcasts movement
       hostRoom = currentRoom;
-      moveElementToRoom(hostEl, hostRoom);
-      console.log('Host sending hostMove:', hostRoom);
+      moveElementToRoom(hostEl, hostRoom, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
     } else {
       // Player controls RED character locally
-      moveElementToRoom(playerEl, currentRoom);
+      moveElementToRoom(playerEl, currentRoom, 'player');
     }
   }
 
@@ -632,35 +588,27 @@
     console.log('Disconnected from server');
   });
 
-  // Normal players: receive host position updates
-  if (!isHost) {
-    socket.on('hostPosition', (data) => {
-      console.log('Received hostPosition', data);
-      if (!data || !data.roomId) return;
-      hostRoom = data.roomId;
-      moveElementToRoom(hostEl, hostRoom);
-    });
-  }
+  // Everyone listens to hostPosition
+  socket.on('hostPosition', (data) => {
+    if (!data || !data.roomId) return;
+    hostRoom = data.roomId;
+    moveElementToRoom(hostEl, hostRoom, 'host');
+  });
 
   // Host may optionally get a sync when joining
   socket.on('initialHostPosition', (data) => {
-    console.log('Received initialHostPosition', data);
     if (!isHost) return;
     if (data && data.roomId) {
       hostRoom = data.roomId;
       currentRoom = hostRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom);
+      moveElementToRoom(hostEl, hostRoom, 'host');
     }
   });
 
   // --- DOM EVENTS ---
 
-  // Host click: just a friendly interaction
-  hostEl.addEventListener('click', () => {
-    playClickSound();
-    showObjectPopup('You interact with the host.');
-  });
+  // NO more host click popup
 
   // Doors: allow navigation + hover text
   document.querySelectorAll('.door').forEach(door => {
@@ -702,13 +650,13 @@
       playerEl.style.display = 'none';
       currentRoom = hostRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom);
+      moveElementToRoom(hostEl, hostRoom, 'host');
     } else {
       // Players control red, host will be moved when data arrives
       hostRoom = 'room2';
       currentRoom = 'room2';
       updateActiveRoom(currentRoom);
-      moveElementToRoom(playerEl, currentRoom);
+      moveElementToRoom(playerEl, currentRoom, 'player');
     }
   });
 </script>
