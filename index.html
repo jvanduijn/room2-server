@@ -505,7 +505,9 @@
 <script>
   // Multiplayer config
   const isHost = window.location.search.includes('host=1'); // host opens URL with ?host=1
-  const socket = io(window.location.origin);
+  const socket = io(); // same-origin, works on Render and locally
+
+  console.log('Multiplayer client starting. isHost =', isHost);
 
   let currentRoom = 'room2';       // controlled character's room (red for players, blue for host)
   let hostRoom    = 'room2';       // global host room (for display on non-host clients)
@@ -611,6 +613,7 @@
       // Host controls BLUE character and broadcasts movement
       hostRoom = currentRoom;
       moveElementToRoom(hostEl, hostRoom);
+      console.log('Host sending hostMove:', hostRoom);
       socket.emit('hostMove', { roomId: hostRoom });
     } else {
       // Player controls RED character locally
@@ -621,12 +624,18 @@
   // --- SOCKET.IO SETUP ---
 
   socket.on('connect', () => {
+    console.log('Connected to server with id', socket.id);
     socket.emit('join', { role: isHost ? 'host' : 'player' });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
   });
 
   // Normal players: receive host position updates
   if (!isHost) {
     socket.on('hostPosition', (data) => {
+      console.log('Received hostPosition', data);
       if (!data || !data.roomId) return;
       hostRoom = data.roomId;
       moveElementToRoom(hostEl, hostRoom);
@@ -635,6 +644,7 @@
 
   // Host may optionally get a sync when joining
   socket.on('initialHostPosition', (data) => {
+    console.log('Received initialHostPosition', data);
     if (!isHost) return;
     if (data && data.roomId) {
       hostRoom = data.roomId;
