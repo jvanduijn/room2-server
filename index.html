@@ -505,7 +505,7 @@
 <script>
   // Multiplayer config
   const isHost = window.location.search.includes('host=1'); // host opens URL with ?host=1
-  const socket = io('http://localhost:3000'); // change port if your server uses another
+  const socket = io(window.location.origin);
 
   let currentRoom = 'room2';       // controlled character's room (red for players, blue for host)
   let hostRoom    = 'room2';       // global host room (for display on non-host clients)
