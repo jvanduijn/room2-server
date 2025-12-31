@@ -31,10 +31,14 @@ io.on('connection', (socket) => {
 
   // Only the host can move the blue character
   socket.on('hostMove', ({ roomId }) => {
-    if (socket.data.role !== 'host') return;
+    if (socket.data.role !== 'host') {
+      console.log('Ignoring hostMove from non-host client', socket.id);
+      return;
+    }
     if (!roomId) return;
 
     hostRoom = roomId;
+    console.log('Host moved to room:', hostRoom);
     socket.broadcast.emit('hostPosition', { roomId: hostRoom });
   });
 
@@ -43,7 +47,8 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = 3000;
+// IMPORTANT for Render: use provided PORT, fallback to 3000 locally
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log('room_2 server listening on http://localhost:' + PORT);
+  console.log('room_2 server listening on port ' + PORT);
 });
