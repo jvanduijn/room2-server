@@ -161,8 +161,8 @@
       left: 50%;
       transform: translateX(-50%);
       font-size: 13px;
-      color: #007022;
-      background: #ffffff;
+      color: #00ff88;
+      background: #363636;
       border: 1px solid #00ff88;
       padding: 1px 5px;
       border-radius: 0;
@@ -284,7 +284,7 @@
       bottom: 17%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #ffffff;
+      background-color: #212121;
       color: #00ff88;
       padding: 6px 12px;
       border: 1px solid #00ff88;
@@ -298,10 +298,6 @@
       box-sizing: border-box;
       gap: 2px;
     }
-
-
-
-
 
     @media (max-width: 768px) {
       .instruction-box {
@@ -325,7 +321,7 @@
       margin: 0;
       padding: 2px 0;
       border-radius: 0;
-      border: 1px solid #00ff88;
+      border: 1.5px solid #00ff88;
       background: #ffffff;
       color: #000000;
       cursor: pointer;
@@ -909,11 +905,13 @@
     playSound(CLICK_SOUND_URL);
   }
 
-  function showMessage(text, duration = 4000) {
+  // duration: if null/undefined => persistent until manually hidden
+  function showMessage(text, duration) {
     if (!popupMsgEl || !text) return;
     popupMsgEl.textContent = text;
     popupMsgEl.style.display = 'block';
     clearTimeout(showMessage._timeout);
+    if (duration == null) return;
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
     }, duration);
@@ -1122,7 +1120,8 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      showMessage('React to the host…', 3000);
+      // keep visible until you can't react anymore
+      showMessage('React to the host…', null);
     }
   });
 
@@ -1135,6 +1134,7 @@
 
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
+    if (popupMsgEl) popupMsgEl.style.display = 'none'; // hide "React..." when you can't react anymore
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
@@ -1179,6 +1179,9 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
+
+    // you can't react anymore -> hide "React to the host…"
+    if (popupMsgEl) popupMsgEl.style.display = 'none';
   }
 
   if (chatSendEl) {
@@ -1394,7 +1397,10 @@
     hostEl.style.display = 'none';
 
     if (isHost) {
-      if (hostBannerEl) hostBannerEl.style.display = 'block';
+      if (hostBannerEl) {
+        hostBannerEl.textContent = 'to join visit room2.nl';
+        hostBannerEl.style.display = 'block';
+      }
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
 
       playerEl.style.display = 'none';
@@ -1403,7 +1409,10 @@
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
     } else {
-      hostBannerEl.style.display = 'none';
+      if (hostBannerEl) {
+        hostBannerEl.textContent = 'volume ON is allowed';
+        hostBannerEl.style.display = 'block';
+      }
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
       currentRoom = 'room5';
