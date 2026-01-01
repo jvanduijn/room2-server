@@ -139,16 +139,34 @@
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
+    /* inline icons in popups: same size as sprites */
+    .host-icon-inline,
+    .player-icon-inline {
+      display: inline-block;
+      width: 20px;
+      height: 36px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+    .host-icon-inline {
+      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png');
+    }
+    .player-icon-inline {
+      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png');
+    }
+
     /* "?" above host head during conversation */
     .conversation-indicator {
       position: absolute;
-      top: -18px; /* slightly higher */
+      top: -20px; /* slightly higher */
       left: 50%;
       transform: translateX(-50%);
-      font-size: 14px;
-      color: #00cc44;
-      background: #ffffff;
-      border: 1px solid #00cc44;
+      font-size: 13px;
+      color: #0033ff;
+      background: #d9ff00;
+      border: 1px solid #0033ff;
       padding: 0 4px;
       border-radius: 0;
       display: none;
@@ -189,42 +207,44 @@
       cursor: pointer;
     }
 
-    /* Centered popup above map, no rounded corners, ~10% bigger */
+    /* Unified neon status popup (host actions, convo, etc.) */
     .popup-message {
       position: absolute;
-      top: -30px;
+      top: -34px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: rgba(0, 0, 0, 0.9);
-      color: #ffffff;
-      padding: 5px 12px;  /* slightly bigger */
+      background-color: #d9ff00;
+      color: #000;
+      padding: 7px 14px;
       border-radius: 0;
-      font-size: 13px;    /* slightly bigger */
+      font-size: 14px;
       display: none;
       z-index: 1000;
-      max-width: 260px;
+      max-width: 280px;
       text-align: center;
-      border: 1px solid #000;
+      border: 2px solid #000;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
-    /* Digital-style object popup */
+    /* Digital-style object popup – now visually related to popup-message */
     .instruction-box {
       display: none;
       position: fixed;
       bottom: 15%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #ffffff;
-      color: #008022; /* slightly darker green */
-      padding: 4px 8px;
-      border: 2px solid #008022;
-      font-size: 16px;
+      background-color: #d9ff00;
+      color: #000;
+      padding: 6px 12px;
+      border: 2px solid #000;
+      font-size: 14px;
       text-align: center;
       z-index: 1005;
       width: auto;
       max-width: 300px;
-      box-shadow: 0 0 6px rgba(0, 128, 34, 0.4);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
       border-radius: 0;
     }
     @media (max-width: 768px) {
@@ -246,12 +266,12 @@
 
     .action-btn {
       margin: 0;
-      padding: 5px 0;               /* a bit bigger */
+      padding: 5px 0;
       border-radius: 0;
-      border: 2px solid #000;       /* thicker outline */
+      border: 2px solid #000;
       background: #ffffff;
       cursor: pointer;
-      font-size: 12px;              /* ~10% bigger (was 11) */
+      font-size: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -265,9 +285,9 @@
       min-width: 16px;
       padding: 1px 3px;
       border-radius: 0;
-      border: 2px solid #000;       /* thicker */
+      border: 2px solid #000;
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 11px;              /* slightly bigger */
+      font-size: 11px;
       background: #f5f5f5;
       text-align: center;
     }
@@ -277,9 +297,9 @@
     }
 
     .action-btn.active-flash {
-      background: #00cc44;
-      border-color: #00752a;
-      box-shadow: 0 0 4px rgba(0, 204, 68, 0.7);
+      background: #d9ff00;
+      border-color: #000;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
       color: #000;
     }
 
@@ -287,11 +307,11 @@
       grid-column: span 1;
     }
 
-    /* Player chat bar (only visible during conversation for players) */
+    /* Player chat bar */
     .player-chat {
       width: 400px;
       margin: 4px auto 0;
-      display: none; /* JS shows for players when conversation starts */
+      display: none;
       box-sizing: border-box;
       grid-template-columns: 1fr auto;
       gap: 4px;
@@ -680,24 +700,27 @@
     ],
     move: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3'
+    ],
+    message: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
     ]
   };
 
   const actionMessages = {
-    sleep:  'The host is sleeping…',
-    table:  'The host is dressing the table…',
-    piano:  'The host is playing the piano…',
-    water:  'The host is watering a tree…',
-    shower: 'The host is taking a shower…',
-    brush:  'The host is brushing their teeth…',
-    dinner: 'The host is making dinner…',
-    tvOn:   'The host turned the TV on…',
-    tvOff:  'The host turned the TV off…'
+    sleep:  '<span class="host-icon-inline"></span>is sleeping…',
+    table:  '<span class="host-icon-inline"></span>is dressing the table…',
+    piano:  '<span class="host-icon-inline"></span>is playing the piano…',
+    water:  '<span class="host-icon-inline"></span>is watering a tree…',
+    shower: '<span class="host-icon-inline"></span>is taking a shower…',
+    brush:  '<span class="host-icon-inline"></span>is brushing teeth…',
+    dinner: '<span class="host-icon-inline"></span>is making dinner…',
+    tvOn:   '<span class="host-icon-inline"></span>turned the TV on…',
+    tvOff:  '<span class="host-icon-inline"></span>turned the TV off…'
   };
 
-  function showMessage(text) {
-    if (!popupMsgEl || !text) return;
-    popupMsgEl.textContent = text;
+  function showMessage(html) {
+    if (!popupMsgEl || !html) return;
+    popupMsgEl.innerHTML = html;
     popupMsgEl.style.display = 'block';
     clearTimeout(showMessage._timeout);
     showMessage._timeout = setTimeout(() => {
@@ -849,10 +872,8 @@
     if (hostIndicator) hostIndicator.style.display = 'block';
 
     if (isHost) {
-      // 'ask something' -> '............?'
       showMessage('............?');
     } else {
-      // Show chat input for players
       if (playerChatEl) {
         playerChatEl.style.display = 'grid';
       }
@@ -860,7 +881,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      showMessage('React to the host…');
+      showMessage('react to the host…');
     }
   });
 
@@ -880,12 +901,12 @@
     if (!isHost) return;
     if (!conversationId) return;
 
-    // subtle sound when reaction shows
-    playSound(pickRandomFromPool('move'));
+    // custom "message received" sound
+    playSound(pickRandomFromPool('message'));
 
     if (message) {
-      // Format: [🧍‍♂️: "reaction"]
-      showMessage('[🧍‍♂️: "' + message + '"]');
+      const safe = escapeHtml(message);
+      showMessage('<span class="player-icon-inline"></span>“' + safe + '”');
     } else {
       showMessage('no responses this time.');
     }
@@ -1110,6 +1131,18 @@
       moveElementToRoom(playerEl, currentRoom, 'player');
     }
   });
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+      return ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      })[m];
+    });
+  }
 </script>
 </body>
 </html>
