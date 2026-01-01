@@ -54,8 +54,8 @@
       position: absolute;
       top: 2px !important;
       right: 0;
-      font-size: 12px;          /* ~7% bigger */
-      padding: 3px 7px;         /* slightly bigger */
+      font-size: 12px;
+      padding: 3px 7px;
       background: #000;
       color: #00ff88;
       border: 1px solid #00ff88;
@@ -220,24 +220,25 @@
       100% { opacity: 1; }
     }
 
+    /* main dialogue popups (gardening, etc.) docked to left of map */
     .popup-message {
       position: absolute;
-      top: -24px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 6px;
+      left: -2px;                /* hugs the left border of the map */
+      transform: none;
       background-color: #ffffff;
       color: #000000;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border-radius: 0;
       font-size: 14px;
       display: none;
       z-index: 1000;
-      max-width: 280px;
+      max-width: 260px;
       text-align: left;
       box-sizing: border-box;
       align-items: center;
-      gap: 2px !important;
-      /* no border anymore */
+      gap: 4px !important;
+      border-left: 2px solid #00ff88; /* outlined on map side */
     }
 
     .popup-message .actor-icon {
@@ -277,8 +278,8 @@
       top: calc(100% - 1px); /* removes visible gap with map border */
       left: 0;
       margin-top: 0;
-      font-size: 12px;          /* ~7% bigger */
-      padding: 3px 7px;  
+      font-size: 12px;
+      padding: 3px 7px;
       background-color: #212121;
       color: #00ff88;
       border: 1px solid #00ff88;
@@ -291,43 +292,67 @@
       box-sizing: border-box;
     }
 
+    /* Host inventory bar – 3×3 grid, no gap with map */
     .action-bar {
       width: 400px;
-      margin: 4px auto 0;
+      margin: 0 auto 0;
       display: none;
       box-sizing: border-box;
-      grid-template-columns: repeat(9, 1fr);
-      gap: 3px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
       font-size: 12px;
     }
 
     .action-btn {
+      position: relative;
       margin: 0;
-      padding: 2px 0;
-      border-radius: 0;
-      border: 1.5px solid #00ff88;
-      background: #ffffff;
-      color: #000000;
+      padding: 4px 0 6px;
+      border-radius: 4px;
+      border: 1px solid #111;
+      background: #d9d9d9;
+      color: #111;
       cursor: pointer;
       font-size: 14px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       gap: 2px;
       user-select: none;
       font-family: Arial, Helvetica, sans-serif;
       text-transform: none;
       box-sizing: border-box;
+      min-height: 56px;
+    }
+
+    /* yellow + badge like inventory tiles */
+    .action-btn::before {
+      content: '+';
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffd73a;
+      font-size: 11px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .action-btn span.label {
       display: inline-block;
-      font-size: 14px;
+      font-size: 18px;
+      line-height: 1;
     }
 
     .action-btn span.key {
       display: inline-block;
-      font-size: 13px;
+      font-size: 11px;
+      opacity: 0.7;
     }
 
     .action-btn:active {
@@ -335,52 +360,64 @@
     }
 
     .action-btn.active-flash {
-      background: #00ff88;
-      color: #000;
-      border-color: #00ff88;
+      outline: 2px solid #00ff88;
+      outline-offset: 0;
     }
 
     /* Slightly bigger action buttons/fonts on host page */
     body.host-scale .action-btn {
-      padding: 3px 0;
+      padding: 6px 0 8px;
+      min-height: 60px;
       font-size: 15px;
     }
     body.host-scale .action-btn span.label {
-      font-size: 15px;
+      font-size: 19px;
     }
     body.host-scale .action-btn span.key {
-      font-size: 14px;
+      font-size: 12px;
     }
 
+    /* Player chat bar styled like host login, no gap with map */
     .player-chat {
       width: 400px;
-      margin: 4px auto 0;
+      margin: 0 auto 0;
       display: none;
       box-sizing: border-box;
+      padding: 6px 8px;
+      border: 2px solid #00ff88;
+      background: #000;
       grid-template-columns: 1fr auto;
-      gap: 4px;
+      gap: 6px;
       font-size: 12px;
     }
 
     .player-chat input {
       width: 100%;
-      padding: 6px 10px;
+      padding: 6px 8px;
       border-radius: 0;
-      border: 2px solid #00ff88;
-      background: #ffffff;
+      border: 1px solid #00ff88;
+      background: #050505;
+      color: #00ff88;
       font-size: 14px;
       font-family: Arial, Helvetica, sans-serif;
       box-sizing: border-box;
     }
 
+    .player-chat input::placeholder {
+      color: #00ff88;
+      opacity: 0.6;
+    }
+
     .player-chat button {
-      padding: 6px 10px;
+      padding: 6px 14px;
       border-radius: 0;
-      border: 2px solid #00ff88;
-      background: #ffffff;
+      border: 1px solid #00ff88;
+      background: #00ff88;
+      color: #000;
       cursor: pointer;
       font-size: 14px;
       font-family: Arial, Helvetica, sans-serif;
+      text-transform: lowercase;
     }
 
     .player-chat button:active {
@@ -511,7 +548,9 @@
         margin: 0;
         width: 94vw;
         max-width: 414px;
-        background: transparent;
+        background: #000;
+        border: 2px solid #00ff88;
+        padding: 6px 8px;
       }
 
       .player-chat input,
@@ -523,7 +562,7 @@
         top: -8px;
         z-index: 0 !important; /* below popups */
         right: 13px;
-        font-size: 13px;      /* little bigger on phone as well */
+        font-size: 13px;
         padding: 4px 8px;
       }
 
@@ -542,19 +581,20 @@
       .instruction-box {
         position: fixed;
         left: 1%;
-        bottom: 115px;  /* lifted compared to previous 110px */
+        bottom: 115px;
         top: auto;
-        font-size: 13px;      /* little bigger on phone as well */
+        font-size: 13px;
         padding: 4px 8px;
         max-width: 70vw;
         z-index: 1006;
       }
 
-      /* Main popups 10px lower than before (370 -> 380) */
+      /* main popups docked left on mobile as well */
       .popup-message {
-        top: 380px;
-        left: 50%;
-        transform: translateX(-50%);
+        top: 6px;
+        left: -2px;
+        transform: none;
+        max-width: 72vw;
       }
 
       body.host-scale .everything {
@@ -586,10 +626,13 @@
 <div class="everything">
   <div id="host-banner" class="host-banner"></div>
 
-  <div id="popup-message" class="popup-message"></div>
-
   <div id="map">
-    <div id="player" class="player"></div>
+    <!-- main popup, now anchored to the map -->
+    <div id="popup-message" class="popup-message"></div>
+
+    <div id="player" class="player">
+      <div id="player-indicator" class="conversation-indicator">...</div>
+    </div>
     <div id="host" class="random-object">
       <div id="host-indicator" class="conversation-indicator">?</div>
     </div>
@@ -814,6 +857,7 @@
   const instructionBox= document.getElementById('instructionBox');
   const popupMsgEl    = document.getElementById('popup-message');
   const tvAreaEl      = document.getElementById('tv-area');
+  const playerIndicator = document.getElementById('player-indicator'); // "..." bubble
 
   const roomGraph = {
     room1: ['room2','room4'],
@@ -847,18 +891,18 @@
 
   const positionOffsets = {
   player: {
-    room1: { dx: -25, dy: 10 },   // moved more left
+    room1: { dx: -25, dy: 10 },
     room2: { dx: -12, dy: 5  },
-    room3: { dx: -15, dy: 0  },   // more left
-    room4: { dx: -14, dy: -1  },   // slightly more up
+    room3: { dx: -15, dy: 0  },
+    room4: { dx: -14, dy: -1  },
     room5: { dx: -12, dy: 0  },
-    room6: { dx: -12,  dy: 2  },   // hallway slightly more up + left
+    room6: { dx: -12,  dy: 2  },
     room7: { dx: -11, dy: -2 }
   },
   host: {
-    room1: { dx: 8,  dy: -3  },  // slightly lower
-    room2: { dx: 16, dy: -5  },  // slightly more right
-    room3: { dx: 2,  dy: 20   },  // slightly lower + a bit left
+    room1: { dx: 8,  dy: -3  },
+    room2: { dx: 16, dy: -5  },
+    room3: { dx: 2,  dy: 20   },
     room4: { dx: 8,  dy: -5  },
     room5: { dx: 10, dy: -8  },
     room6: { dx: 6,  dy: -2  },
@@ -1187,6 +1231,7 @@
     hasRespondedThisRound = false;
 
     if (hostIndicator) hostIndicator.style.display = 'block';
+    if (playerIndicator) playerIndicator.style.display = 'none';
 
     if (isHost) {
       showHostWaitingMessage(5000);
@@ -1215,6 +1260,7 @@
     hasRespondedThisRound = false;
 
     if (hostIndicator) hostIndicator.style.display = 'none';
+    if (playerIndicator) playerIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
 
     if (!isHost && popupMsgEl) {
@@ -1231,6 +1277,12 @@
 
     if (message) {
       showActorMessage('player', '' + message + '', 6000);
+      if (playerIndicator) {
+        playerIndicator.style.display = 'block';
+        setTimeout(() => {
+          if (playerIndicator) playerIndicator.style.display = 'none';
+        }, 2500);
+      }
     } else {
       showActorMessage('player', 'no response..', 4000);
     }
@@ -1268,6 +1320,13 @@
     if (popupMsgEl && !isHost) {
       popupMsgEl.style.display = 'none';
     }
+
+    if (playerIndicator) {
+      playerIndicator.style.display = 'block';
+      setTimeout(() => {
+        if (playerIndicator) playerIndicator.style.display = 'none';
+      }, 2000);
+    }
   }
 
   if (chatSendEl) {
@@ -1282,6 +1341,13 @@
         e.preventDefault();
         if (!isHost) sendPlayerMessage();
       }
+    });
+
+    // local typing indicator above the player
+    chatInputEl.addEventListener('input', () => {
+      if (!playerIndicator) return;
+      const hasText = !!chatInputEl.value.trim();
+      playerIndicator.style.display = hasText ? 'block' : 'none';
     });
   }
 
