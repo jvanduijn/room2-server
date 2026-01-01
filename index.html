@@ -137,6 +137,7 @@
       cursor: pointer;
       z-index: 1001;
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+      display: none; /* shown when host actually joins / when players see host */
     }
 
     /* inline icons in popups: same size as sprites */
@@ -207,7 +208,7 @@
       cursor: pointer;
     }
 
-    /* Unified neon status popup (host actions, convo, etc.) */
+    /* Unified neon status popup (host actions, convo, replies) */
     .popup-message {
       position: absolute;
       top: -34px;
@@ -215,19 +216,20 @@
       transform: translateX(-50%);
       background-color: #d9ff00;
       color: #000;
-      padding: 7px 14px;
+      padding: 6px 12px;
       border-radius: 0;
-      font-size: 14px;
+      font-size: 12px; /* ~10% smaller than before */
       display: none;
       z-index: 1000;
-      max-width: 280px;
       text-align: center;
       border: 2px solid #000;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      white-space: nowrap;       /* always one line */
+      max-width: none;
     }
 
-    /* Digital-style object popup – now visually related to popup-message */
+    /* Digital-style object popup – same family as popup-message */
     .instruction-box {
       display: none;
       position: fixed;
@@ -283,12 +285,12 @@
     .action-btn span.key {
       display: inline-block;
       min-width: 16px;
-      padding: 1px 3px;
+      padding: 0 2px;
       border-radius: 0;
-      border: 2px solid #000;
+      border: none;               /* no inner outline */
       font-family: Arial, Helvetica, sans-serif;
       font-size: 11px;
-      background: #f5f5f5;
+      background: transparent;    /* same box as emoji */
       text-align: center;
     }
 
@@ -342,6 +344,77 @@
       transform: scale(0.97);
     }
 
+    /* Host overlay (login screen) */
+    #host-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .host-overlay-inner {
+      background: #d9ff00;
+      border: 2px solid #000;
+      padding: 16px 18px;
+      width: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .host-overlay-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .host-overlay-info {
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .host-overlay-label {
+      margin-top: 6px;
+      font-size: 11px;
+    }
+
+    .host-overlay-input {
+      margin-top: 2px;
+      padding: 4px 6px;
+      border: 2px solid #000;
+      border-radius: 0;
+      font-size: 13px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+    }
+
+    .host-overlay-button {
+      margin-top: 10px;
+      padding: 6px 8px;
+      border-radius: 0;
+      border: 2px solid #000;
+      background: #ffffff;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .host-overlay-button:active {
+      transform: scale(0.97);
+    }
+
+    .host-overlay-error {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #ff0000;
+      min-height: 14px;
+    }
+
     /* Room positions */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
@@ -378,6 +451,20 @@
 </head>
 <body>
 <div class="background"></div>
+
+<!-- HOST LOGIN OVERLAY (only used on host side) -->
+<div id="host-overlay">
+  <div class="host-overlay-inner">
+    <div class="host-overlay-title">room_2 host login</div>
+    <div class="host-overlay-info">
+      to join room2 please visit <strong>room2.nl</strong>
+    </div>
+    <div class="host-overlay-label">enter host password</div>
+    <input id="host-password" class="host-overlay-input" type="password" autocomplete="off" />
+    <div id="host-overlay-error" class="host-overlay-error"></div>
+    <div id="host-enter" class="host-overlay-button">enter</div>
+  </div>
+</div>
 
 <div class="everything">
   <div id="instructionBox" class="instruction-box"></div>
@@ -481,7 +568,7 @@
       </div>
     </div>
 
-    <!-- ROOM 5 – living -->
+    <!-- ROOM 5 – living (spawn room) -->
     <div id="room5" class="room room5">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room4"></div>
@@ -573,8 +660,9 @@
 
   console.log('Multiplayer client starting. isHost =', isHost);
 
-  let currentRoom = 'room2';
-  let hostRoom    = 'room2';
+  // spawn in living room by default
+  let currentRoom = 'room5';
+  let hostRoom    = 'room5';
   let currentAudio = null;
   let tvAudio = null;
   let moveAudio = null;
@@ -589,6 +677,13 @@
   const chatInputEl   = document.getElementById('chat-input');
   const chatSendEl    = document.getElementById('chat-send');
   const hostIndicator = document.getElementById('host-indicator');
+
+  const hostOverlay      = document.getElementById('host-overlay');
+  const hostPasswordInput= document.getElementById('host-password');
+  const hostEnterBtn     = document.getElementById('host-enter');
+  const hostOverlayError = document.getElementById('host-overlay-error');
+
+  let hostUnlocked = !isHost; // players are always "unlocked", host needs password
 
   if (isHost && actionBarEl) {
     actionBarEl.style.display = 'grid';
@@ -725,7 +820,7 @@
     clearTimeout(showMessage._timeout);
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
-    }, 4000);  // stay visible longer
+    }, 4000);
   }
 
   function pickRandomFromPool(poolName) {
@@ -818,18 +913,23 @@
     updateActiveRoom(currentRoom);
     playMoveSound();
 
-    if (isHost) {
+    if (isHost && hostUnlocked) {
       hostRoom = currentRoom;
       moveElementToRoom(hostEl, hostRoom, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
-    } else {
+    } else if (!isHost) {
       moveElementToRoom(playerEl, currentRoom, 'player');
     }
   }
 
+  // SOCKET.IO
+
   socket.on('connect', () => {
     console.log('Connected to server with id', socket.id);
-    socket.emit('join', { role: isHost ? 'host' : 'player' });
+    // players join immediately; host joins after password
+    if (!isHost) {
+      socket.emit('join', { role: 'player' });
+    }
   });
 
   socket.on('disconnect', () => {
@@ -839,16 +939,18 @@
   socket.on('hostPosition', (data) => {
     if (!data || !data.roomId) return;
     hostRoom = data.roomId;
+    hostEl.style.display = 'block'; // first time host appears
     moveElementToRoom(hostEl, hostRoom, 'host');
   });
 
   socket.on('initialHostPosition', (data) => {
-    if (!isHost) return;
+    if (!isHost || !hostUnlocked) return;
     if (data && data.roomId) {
       hostRoom = data.roomId;
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
+      hostEl.style.display = 'block';
       moveElementToRoom(hostEl, hostRoom, 'host');
     }
   });
@@ -868,7 +970,6 @@
     currentConversationId = conversationId;
     hasRespondedThisRound = false;
 
-    // "?" visible for host and players
     if (hostIndicator) hostIndicator.style.display = 'block';
 
     if (isHost) {
@@ -912,7 +1013,7 @@
     }
   });
 
-  // Host click (player interaction)
+  // Host clickable for players: grows 10% on click if in same room
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
@@ -942,7 +1043,7 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
-    showMessage('message sent');
+    // no "message sent" popup anymore
   }
 
   if (chatSendEl) {
@@ -993,7 +1094,7 @@
   }
 
   function triggerHostAction(kind) {
-    if (!isHost) return;
+    if (!isHost || !hostUnlocked) return;
 
     const msg = actionMessages[kind];
     if (msg) showMessage(msg);
@@ -1055,7 +1156,7 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if (!isHost) return;
+    if (!isHost || !hostUnlocked) return;
 
     const dirKeyMap = {
       ArrowUp: 'up',
@@ -1116,16 +1217,57 @@
     }
   });
 
+  // HOST OVERLAY LOGIC
+  function unlockHost() {
+    const value = (hostPasswordInput.value || '').trim();
+    if (value === 'host') {
+      hostUnlocked = true;
+      hostOverlay.style.display = 'none';
+
+      // now officially join as host
+      socket.emit('join', { role: 'host' });
+
+      hostRoom = 'room5';
+      currentRoom = 'room5';
+      window.currentRoom = currentRoom;
+      updateActiveRoom(currentRoom);
+      hostEl.style.display = 'block';
+      moveElementToRoom(hostEl, hostRoom, 'host');
+      hostOverlayError.textContent = '';
+    } else {
+      hostOverlayError.textContent = 'wrong password';
+    }
+  }
+
+  if (isHost) {
+    hostOverlay.style.display = 'flex';
+    if (hostPasswordInput) {
+      setTimeout(() => hostPasswordInput.focus(), 50);
+    }
+  } else {
+    // players never see overlay
+    hostOverlay.style.display = 'none';
+  }
+
+  if (hostEnterBtn) {
+    hostEnterBtn.addEventListener('click', unlockHost);
+  }
+  if (hostPasswordInput) {
+    hostPasswordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        unlockHost();
+      }
+    });
+  }
+
   window.addEventListener('load', () => {
     if (isHost) {
       playerEl.style.display = 'none';
-      currentRoom = hostRoom;
-      window.currentRoom = currentRoom;
-      updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom, 'host');
+      // host will spawn after unlockHost()
     } else {
-      hostRoom = 'room2';
-      currentRoom = 'room2';
+      hostRoom = 'room5';
+      currentRoom = 'room5';
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
       moveElementToRoom(playerEl, currentRoom, 'player');
