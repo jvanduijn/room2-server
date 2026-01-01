@@ -5,13 +5,11 @@
   <meta id="vp" name="viewport" content="width=device-width, initial-scale=1.0">
   <title>room_2 – multiplayer</title>
   <style>
-    /* Hide external site header (e.g. WordPress theme header) */
     header,
     .site-header {
       display: none !important;
     }
 
-    /* General reset and centering */
     html, body {
       margin: 0;
       padding: 0;
@@ -26,17 +24,15 @@
       align-items: center;
       user-select: none;
       overflow: hidden;
-      background-color: #000;
-      color: #000;
+      background-color: transparent; /* back to original */
     }
 
     .everything {
       position: relative;
       width: 400px;
-      height: 460px; /* extra room for buttons + popups */
+      height: 460px;
     }
 
-    /* Background behind everything */
     .background {
       position: fixed;
       top: 0;
@@ -49,7 +45,6 @@
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/background1.png');
     }
 
-    /* Map container */
     #map {
       position: relative;
       -webkit-tap-highlight-color: transparent;
@@ -78,7 +73,6 @@
       }
     }
 
-    /* Rooms = invisible full-click areas */
     .room {
       position: absolute;
       background-color: transparent;
@@ -107,7 +101,6 @@
       display: none;
     }
 
-    /* Player (red character – local client) */
     .player {
       width: 20px;
       height: 36px;
@@ -123,7 +116,6 @@
       pointer-events: none;
     }
 
-    /* Host (blue character – synchronized via server) */
     .random-object {
       width: 20px;
       height: 36px;
@@ -136,7 +128,7 @@
       transition: transform 0.40s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    /* Phone: characters 15% bigger */
+    /* phone: bigger characters */
     @media (max-width: 480px) {
       .player,
       .random-object {
@@ -145,12 +137,12 @@
       }
     }
 
-    /* Inline icons for text popups */
+    /* inline icons in popups: same size as characters */
     .host-icon-inline,
     .player-icon-inline {
       display: inline-block;
-      width: 14px;
-      height: 26px;
+      width: 20px;
+      height: 36px;
       background-size: contain;
       background-repeat: no-repeat;
       vertical-align: middle;
@@ -163,7 +155,14 @@
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png');
     }
 
-    /* Doors */
+    @media (max-width: 480px) {
+      .host-icon-inline,
+      .player-icon-inline {
+        width: 23px;
+        height: 41px;
+      }
+    }
+
     .door {
       position: absolute;
       background-color: #111;
@@ -183,55 +182,48 @@
       height: 40px;
     }
     .door:hover {
-      background-color: #00ff66;
+      background-color: #c8ff00;
       transform: scale(1.03);
     }
-
-    .door-popup {
-      display: none; /* we no longer show hover popups */
-    }
+    .door-popup { display: none; }
 
     .clickable-region {
       position: absolute;
       cursor: pointer;
     }
 
-    /* Top message popup: used for host actions (sleep, tv, etc.) */
+    /* top host-status popup */
     .top-message {
       position: fixed;
       top: 8%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #e4ff3f;
-      color: #020202;
+      background-color: #d9ff00;   /* neon */
+      color: #000;
       padding: 8px 14px;
-      border: 2px solid #020202;
-      font-size: 15px; /* ~20% bigger than earlier */
+      border: 2px solid #000;
+      font-size: 15px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       display: none;
       z-index: 2000;
-      box-shadow: 0 0 0 2px #000;
     }
 
-    /* Conversation prompt: '............?' */
     .conversation-prompt {
       position: fixed;
       top: 5%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #fff;
+      background-color: #ffffff;
       color: #0033ff;
       padding: 10px 18px;
       border: 2px solid #0033ff;
-      font-size: 20px; /* 10% bigger */
+      font-size: 20px;
       letter-spacing: 0.3em;
       display: none;
       z-index: 2100;
-      box-shadow: 0 0 0 2px #000;
     }
 
-    /* Conversation reply shown to host */
     .conversation-reply {
       position: fixed;
       top: 14%;
@@ -244,12 +236,11 @@
       font-size: 15px;
       display: none;
       z-index: 2100;
-      box-shadow: 0 0 0 2px #000;
       max-width: 320px;
       text-align: left;
     }
 
-    /* Object name / instruction box (green digital style) */
+    /* object popup: more digital + neon */
     .instruction-box {
       display: none;
       position: fixed;
@@ -257,41 +248,35 @@
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #00b83f;
-      padding: 6px 10px;
-      border: 2px solid #00b83f;
+      color: #00c04b;
+      padding: 6px 12px;
+      border: 2px solid #00ff66;
       font-size: 14px;
       text-align: center;
       z-index: 1005;
       max-width: 320px;
-      letter-spacing: 0.05em;
-      box-shadow: 0 0 0 2px #000;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
-
     @media (max-width: 768px) {
-      .instruction-box {
-        bottom: 14%;
-      }
+      .instruction-box { bottom: 14%; }
     }
 
-    /* ? above host when conversation is active */
     .host-question {
       position: absolute;
       width: 20px;
       height: 20px;
-      background-color: #e4ff3f;
+      background-color: #d9ff00;
       color: #0033ff;
       border: 2px solid #0033ff;
       display: none;
       align-items: center;
       justify-content: center;
-      font-size: 13px; /* slightly smaller */
+      font-size: 13px;
       font-weight: 600;
-      box-shadow: 0 0 0 2px #000;
       pointer-events: none;
     }
 
-    /* Action buttons (host only) */
     .action-panel {
       position: absolute;
       bottom: -46px;
@@ -309,7 +294,7 @@
       border-radius: 0;
       border: 2px solid #111;
       background-color: #111;
-      color: #e4ff3f;
+      color: #d9ff00;
       font-size: 14px;
       font-weight: 600;
       display: inline-flex;
@@ -319,19 +304,16 @@
       padding: 0;
       line-height: 1;
     }
-
     .action-btn span.key {
       font-size: 11px;
       margin-left: 2px;
     }
-
     .action-btn.active {
-      background-color: #e4ff3f;
+      background-color: #d9ff00;
       color: #111;
-      box-shadow: 0 0 0 2px #e4ff3f;
     }
 
-    /* Rooms layout */
+    /* room geometry */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
     .room3 { top: 139px; left: 319px; width: 72px;  height: 131px; }
@@ -340,17 +322,15 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 134px; height: 90px;  }
 
-    /* Door positions (no more outside room) */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
-    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); } /* to room1 */
-    .room2 .door2 { right: -11px; top: 50%; transform: translateY(-50%); }/* to room3 */
+    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }  /* to room1 */
+    .room2 .door2 { right: -11px; top: 50%; transform: translateY(-50%); } /* now also to hall (room6) */
     .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }/* to room5 */
     .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }/* to room6 */
 
-    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); } /* to room2 */
-    .room3 .door3 { top: -12px; left: 50%; transform: translateX(-50%); } /* to room6 */
+    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); } /* to room6 */
 
     .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); } /* to room1 */
     .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }/* to room5 */
@@ -364,8 +344,7 @@
     .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }/* to room3 */
     .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); } /* to room2 */
 
-    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); } /* to room6 */
-
+    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }  /* to room6 */
   </style>
 </head>
 <body>
@@ -374,18 +353,13 @@
 <div class="everything">
   <div id="instructionBox" class="instruction-box"></div>
 
-  <!-- Top info popups -->
   <div id="topMessage" class="top-message"></div>
   <div id="conversationPrompt" class="conversation-prompt">............?</div>
   <div id="conversationReply" class="conversation-reply"></div>
 
-  <!-- MAP -->
   <div id="map">
-    <!-- local player (red) -->
     <div id="player" class="player"></div>
-    <!-- host (blue) -->
     <div id="host" class="random-object"></div>
-    <!-- ? marker above host when asking something -->
     <div id="hostQuestion" class="host-question">?</div>
 
     <!-- ROOM 1 -->
@@ -408,7 +382,7 @@
     <div id="room2" class="room room2">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room1"></div>
-      <div class="door door2 door-vertical" data-target="room3"></div>
+      <div class="door door2 door-vertical" data-target="room6"></div>
       <div class="door door3 door-horizontal" data-target="room5"></div>
       <div class="door door4 door-horizontal" data-target="room6"></div>
 
@@ -441,8 +415,7 @@
     <!-- ROOM 3 – kitchen -->
     <div id="room3" class="room room3">
       <div class="room-label"></div>
-      <div class="door door1 door-vertical" data-target="room2"></div>
-      <div class="door door3 door-horizontal" data-target="room6"></div>
+      <div class="door door1 door-vertical" data-target="room6"></div>
 
       <div class="clickable-region"
            style="left: 10px; top: 11px; width: 43px; height: 65px;"
@@ -527,7 +500,7 @@
       </div>
     </div>
 
-    <!-- ACTION BUTTON PANEL (host only; JS will hide for players) -->
+    <!-- host-only action panel -->
     <div id="actionPanel" class="action-panel">
       <button class="action-btn" id="btn-z" data-key="z">😴<span class="key">Z</span></button>
       <button class="action-btn" id="btn-t" data-key="t">🍽<span class="key">T</span></button>
@@ -540,10 +513,9 @@
       <button class="action-btn" id="btn-0" data-key="0">⏹<span class="key">0</span></button>
     </div>
 
-  </div><!-- /map -->
+  </div>
 </div>
 
-<!-- Socket.IO client -->
 <script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
 <script>
   const isHost = window.location.search.includes('host=1');
@@ -554,17 +526,16 @@
   let currentAudio = null;
   let tvAudio = null;
 
-  const CONVERSATION_WINDOW_MS = 9000;   // players have ~9s to react
-  const REPLY_DISPLAY_MS       = 4500;   // reply / no-response visible a bit longer
+  const CONVERSATION_WINDOW_MS = 9000;
+  const REPLY_DISPLAY_MS       = 4500;
 
   let hostConversationActive = false;
   let conversationTimer = null;
-  let collectedReactions = [];
 
   const roomGraph = {
     room1: ['room2','room4'],
-    room2: ['room1','room3','room5','room6'],
-    room3: ['room2','room6'],
+    room2: ['room1','room5','room6'],   // no direct kitchen
+    room3: ['room6'],                   // kitchen only via hall
     room4: ['room1','room5'],
     room5: ['room2','room4','room6'],
     room6: ['room2','room3','room5','room7'],
@@ -581,9 +552,7 @@
   const convReplyEl    = document.getElementById('conversationReply');
   const actionPanel    = document.getElementById('actionPanel');
 
-  // ---- SOUND HELPERS ----
   const roomMoveSounds = [
-    // replace / add your own
     'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep1.mp3',
     'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep2.mp3',
     'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep3.mp3',
@@ -596,7 +565,6 @@
   ];
 
   const messageReceivedSounds = [
-    // put your custom message sounds here
     'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
   ];
 
@@ -617,7 +585,11 @@
   ];
 
   const pianoSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie.mp3'
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano1.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano2.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano3.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano4.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano5.mp3'
   ];
 
   const waterSounds = [
@@ -653,7 +625,11 @@
   ];
 
   const tvLoopSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav'
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop1.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop2.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop3.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop4.mp3',
+    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop5.mp3'
   ];
 
   function playSound(url, loop = false) {
@@ -705,17 +681,23 @@
     }, 2200);
   }
 
-  // --- POSITIONING ---
-
-  function moveElementToRoom(el, roomId, withSound = false) {
+  function moveElementToRoom(el, roomId, withSound = false, role = null) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
 
     const mapRect  = mapEl.getBoundingClientRect();
     const roomRect = room.getBoundingClientRect();
 
-    const x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2;
-    const y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2;
+    let offsetX = 0;
+    let offsetY = 0;
+    if (role === 'host') {
+      offsetX = 8;     // host a bit to the right
+    } else if (role === 'player') {
+      offsetX = -8;    // player a bit to the left
+    }
+
+    const x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2 + offsetX;
+    const y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2 + offsetY;
 
     el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     if (withSound) playRoomMoveSound();
@@ -729,7 +711,6 @@
     document.querySelectorAll('.room').forEach(r => {
       r.classList.toggle('active', r.id === roomId);
     });
-
     document.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'none');
     const room = document.getElementById(roomId);
     room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
@@ -744,14 +725,13 @@
 
     if (fromHost) {
       hostRoom = currentRoom;
-      moveElementToRoom(hostEl, hostRoom, true);
+      moveElementToRoom(hostEl, hostRoom, true, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
     } else {
-      moveElementToRoom(playerEl, currentRoom, true);
+      moveElementToRoom(playerEl, currentRoom, true, 'player');
     }
   }
 
-  // position ? above host
   function positionHostQuestion() {
     if (!hostConversationActive) {
       hostQuestionEl.style.display = 'none';
@@ -760,17 +740,17 @@
     const hostRect = hostEl.getBoundingClientRect();
     const mapRect  = mapEl.getBoundingClientRect();
     const x = hostRect.left - mapRect.left + hostRect.width / 2;
-    const y = hostRect.top  - mapRect.top - 24; // slightly higher
+    const y = hostRect.top  - mapRect.top - 30; // higher
     hostQuestionEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     hostQuestionEl.style.display = 'flex';
   }
 
   window.addEventListener('resize', () => {
-    moveElementToRoom(isHost ? hostEl : playerEl, currentRoom);
+    moveElementToRoom(isHost ? hostEl : playerEl, currentRoom, false, isHost ? 'host' : 'player');
     positionHostQuestion();
   });
 
-  // --- SOCKET SETUP ---
+  // --- Socket events ---
 
   socket.on('connect', () => {
     socket.emit('join', { role: isHost ? 'host' : 'player' });
@@ -780,7 +760,7 @@
     socket.on('hostPosition', (data) => {
       if (!data || !data.roomId) return;
       hostRoom = data.roomId;
-      moveElementToRoom(hostEl, hostRoom);
+      moveElementToRoom(hostEl, hostRoom, false, 'host');
     });
   }
 
@@ -790,23 +770,20 @@
       hostRoom = data.roomId;
       currentRoom = hostRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom);
+      moveElementToRoom(hostEl, hostRoom, false, 'host');
     }
   });
 
-  // Host actions mirrored to players (popups only; sound only on host)
   socket.on('hostAction', (payload) => {
     if (isHost) return;
     if (!payload || !payload.messageHtml) return;
     showTopMessage(payload.messageHtml);
   });
 
-  // Conversation events
   socket.on('conversationPrompt', () => {
     convPromptEl.style.display = 'block';
     hostConversationActive = true;
     positionHostQuestion();
-    // players can type right away
   });
 
   socket.on('conversationEnd', () => {
@@ -816,18 +793,15 @@
   });
 
   socket.on('conversationResult', (data) => {
+    if (!isHost) return;
     if (!data || !data.text) {
-      if (!isHost) return;
       convReplyEl.textContent = 'no response this time';
     } else {
-      if (!isHost) return;
-      // [red icon: "message"]
       convReplyEl.innerHTML =
         '<span class="player-icon-inline"></span>' +
         '“' + escapeHtml(data.text) + '”';
       playRandom(messageReceivedSounds);
     }
-
     convReplyEl.style.display = 'block';
     clearTimeout(socket._replyTimer);
     socket._replyTimer = setTimeout(() => {
@@ -835,8 +809,7 @@
     }, REPLY_DISPLAY_MS);
   });
 
-  // --- ACTION BUTTON LOGIC (HOST) ---
-
+  // host actions map
   const actionMap = {
     z: {
       buttonId: 'btn-z',
@@ -890,13 +863,13 @@
     const a = actionMap[key];
     if (!a) return;
 
-    // Visual state
     document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
     const btn = a.buttonId ? document.getElementById(a.buttonId) : null;
-    if (btn) btn.classList.add('active');
-    setTimeout(() => { if (btn) btn.classList.remove('active'); }, 250);
+    if (btn) {
+      btn.classList.add('active');
+      setTimeout(() => btn.classList.remove('active'), 250);
+    }
 
-    // Audio
     if (a.tvOn) {
       if (tvAudio) { tvAudio.pause(); tvAudio = null; }
       tvAudio = playRandom(tvLoopSounds, true);
@@ -906,38 +879,29 @@
       playRandom(a.sounds);
     }
 
-    // Message (host + players)
     const html = a.messageHtml;
     showTopMessage(html);
     socket.emit('hostAction', { messageHtml: html });
   }
 
-  // Command buttons click (host only)
   document.querySelectorAll('.action-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!isHost) return;
-      const key = btn.dataset.key;
-      triggerHostAction(key);
+      triggerHostAction(btn.dataset.key);
     });
   });
 
-  // --- HOST / PLAYER CONTROLS ---
-
-  // Host click: only players can click host for small bump + click sound
+  // player clicking host -> bump + click sound
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
-
     playClickSound();
-
     const original = hostEl.style.transform || '';
     hostEl.style.transform = original + ' scale(1.1)';
-    setTimeout(() => {
-      hostEl.style.transform = original;
-    }, 50);
+    setTimeout(() => { hostEl.style.transform = original; }, 50);
   });
 
-  // Doors for navigation
+  // doors and rooms
   document.querySelectorAll('.door').forEach(door => {
     const target = door.dataset.target;
     door.addEventListener('click', (e) => {
@@ -947,36 +911,26 @@
     });
   });
 
-  // Full room clickability
   document.querySelectorAll('.room').forEach(room => {
     room.addEventListener('click', () => {
       goToRoom(room.id, isHost);
     });
   });
 
-  // Keyboard controls
+  // keyboard: arrow keys & actions
   window.addEventListener('keydown', (e) => {
-    const key = e.key.toLowerCase();
+    const key = e.key;
 
-    // Arrow keys for host movement
-    if (isHost) {
-      if (['arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase())) {
-        const neighbors = roomGraph[currentRoom] || [];
-        if (neighbors.length) {
-          const target = neighbors[Math.floor(Math.random() * neighbors.length)];
-          goToRoom(target, true);
-        }
-        return;
-      }
+    if (isHost && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) {
+      handleArrowMove(key);
+      return;
     }
 
-    // Conversation start (host presses '2')
-    if (isHost && e.key === '2') {
+    if (isHost && key === '2') {
       if (hostConversationActive) return;
       hostConversationActive = true;
       convPromptEl.style.display = 'block';
       positionHostQuestion();
-      collectedReactions = [];
       socket.emit('startConversation');
       if (conversationTimer) clearTimeout(conversationTimer);
       conversationTimer = setTimeout(() => {
@@ -988,8 +942,7 @@
       return;
     }
 
-    // Player sends reaction during active window
-    if (!isHost && hostConversationActive && e.key === 'Enter') {
+    if (!isHost && hostConversationActive && key === 'Enter') {
       const msg = prompt('type a reaction');
       if (msg && msg.trim()) {
         socket.emit('submitReaction', { text: msg.trim() });
@@ -997,34 +950,67 @@
       return;
     }
 
-    // Host action keys
-    if (isHost && actionMap[key]) {
-      triggerHostAction(key);
+    const lower = key.toLowerCase();
+    if (isHost && actionMap[lower]) {
+      triggerHostAction(lower);
     }
   });
 
-  // Hide action panel completely for players (also on phone)
+  function handleArrowMove(key) {
+    const neighbors = roomGraph[currentRoom] || [];
+    if (!neighbors.length) return;
+
+    const curRect = document.getElementById(currentRoom).getBoundingClientRect();
+    const cx = curRect.left + curRect.width / 2;
+    const cy = curRect.top  + curRect.height / 2;
+
+    let bestId = null;
+    let bestDist = Infinity;
+
+    neighbors.forEach(id => {
+      const r = document.getElementById(id);
+      if (!r) return;
+      const nx = r.left + r.width / 2;
+      const ny = r.top  + r.height / 2;
+      const dx = nx - cx;
+      const dy = ny - cy;
+
+      if (key === 'ArrowUp'    && dy >= 0) return;
+      if (key === 'ArrowDown'  && dy <= 0) return;
+      if (key === 'ArrowLeft'  && dx >= 0) return;
+      if (key === 'ArrowRight' && dx <= 0) return;
+
+      const dist = Math.abs(dx) + Math.abs(dy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestId = id;
+      }
+    });
+
+    if (bestId) {
+      goToRoom(bestId, true);
+    }
+  }
+
+  // hide action panel for players (also on phone)
   if (!isHost && actionPanel) {
     actionPanel.style.display = 'none';
   }
-
-  // --- INIT LAYOUT ---
 
   window.addEventListener('load', () => {
     if (isHost) {
       playerEl.style.display = 'none';
       currentRoom = hostRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom);
+      moveElementToRoom(hostEl, hostRoom, false, 'host');
     } else {
       hostRoom = 'room2';
       currentRoom = 'room2';
       updateActiveRoom(currentRoom);
-      moveElementToRoom(playerEl, currentRoom);
+      moveElementToRoom(playerEl, currentRoom, false, 'player');
     }
   });
 
-  // --- small helper ---
   function escapeHtml(str) {
     return str.replace(/[&<>"']/g, function(m) {
       return ({
