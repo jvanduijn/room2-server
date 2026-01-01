@@ -26,6 +26,12 @@
       background-color: transparent;
     }
 
+    /* Host page zoomed in 30% without changing coordinates */
+    body.host-mode .everything {
+      transform: scale(1.3);
+      transform-origin: top left;
+    }
+
     @media screen and (max-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
       body {
         transform: scale(0.95);
@@ -235,7 +241,7 @@
     /* Centered popup above map (host & player messages) */
     .popup-message {
       position: absolute;
-      top: -24px; /* closer to map */
+      top: 6px; /* 30px lower than before */
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
@@ -249,9 +255,8 @@
       text-align: left;
       border: 1px solid #00ff88;
       box-sizing: border-box;
-      display: none;
       align-items: center;
-      gap: 4px;
+      gap: 2px; /* smaller gap between icon and text */
     }
 
     .popup-message .actor-icon {
@@ -277,31 +282,24 @@
       white-space: nowrap;
     }
 
-    /* Digital-style object popup (furniture) – same language */
+    /* Digital-style object popup (furniture) – banner style, bottom-left of map */
     .instruction-box {
       display: none;
-      position: fixed;
-      bottom: 15%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #ffffff;
-      color: #007022;
-      padding: 8px 14px;
-      border: 2px solid #00ff88;
-      font-size: 17px;
-      text-align: center;
+      position: absolute;
+      top: 430px;  /* just under the map */
+      left: 0;
+      background-color: #000000;
+      color: #00ff88;
+      padding: 4px 8px;
+      border: 1px solid #00ff88;
+      font-size: 13px;
+      text-align: left;
       z-index: 1005;
       width: auto;
-      max-width: 300px;
+      max-width: 260px;
       letter-spacing: 0.5px;
       border-radius: 0;
       box-sizing: border-box;
-    }
-    @media (max-width: 768px) {
-      .instruction-box {
-        bottom: 20%;
-        max-width: 350px;
-      }
     }
 
     /* Host-only action bar – "inventory" style, white background */
@@ -455,6 +453,12 @@
       transform: scale(0.97);
     }
 
+    /* Prevent focus style changes */
+    input:focus,
+    button:focus {
+      outline: none;
+    }
+
     /* Room positions */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
@@ -493,7 +497,7 @@
 <div class="background"></div>
 
 <div class="everything">
-  <div id="host-banner" class="host-banner">to join visit room2.nl</div>
+  <div id="host-banner" class="host-banner"></div>
 
   <div id="instructionBox" class="instruction-box"></div>
   <div id="popup-message" class="popup-message"></div>
@@ -703,6 +707,10 @@
   window.isHost = isHost;
   const socket = io();
 
+  if (isHost) {
+    document.body.classList.add('host-mode');
+  }
+
   console.log('Multiplayer client starting. isHost =', isHost);
 
   let currentRoom  = 'room5'; // spawn in living room
@@ -715,6 +723,7 @@
 
   let currentConversationId = null;
   let hasRespondedThisRound = false;
+  let conversationActive = false;
 
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
@@ -913,8 +922,12 @@
     }, duration);
   }
 
+  // Host/player speech bubble
   function showActorMessage(actor, text, duration = 4000) {
     if (!popupMsgEl || !text) return;
+    // Don't let host action messages overwrite an active conversation
+    if (conversationActive && actor === 'host') return;
+
     const iconClass = actor === 'player' ? 'actor-player' : 'actor-host';
     popupMsgEl.innerHTML =
       '<span class="actor-icon ' + iconClass + '"></span>' +
@@ -926,17 +939,21 @@
     }, duration);
   }
 
-  function showHostWaitingMessage(duration = 4000) {
+  // Host side: persistent "waiting" message
+  function showHostWaitingMessage() {
     if (!popupMsgEl) return;
     popupMsgEl.innerHTML =
       '<span class="actor-text">waiting for </span>' +
       '<span class="actor-icon actor-player"></span>' +
       '<span class="actor-text">\'s response</span>';
     popupMsgEl.style.display = 'flex';
-    clearTimeout(showHostWaitingMessage._timeout);
-    showHostWaitingMessage._timeout = setTimeout(() => {
-      popupMsgEl.style.display = 'none';
-    }, duration);
+  }
+
+  // Player side: persistent "React to the host…" message
+  function showReactPrompt() {
+    if (!popupMsgEl) return;
+    popupMsgEl.textContent = 'React to the host…';
+    popupMsgEl.style.display = 'block';
   }
 
   function showObjectPopup(text) {
@@ -985,11 +1002,7 @@
     const allowed = new Set(roomActions[roomId] || []);
     document.querySelectorAll('.action-btn').forEach(btn => {
       const action = btn.dataset.action;
-      if (allowed.has(action)) {
-        btn.style.display = 'flex';
-      } else {
-        btn.style.display = 'none';
-      }
+      btn.style.display = allowed.has(action) ? 'flex' : 'none';
     });
   }
 
@@ -1103,11 +1116,12 @@
     console.log('conversationStart', conversationId);
     currentConversationId = conversationId;
     hasRespondedThisRound = false;
+    conversationActive = true;
 
     if (hostIndicator) hostIndicator.style.display = 'block';
 
     if (isHost) {
-      showHostWaitingMessage(5000);
+      showHostWaitingMessage();
     } else {
       if (playerChatEl) {
         playerChatEl.style.display = 'grid';
@@ -1116,7 +1130,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      showMessage('React to the host…', 3000);
+      showReactPrompt(); // stays visible until you can't react anymore
     }
   });
 
@@ -1126,9 +1140,11 @@
 
     currentConversationId = null;
     hasRespondedThisRound = false;
+    conversationActive = false;
 
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
+    if (popupMsgEl) popupMsgEl.style.display = 'none';
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
@@ -1138,8 +1154,13 @@
 
     playSound(pickRandomFromPool('message'));
 
+    // conversation done, now host actions may show again
+    conversationActive = false;
+    if (hostIndicator) hostIndicator.style.display = 'none';
+
     if (message) {
-      showActorMessage('player', '"' + message + '"', 6000);
+      // no "" around the text anymore
+      showActorMessage('player', message, 6000);
     } else {
       showActorMessage('player', 'no response this time.', 4000);
     }
@@ -1172,7 +1193,9 @@
     });
 
     hasRespondedThisRound = true;
+    conversationActive = false;   // this player can't react anymore
     playerChatEl.style.display = 'none';
+    if (popupMsgEl) popupMsgEl.style.display = 'none'; // hide "React to the host…"
   }
 
   if (chatSendEl) {
@@ -1342,7 +1365,8 @@
         break;
       case '2':
         socket.emit('startConversation');
-        showHostWaitingMessage(5000);
+        conversationActive = true;
+        showHostWaitingMessage();
         break;
     }
   });
@@ -1353,7 +1377,6 @@
 
     hostUnlocked = true;
     hostLoginEl.style.display = 'none';
-    hostBannerEl.style.display = 'block';
 
     hostEl.style.display = 'block';
     updateActiveRoom(hostRoom);
@@ -1387,8 +1410,15 @@
   window.addEventListener('load', () => {
     hostEl.style.display = 'none';
 
+    // banner on both pages, with different text
+    if (hostBannerEl) {
+      hostBannerEl.textContent = isHost
+        ? 'to join visit room2.nl'
+        : 'volume ON is allowed';
+      hostBannerEl.style.display = 'block';
+    }
+
     if (isHost) {
-      if (hostBannerEl) hostBannerEl.style.display = 'block';
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
 
       playerEl.style.display = 'none';
@@ -1397,7 +1427,6 @@
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
     } else {
-      hostBannerEl.style.display = 'none';
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
       currentRoom = 'room5';
