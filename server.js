@@ -9,23 +9,25 @@ const io     = new Server(server, {
   cors: { origin: "*" }
 });
 
-// Serve index.html + assets from this folder
+// static files (index.html etc.)
 app.use(express.static(__dirname));
 
 // --- HOST STATE ---
-let hostRoom       = 'room5';   // spawn in living room
+let hostRoom       = 'room5';   // living room
 let hostConnected  = false;
 let hostSocketId   = null;
 
-// --- CONVERSATION STATE (for the "2" key feature) ---
+// --- PLAYER STATE (for ghost player) ---
+const playerRooms = new Map(); // socketId -> roomId
+
+// --- CONVERSATION STATE ---
 let currentConversationId = null;
 let conversationResponses = [];
 let conversationTimeout   = null;
 
-// 8–9 seconds window for players to respond
-const CONVERSATION_DURATION_MS = 9000;
+// shorter, more natural
+const CONVERSATION_DURATION_MS = 6000;
 
-// Helper: reset conversation state
 function clearConversationState() {
   currentConversationId = null;
   conversationResponses = [];
@@ -44,17 +46,25 @@ io.on('connection', (socket) => {
     console.log(`Client ${socket.id} joined as ${role}`);
 
     if (role === 'host') {
-      hostConnected = true;
-      hostSocketId  = socket.id;
-
-      // Send initial position just to the host
+      // host is not "online" for players yet until hostReady
+      hostSocketId = socket.id;
       socket.emit('initialHostPosition', { roomId: hostRoom });
     } else {
-      // Player: only show host if a host is actually connected
+      // player: only show host if host is actually online
       if (hostConnected) {
         socket.emit('hostPosition', { roomId: hostRoom });
       }
     }
+  });
+
+  // host confirms login success
+  socket.on('hostReady', () => {
+    if (socket.id !== hostSocketId) return;
+    hostConnected = true;
+    console.log('Host is now ready/online');
+
+    // tell all players host just appeared
+    socket.broadcast.emit('hostOnline', { roomId: hostRoom });
   });
 
   // --- HOST MOVEMENT (blue character) ---
@@ -65,27 +75,31 @@ io.on('connection', (socket) => {
     hostRoom = roomId;
     console.log('Host moved to room:', hostRoom);
 
-    // Broadcast to all other clients (players)
+    // notify players
     socket.broadcast.emit('hostPosition', { roomId: hostRoom });
   });
 
-  // --- HOST ACTIONS (sleep, shower, tv on/off, etc) ---
+  // --- PLAYER MOVEMENT (for ghost player) ---
+  socket.on('playerMove', ({ roomId }) => {
+    if (socket.data.role === 'host') return;
+    if (!roomId) return;
+    playerRooms.set(socket.id, roomId);
+  });
+
+  // --- HOST ACTIONS (sleep, tvOn, etc.) ---
   socket.on('hostAction', (data) => {
     if (socket.data.role !== 'host') return;
     if (!data || !data.kind) return;
 
-    // Broadcast to everyone else (players) so they see the popup
+    // broadcast to players
     socket.broadcast.emit('hostAction', { kind: data.kind });
   });
 
   // --- CONVERSATION START (host presses "2") ---
   socket.on('startConversation', () => {
     if (socket.data.role !== 'host') return;
+    if (currentConversationId) return; // already running
 
-    // Only one conversation at a time
-    if (currentConversationId) return;
-
-    // New conversation id
     const conversationId =
       Date.now().toString() + '-' + Math.random().toString(36).slice(2);
 
@@ -94,10 +108,10 @@ io.on('connection', (socket) => {
 
     console.log('Conversation started', conversationId);
 
-    // Notify all clients (host + players)
+    // notify everyone (host + players)
     io.emit('conversationStart', { conversationId });
 
-    // After a timeout, pick one response (if any) and show it to host
+    // after timeout, pick a response for host
     conversationTimeout = setTimeout(() => {
       console.log('Conversation ending', conversationId);
 
@@ -107,7 +121,7 @@ io.on('connection', (socket) => {
         chosenMessage = conversationResponses[idx].text;
       }
 
-      // Send chosen response only to host
+      // send chosen response only to host
       if (hostSocketId && hostConnected) {
         io.to(hostSocketId).emit('conversationResult', {
           conversationId,
@@ -115,17 +129,14 @@ io.on('connection', (socket) => {
         });
       }
 
-      // Notify everyone that this conversation round ended
+      // end for everyone
       io.emit('conversationEnd', { conversationId });
-
-      // Reset state
       clearConversationState();
     }, CONVERSATION_DURATION_MS);
   });
 
-  // --- PLAYER MESSAGES (during conversation) ---
+  // --- PLAYER MESSAGES DURING CONVERSATION ---
   socket.on('playerMessage', ({ conversationId, text }) => {
-    // Only players should send this, but we don't strictly enforce role here
     if (!currentConversationId) return;
     if (conversationId !== currentConversationId) return;
 
@@ -144,29 +155,39 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Client disconnected', socket.id);
 
-    // If the host disconnects, mark offline + end conversation if active
+    if (socket.data && socket.data.role !== 'host') {
+      playerRooms.delete(socket.id);
+    }
+
     if (socket.id === hostSocketId) {
       hostConnected = false;
       hostSocketId  = null;
 
-      // Let players hide the host
+      // tell players to hide host
       io.emit('hostOffline');
 
-      // If host leaves mid-conversation, end it for players
+      // if host leaves mid-conversation, end it
       if (currentConversationId) {
         const endedConversationId = currentConversationId;
-
         clearConversationState();
-
-        io.emit('conversationEnd', {
-          conversationId: endedConversationId
-        });
+        io.emit('conversationEnd', { conversationId: endedConversationId });
       }
     }
   });
 });
 
-// IMPORTANT for Render / local
+// --- GHOST PLAYER UPDATER ---
+// Every few seconds, pick one online player and send its room to the host
+setInterval(() => {
+  if (!hostConnected || !hostSocketId) return;
+  const rooms = Array.from(playerRooms.values());
+  if (!rooms.length) return;
+
+  const roomId = rooms[Math.floor(Math.random() * rooms.length)];
+  io.to(hostSocketId).emit('ghostPlayerPosition', { roomId });
+}, 4000);
+
+// PORT for Render / local
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log('room_2 server listening on port ' + PORT);
