@@ -75,7 +75,7 @@ io.on('connection', (socket) => {
     // Let everyone know a round started
     io.emit('conversationStart', { conversationId: thisId });
 
-    // After 6 seconds, pick one random message and send it only to host
+    // Give players more time (12s) to react
     conversationTimer = setTimeout(() => {
       // If a new conversation already started, ignore this timer
       if (conversationId !== thisId) return;
@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
         chosen = conversationMessages[idx];
       }
 
-      // Send result only to host that started it
+      // Send result only to host
       io.to(socket.id).emit('conversationResult', {
         conversationId: thisId,
         message: chosen
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
       // Let everyone hide their UI
       io.emit('conversationEnd', { conversationId: thisId });
       console.log('Conversation ended, chosen message:', chosen);
-    }, 6000);
+    }, 12000); // 12 seconds
   });
 
   // Player sends a message for the current conversation
