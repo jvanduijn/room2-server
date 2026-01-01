@@ -844,26 +844,25 @@
   };
 
   const positionOffsets = {
-    player: {
-      room1: { dx: -12,  dy: 10 },
-      room2: { dx: -12, dy: 5  },
-      room3: { dx: -15, dy: 0  },
-      room4: { dx: -14,  dy: 3  },
-      room5: { dx: -11, dy: 3  },
-      room6: { dx: -6,  dy: 2  },
-      room7: { dx: -11, dy: -2  }
-    },
-    host: {
-      room1: { dx: 8,  dy: -10 },
-      room2: { dx: 12, dy: -5  },
-      room3: { dx: 5, dy: 2   },
-      room4: { dx: 8,  dy: -5  },
-      room5: { dx: 10, dy: -8  },
-      room6: { dx: 6,  dy: -2  },
-      room7: { dx: 10, dy: 0   }
-    }
-  };
-
+  player: {
+    room1: { dx: -12, dy: 10 },   // moved more left
+    room2: { dx: -12, dy: 5  },
+    room3: { dx: -15, dy: 0  },   // more left
+    room4: { dx: -14, dy: 3  },   // slightly more up
+    room5: { dx: -11, dy: 3  },
+    room6: { dx: -6,  dy: 2  },   // hallway slightly more up + left
+    room7: { dx: -11, dy: -2 }
+  },
+  host: {
+    room1: { dx: 8,  dy: -8  },  // slightly lower
+    room2: { dx: 16, dy: -5  },  // slightly more right
+    room3: { dx: 5,  dy: 3   },  // slightly lower + a bit left
+    room4: { dx: 8,  dy: -5  },
+    room5: { dx: 10, dy: -8  },
+    room6: { dx: 6,  dy: -2  },
+    room7: { dx: 10, dy: 0   }
+  }
+};
   const CLICK_SOUND_URL    = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
   const ARRIVAL_SOUND_URL  = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/arrival1.mp3';
 
@@ -933,12 +932,12 @@
     sleep:  'is going to sleep',
     table:  'dressing the table…',
     piano:  'is playing piano',
-    water:  'garderning...',
+    water:  'is gardening',
     shower: 'is taking a shower',
     brush:  'is brushing her teeth',
-    dinner: 'is making dinner…',
+    dinner: 'preparing food',
     tvOn:   'turned the TV on',
-    tvOff:  'turned the TV off'
+    tvOff:  'TV off'
   };
 
   function pickRandomFromPool(poolName) {
