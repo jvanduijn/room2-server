@@ -52,7 +52,7 @@
 
     .host-banner {
       position: absolute;
-      top: 2px !important;
+      top: -2px !important;
       right: 0;
       font-size: 12px;
       padding: 3px 7px;
@@ -238,7 +238,7 @@
     /* main dialogue popups (gardening, etc.) docked left, above map */
     .popup-message {
       position: absolute;
-      top: -22px;         /* above the map, no longer inside */
+      top: -32px;         /* above the map, no longer inside */
       left: -2px;         /* hugs left side */
       transform: none;
       background-color: #ffffff;
@@ -313,7 +313,7 @@
       display: none;               /* shown only for host after login */
       box-sizing: border-box;
       grid-template-columns: repeat(3, 1fr);
-      gap: 3px;
+      gap: 10px;
       font-size: 12px;
     }
 
@@ -322,7 +322,6 @@
       margin: 0;
       padding: 2px 0 3px;          /* smaller tiles */
       border-radius: 0;            /* no rounded corners */
-      border: 1px solid #111;
       background: #d9d9d9;
       color: #111;
       cursor: pointer;
@@ -542,10 +541,10 @@
         position: fixed;
         left: 50%;
         transform: translateX(-50%);
-        bottom: 8px;
+        bottom: 0px;
         margin: 0;
-        width: 94vw;
-        max-width: 414px;
+        width: 100%;
+        max-width: 440px;
         background: #000;
         border: 2px solid #00ff88;
         padding: 6px 8px;
@@ -557,10 +556,10 @@
       }
 
       .host-banner {
-        top: -8px;
-        z-index: 0 !important; /* below popups */
+        top: -20px !important;
+        z-index: 1 !important; /* below popups */
         right: 13px;
-        font-size: 13px;
+        font-size: 15px;
         padding: 4px 8px;
       }
 
@@ -578,10 +577,9 @@
       /* Furniture popup higher so not cut off by bottom */
       .instruction-box {
         position: fixed;
-        left: 1%;
-        bottom: 115px;
-        top: auto;
-        font-size: 13px;
+        left: 2px !important;
+        bottom: 60px !important;
+        font-size: 15px;
         padding: 4px 8px;
         max-width: 70vw;
         z-index: 1006;
@@ -589,8 +587,8 @@
 
       /* main popups docked left, still above map area */
       .popup-message {
-        top: -22px;
-        left: -2px;
+        bottom: 100px;
+        left: 50%;
         transform: none;
         max-width: 72vw;
       }
@@ -1228,7 +1226,7 @@
         if (currentConversationId && !hasRespondedThisRound) {
           popupMsgEl.classList.remove('host-msg','player-msg');
           popupMsgEl.classList.add('host-msg');
-          popupMsgEl.textContent = 'React to the host…';
+          popupMsgEl.textContent = 'react to the host…';
           popupMsgEl.style.display = 'block';
         } else {
           popupMsgEl.style.display = 'none';
@@ -1258,7 +1256,7 @@
       if (popupMsgEl) {
         popupMsgEl.classList.remove('host-msg','player-msg');
         popupMsgEl.classList.add('host-msg');
-        popupMsgEl.textContent = 'React to the host…';
+        popupMsgEl.textContent = 'react to the host…';
         popupMsgEl.style.display = 'block';
       }
     }
