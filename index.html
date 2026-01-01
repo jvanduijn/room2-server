@@ -5,13 +5,11 @@
   <meta id="vp" name="viewport" content="width=device-width, initial-scale=1.0">
   <title>room_2 – multiplayer</title>
   <style>
-    /* Hide external site header (e.g. WordPress theme header) */
     header,
     .site-header {
       display: none !important;
     }
 
-    /* General reset and centering */
     html, body {
       margin: 0;
       padding: 0;
@@ -28,7 +26,6 @@
       background-color: transparent;
     }
 
-    /* Slight scale-down on some phones */
     @media screen and (max-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
       body {
         transform: scale(0.95);
@@ -45,24 +42,12 @@
       }
     }
 
-    @keyframes glitch {
-      0% { transform: translate(1px, 0) skewX(0deg); }
-      10% { transform: translate(-1px, -1px) skewX(-2deg); }
-      20% { transform: translate(-1px, 1px) skewX(2deg); }
-      30% { transform: translate(1px, -1px) skewX(-2deg); }
-      40% { transform: translate(-1px, 1px) skewX(2deg); }
-      50% { transform: translate(1px, -1px) skewX(-2deg); }
-      60% { transform: translate(-1px, 0) skewX(0deg); }
-      100% { transform: translate(0, 0) skewX(0deg); }
-    }
-
     .everything {
       position: relative;
       width: 400px;
-      height: 460px; /* extra height for action bar rows */
+      height: 460px; /* extra height for action bar */
     }
 
-    /* Background behind everything */
     .background {
       position: fixed;
       top: 0;
@@ -75,7 +60,6 @@
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/background1.png');
     }
 
-    /* Map container */
     #map {
       position: relative;
       -webkit-tap-highlight-color: transparent;
@@ -100,11 +84,10 @@
       #map { overflow: hidden; }
     }
 
-    /* Rooms = invisible full-click areas */
     .room {
       position: absolute;
       background-color: transparent;
-      border: 2px solid transparent; /* hitbox only */
+      border: 2px solid transparent;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -129,7 +112,6 @@
       display: none;
     }
 
-    /* Player (red character – local client) */
     .player {
       width: 20px;
       height: 36px;
@@ -145,7 +127,6 @@
       pointer-events: none;
     }
 
-    /* Host (blue character – synchronized via server) */
     .random-object {
       width: 20px;
       height: 36px;
@@ -158,7 +139,6 @@
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    /* Doors */
     .door {
       position: absolute;
       background-color: #131313;
@@ -166,7 +146,7 @@
       cursor: pointer;
       z-index: 2;
       transition: background-color 0.1s ease, transform 0.08s ease;
-      pointer-events: none; /* enabled only in active room for this client */
+      pointer-events: none;
       -webkit-tap-highlight-color: transparent;
     }
     .door-horizontal {
@@ -184,7 +164,6 @@
       transform: scale(1.03);
     }
 
-    /* Door popup: completely disabled */
     .door-popup {
       display: none !important;
     }
@@ -194,22 +173,25 @@
       cursor: pointer;
     }
 
-    /* Small message popup (for host actions like "The host is sleeping...") */
+    /* Centered popup above map, no rounded corners */
     .popup-message {
-      position: fixed;
-      top: 18px;
-      right: 12px;
-      background-color: rgba(0, 0, 0, 0.85);
+      position: absolute;
+      top: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.9);
       color: #ffffff;
-      padding: 6px 10px;
-      border-radius: 3px;
+      padding: 4px 10px;
+      border-radius: 0;
       font-size: 12px;
       display: none;
       z-index: 1000;
-      max-width: 200px;
+      max-width: 260px;
+      text-align: center;
+      border: 1px solid #000;
     }
 
-    /* Object name / instruction box – digital style with slightly darker green */
+    /* Digital-style object popup */
     .instruction-box {
       display: none;
       position: fixed;
@@ -217,9 +199,9 @@
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #00cc44;                /* darker green */
+      color: #00cc44;
       padding: 4px 8px;
-      border: 2px solid #00cc44;     /* darker border */
+      border: 2px solid #00cc44;
       font-size: 16px;
       text-align: center;
       z-index: 1005;
@@ -227,6 +209,7 @@
       max-width: 300px;
       box-shadow: 0 0 6px rgba(0, 204, 68, 0.4);
       letter-spacing: 0.5px;
+      border-radius: 0;
     }
     @media (max-width: 768px) {
       .instruction-box {
@@ -235,12 +218,11 @@
       }
     }
 
-    /* Action bar (host-only controls) – 8 equal buttons per row */
+    /* Host-only action bar – hidden by default */
     .action-bar {
       width: 400px;
       margin: 4px auto 0;
-      display: none; /* shown only for host in JS */
-      display: grid;
+      display: none; /* JS enables grid for host only */
       grid-template-columns: repeat(8, 1fr);
       gap: 4px;
       font-size: 12px;
@@ -249,7 +231,7 @@
     .action-btn {
       margin: 0;
       padding: 4px 0;
-      border-radius: 0; /* no rounded corners */
+      border-radius: 0;
       border: 1px solid #000;
       background: #ffffff;
       cursor: pointer;
@@ -266,7 +248,7 @@
       display: inline-block;
       min-width: 14px;
       padding: 1px 3px;
-      border-radius: 0; /* no rounded corners */
+      border-radius: 0;
       border: 1px solid #000;
       font-family: Arial, Helvetica, sans-serif;
       font-size: 10px;
@@ -278,7 +260,6 @@
       transform: scale(0.97);
     }
 
-    /* Shared active highlight for all action buttons */
     .action-btn.active-flash {
       background: #00cc44;
       border-color: #00752a;
@@ -286,7 +267,6 @@
       color: #000;
     }
 
-    /* Let the last button sit in the 2nd row with same width */
     .action-btn[data-action="tvOff"] {
       grid-column: span 1;
     }
@@ -300,17 +280,15 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
-    /* Door positions (original-ish layout, minus outside stuff) */
+    /* Door positions */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
     .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
-    /* right door removed */
     .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
     .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }
 
     .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); }
-    /* top door removed */
 
     .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); }
     .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
@@ -334,11 +312,8 @@
   <div id="instructionBox" class="instruction-box"></div>
   <div id="popup-message" class="popup-message"></div>
 
-  <!-- MAP -->
   <div id="map">
-    <!-- local player (red) -->
     <div id="player" class="player"></div>
-    <!-- host (blue) -->
     <div id="host" class="random-object"></div>
 
     <!-- ROOM 1 -->
@@ -361,7 +336,6 @@
     <div id="room2" class="room room2">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room1"></div>
-      <!-- right door removed (used to go to kitchen/outside) -->
       <div class="door door3 door-horizontal" data-target="room5"></div>
       <div class="door door4 door-horizontal" data-target="room6"></div>
 
@@ -394,7 +368,6 @@
     <!-- ROOM 3 – kitchen -->
     <div id="room3" class="room room3">
       <div class="room-label"></div>
-      <!-- only left door remains, now going to hallway (room6) -->
       <div class="door door1 door-vertical" data-target="room6"></div>
 
       <div class="clickable-region"
@@ -482,7 +455,7 @@
 
   </div><!-- /map -->
 
-  <!-- Action bar (host-only functional) -->
+  <!-- Host-only action bar -->
   <div class="action-bar">
     <button class="action-btn" data-action="sleep">
       😴 <span class="key">Z</span>
@@ -514,22 +487,20 @@
   </div>
 </div>
 
-<!-- Socket.IO client (from your server) -->
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  // Multiplayer config
-  const isHost = window.location.search.includes('host=1'); // host opens URL with ?host=1
-  const socket = io(); // same-origin, works on Render and locally
+  const isHost = window.location.search.includes('host=1');
+  const socket = io();
 
   console.log('Multiplayer client starting. isHost =', isHost);
 
-  let currentRoom = 'room2';       // controlled character's room (red for players, blue for host)
-  let hostRoom    = 'room2';       // global host room (for display on non-host clients)
+  let currentRoom = 'room2';
+  let hostRoom    = 'room2';
   let currentAudio = null;
-  let tvAudio = null;              // separate audio for looping TV
-  window.currentRoom = currentRoom; // used in inline onclicks
+  let tvAudio = null;
+  let moveAudio = null;
+  window.currentRoom = currentRoom;
 
-  // Show action bar only for host
   const actionBarEl = document.querySelector('.action-bar');
   if (isHost && actionBarEl) {
     actionBarEl.style.display = 'grid';
@@ -537,11 +508,10 @@
 
   const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
-  // Room connections:
   const roomGraph = {
     room1: ['room2','room4'],
     room2: ['room1','room5','room6'],   // no direct room3
-    room3: ['room6'],                   // only via hall
+    room3: ['room6'],
     room4: ['room1','room5'],
     room5: ['room2','room4','room6'],
     room6: ['room2','room3','room5','room7'],
@@ -564,7 +534,6 @@
   const instructionBox= document.getElementById('instructionBox');
   const popupMsgEl    = document.getElementById('popup-message');
 
-  // Distinct positions for player and host per room
   const positionOffsets = {
     player: {
       room1: { dx: -8,  dy: 10 },
@@ -588,7 +557,6 @@
 
   const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
 
-  /* === RANDOM SOUND POOLS (5 slots each – placeholder duplicates, you can vary later) === */
   const soundPools = {
     sleep: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
@@ -645,6 +613,13 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
+    ],
+    move: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
     ]
   };
 
@@ -691,6 +666,21 @@
     }
   }
 
+  function playMoveSound() {
+    const url = pickRandomFromPool('move');
+    if (!url) return;
+    try {
+      if (moveAudio) {
+        moveAudio.pause();
+        moveAudio.currentTime = 0;
+      }
+      moveAudio = new Audio(url);
+      moveAudio.play().catch(() => {});
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function playClickSound() {
     playSound(CLICK_SOUND_URL);
   }
@@ -727,7 +717,6 @@
       r.classList.toggle('active', r.id === roomId);
     });
 
-    // Enable only this room's doors for this client
     document.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'none');
     const room = document.getElementById(roomId);
     if (room) {
@@ -738,26 +727,22 @@
   function goToRoom(targetRoom) {
     if (targetRoom === currentRoom) return;
     if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) {
-      // silently ignore invalid moves
       return;
     }
 
     currentRoom = targetRoom;
     window.currentRoom = currentRoom;
     updateActiveRoom(currentRoom);
+    playMoveSound();
 
     if (isHost) {
-      // Host controls BLUE character and broadcasts movement
       hostRoom = currentRoom;
       moveElementToRoom(hostEl, hostRoom, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
     } else {
-      // Player controls RED character locally
       moveElementToRoom(playerEl, currentRoom, 'player');
     }
   }
-
-  // --- SOCKET.IO SETUP ---
 
   socket.on('connect', () => {
     console.log('Connected to server with id', socket.id);
@@ -768,14 +753,12 @@
     console.log('Disconnected from server');
   });
 
-  // Everyone listens to hostPosition
   socket.on('hostPosition', (data) => {
     if (!data || !data.roomId) return;
     hostRoom = data.roomId;
     moveElementToRoom(hostEl, hostRoom, 'host');
   });
 
-  // Host may optionally get a sync when joining
   socket.on('initialHostPosition', (data) => {
     if (!isHost) return;
     if (data && data.roomId) {
@@ -787,17 +770,21 @@
     }
   });
 
-  // --- DOM EVENTS ---
+  // NEW: host actions are broadcast to players so they also see popup text
+  socket.on('hostAction', (data) => {
+    if (!data || !data.kind) return;
+    const msg = actionMessages[data.kind];
+    if (msg) {
+      showMessage(msg);
+    }
+  });
 
-  // Host click: only works when player is in same room (on the player client)
   hostEl.addEventListener('click', () => {
-    // Only react on the player side, and only if in same room
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
 
     playClickSound();
 
-    // temporary size bump (10% larger)
     const originalTransform = hostEl.style.transform || '';
     hostEl.style.transform = originalTransform + ' scale(1.1)';
     setTimeout(() => {
@@ -805,24 +792,19 @@
     }, 50);
   });
 
-  // Doors: allow navigation (no hover text)
   document.querySelectorAll('.door').forEach(door => {
     const target  = door.dataset.target;
-
     door.addEventListener('click', (e) => {
       e.stopPropagation();
       if (target) goToRoom(target);
     });
   });
 
-  // FULL room clickability: any click inside tries to move there
   document.querySelectorAll('.room').forEach(room => {
     room.addEventListener('click', () => {
       goToRoom(room.id);
     });
   });
-
-  // --- Host-only actions (keys + buttons) ---
 
   function flashButton(actionName) {
     const btn = document.querySelector(`.action-btn[data-action="${actionName}"]`);
@@ -847,6 +829,9 @@
     const msg = actionMessages[kind];
     if (msg) showMessage(msg);
 
+    // notify players
+    socket.emit('hostAction', { kind });
+
     if (kind === 'tvOff') {
       flashButton('tvOff');
       stopTvLoop();
@@ -856,41 +841,27 @@
     flashButton(kind);
 
     switch (kind) {
-      case 'sleep': {
-        const url = pickRandomFromPool('sleep');
-        playSound(url);
+      case 'sleep':
+        playSound(pickRandomFromPool('sleep'));
         break;
-      }
-      case 'table': {
-        const url = pickRandomFromPool('table');
-        playSound(url);
+      case 'table':
+        playSound(pickRandomFromPool('table'));
         break;
-      }
-      case 'piano': {
-        const url = pickRandomFromPool('piano');
-        playSound(url);
+      case 'piano':
+        playSound(pickRandomFromPool('piano'));
         break;
-      }
-      case 'water': {
-        const url = pickRandomFromPool('water');
-        playSound(url);
+      case 'water':
+        playSound(pickRandomFromPool('water'));
         break;
-      }
-      case 'shower': {
-        const url = pickRandomFromPool('shower');
-        playSound(url);
+      case 'shower':
+        playSound(pickRandomFromPool('shower'));
         break;
-      }
-      case 'brush': {
-        const url = pickRandomFromPool('brush');
-        playSound(url);
+      case 'brush':
+        playSound(pickRandomFromPool('brush'));
         break;
-      }
-      case 'dinner': {
-        const url = pickRandomFromPool('dinner');
-        playSound(url);
+      case 'dinner':
+        playSound(pickRandomFromPool('dinner'));
         break;
-      }
       case 'tvOn': {
         stopTvLoop();
         const url = pickRandomFromPool('tvOn');
@@ -907,7 +878,6 @@
     }
   }
 
-  // Buttons click
   document.querySelectorAll('.action-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
@@ -915,10 +885,8 @@
     });
   });
 
-  // Keyboard controls: host-only
   document.addEventListener('keydown', (e) => {
     if (isHost) {
-      // Arrow navigation between rooms
       const dirKeyMap = {
         ArrowUp: 'up',
         ArrowDown: 'down',
@@ -934,7 +902,6 @@
         }
       }
 
-      // Action hotkeys
       switch (e.key) {
         case 'z':
         case 'Z':
@@ -974,17 +941,14 @@
     }
   });
 
-  // Init layout
   window.addEventListener('load', () => {
     if (isHost) {
-      // Host controls blue, hide red
       playerEl.style.display = 'none';
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
       moveElementToRoom(hostEl, hostRoom, 'host');
     } else {
-      // Players control red, host will be moved when data arrives
       hostRoom = 'room2';
       currentRoom = 'room2';
       window.currentRoom = currentRoom;
