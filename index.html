@@ -485,7 +485,7 @@
     .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }
     .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
 
-    .room7 .door1 { top: -12px; left: 22%; transform: translateX(-50%); }
+    .room7 .door1 { top: -13px; left: 30%; transform: translateX(-50%); }
 
     /* PHONE / SMALL SCREEN TWEAKS */
     @media (max-width: 480px) {
@@ -845,18 +845,18 @@
 
   const positionOffsets = {
   player: {
-    room1: { dx: -12, dy: 10 },   // moved more left
+    room1: { dx: -14, dy: 10 },   // moved more left
     room2: { dx: -12, dy: 5  },
     room3: { dx: -15, dy: 0  },   // more left
-    room4: { dx: -14, dy: 3  },   // slightly more up
+    room4: { dx: -14, dy: -1  },   // slightly more up
     room5: { dx: -11, dy: 3  },
-    room6: { dx: -6,  dy: 2  },   // hallway slightly more up + left
+    room6: { dx: -12,  dy: 2  },   // hallway slightly more up + left
     room7: { dx: -11, dy: -2 }
   },
   host: {
     room1: { dx: 8,  dy: -8  },  // slightly lower
     room2: { dx: 16, dy: -5  },  // slightly more right
-    room3: { dx: 5,  dy: 3   },  // slightly lower + a bit left
+    room3: { dx: 15,  dy: 2   },  // slightly lower + a bit left
     room4: { dx: 8,  dy: -5  },
     room5: { dx: 10, dy: -8  },
     room6: { dx: 6,  dy: -2  },
