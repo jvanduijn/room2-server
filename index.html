@@ -26,7 +26,7 @@
       background-color: transparent;
     }
 
-    /* 30% bigger host page by scaling the game container (desktop) */
+    /* 30% bigger host page on desktop by scaling the game container */
     body.host-scale .everything {
       transform: scale(1.3);
       transform-origin: top center;
@@ -62,6 +62,7 @@
       letter-spacing: 0.5px;
       display: none;
       text-transform: none;
+      z-index: 1100;
     }
 
     #map {
@@ -116,7 +117,7 @@
       display: none;
     }
 
-    /* characters ~10% bigger (base desktop) */
+    /* characters base */
     .player {
       width: 22px;
       height: 40px;
@@ -144,7 +145,7 @@
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    /* conversation "?" above host, styled like other popups */
+    /* conversation "?" above host */
     .conversation-indicator {
       position: absolute;
       top: -22px;
@@ -266,7 +267,7 @@
       white-space: nowrap;
     }
 
-    /* Digital-style object popup (furniture) – attached under left of map */
+    /* Furniture popup attached to map bottom-left */
     .instruction-box {
       display: none;
       position: absolute;
@@ -277,7 +278,7 @@
       color: #00ff88;
       padding: 6px 10px;
       border: 1px solid #00ff88;
-      font-size: 11px; /* same feel as banner */
+      font-size: 11px;
       text-align: left;
       z-index: 1005;
       width: auto;
@@ -288,7 +289,7 @@
       gap: 2px;
     }
 
-    /* Host-only action bar – "inventory" style, white background */
+    /* Host-only action bar */
     .action-bar {
       width: 400px;
       margin: 4px auto 0;
@@ -338,7 +339,7 @@
       border-color: #00ff88;
     }
 
-    /* Player chat bar – default desktop position under map */
+    /* Player chat bar (desktop – under map) */
     .player-chat {
       width: 400px;
       margin: 4px auto 0;
@@ -479,17 +480,17 @@
       }
 
       .everything {
-        margin-top: 28px;
+        margin-top: 24px;
       }
 
-      /* Slightly shrink the whole map area and center it better vertically */
+      /* Slightly bigger map than before but still fitting */
       #map {
-        transform: scale(0.9);
+        transform: scale(0.93);
         transform-origin: top center;
         margin-top: 18px;
       }
 
-      /* Chat input fixed to bottom like WhatsApp */
+      /* Chat input fixed to bottom like WhatsApp, with font >= 16px to avoid iOS zoom */
       .player-chat {
         position: fixed;
         left: 50%;
@@ -498,10 +499,18 @@
         margin: 0;
         width: 94vw;
         max-width: 414px;
+        background: transparent;
       }
 
-      /* Volume banner +10% size */
+      .player-chat input,
+      .player-chat button {
+        font-size: 16px;
+      }
+
+      /* Volume banner a bit up and left */
       .host-banner {
+        top: -8px;
+        right: 25px;
         font-size: 12px;
         padding: 3px 7px;
       }
@@ -517,6 +526,16 @@
       .random-object {
         width: 24px;
         height: 44px;
+      }
+
+      /* Furniture popup: fixed bottom-left above chat so it's visible */
+      .instruction-box {
+        position: fixed;
+        left: 4%;
+        bottom: 56px;
+        margin-top: 0;
+        max-width: 70vw;
+        z-index: 1006;
       }
 
       /* Host view not over-scaled on phone */
@@ -547,7 +566,7 @@
 </div>
 
 <div class="everything">
-  <div id="host-banner" class="host-banner">to join visit room2.nl</div>
+  <div id="host-banner" class="host-banner"></div>
 
   <div id="popup-message" class="popup-message"></div>
 
@@ -694,7 +713,7 @@
       </div>
     </div>
 
-    <!-- furniture popup attached to map bottom-left -->
+    <!-- furniture popup attached to map -->
     <div id="instructionBox" class="instruction-box"></div>
   </div><!-- /map -->
 
@@ -744,7 +763,7 @@
 
   console.log('Multiplayer client starting. isHost =', isHost);
 
-  // Make host page 30% bigger visually (desktop), mobile override in CSS
+  // Scale host page (desktop); mobile overrides via CSS
   if (isHost) {
     document.body.classList.add('host-scale');
   }
@@ -993,7 +1012,7 @@
     }, 2500);
   }
 
-  // SCALE-SAFE POSITIONING (works even when map/.everything are transformed)
+  // SCALE-SAFE POSITIONING
   function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
@@ -1133,12 +1152,29 @@
       setTvVisualState(false);
     }
 
-    // Text popup only for host (player keeps "React to the host…" focus)
-    if (!isHost) return;
+    const msg = actionMessages[kind];
+    if (!msg) return;
 
-    const msg  = actionMessages[kind];
-    if (msg) {
+    // Show action text to both host and player
+    if (isHost) {
       showActorMessage('host', msg);
+    } else {
+      if (!popupMsgEl) return;
+      popupMsgEl.innerHTML =
+        '<span class="actor-icon actor-host"></span>' +
+        '<span class="actor-text">' + msg + '</span>';
+      popupMsgEl.style.display = 'flex';
+
+      clearTimeout(showActorMessage._timeout);
+      showActorMessage._timeout = setTimeout(() => {
+        // If conversation still open and player hasn't responded, restore hint
+        if (currentConversationId && !hasRespondedThisRound) {
+          popupMsgEl.textContent = 'React to the host…';
+          popupMsgEl.style.display = 'block';
+        } else {
+          popupMsgEl.style.display = 'none';
+        }
+      }, 4000);
     }
   });
 
@@ -1159,7 +1195,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      // stays until conversation ends or player has responded
+      // show and keep until player can't react anymore
       if (popupMsgEl) {
         popupMsgEl.textContent = 'React to the host…';
         popupMsgEl.style.display = 'block';
@@ -1190,7 +1226,6 @@
     playSound(pickRandomFromPool('message'));
 
     if (message) {
-      // player's response visible to host
       showActorMessage('player', '' + message + '', 6000);
     } else {
       showActorMessage('player', 'no response..', 4000);
@@ -1226,7 +1261,7 @@
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
 
-    // After sending you can't react anymore -> hide prompt
+    // After sending, player can't react anymore -> hide hint
     if (popupMsgEl && !isHost) {
       popupMsgEl.style.display = 'none';
     }
