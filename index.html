@@ -220,15 +220,30 @@
       100% { opacity: 1; }
     }
 
-    /* main dialogue popups (gardening, etc.) docked to left of map */
+    /* shower visual on/off like TV */
+    #shower-area.shower-on::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border: 2px solid #00ff88;
+      animation: showerPulse 0.6s infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes showerPulse {
+      0%   { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* main dialogue popups (gardening, etc.) docked left, above map */
     .popup-message {
       position: absolute;
-      top: 6px;
-      left: -2px;                /* hugs the left border of the map */
+      top: -22px;         /* above the map, no longer inside */
+      left: -2px;         /* hugs left side */
       transform: none;
       background-color: #ffffff;
       color: #000000;
-      padding: 6px 10px;
+      padding: 6px 8px;
       border-radius: 0;
       font-size: 14px;
       display: none;
@@ -237,8 +252,7 @@
       text-align: left;
       box-sizing: border-box;
       align-items: center;
-      gap: 4px !important;
-      border-left: 2px solid #00ff88; /* outlined on map side */
+      gap: 1px !important;   /* tighter gap between icon and text */
     }
 
     .popup-message .actor-icon {
@@ -292,67 +306,51 @@
       box-sizing: border-box;
     }
 
-    /* Host inventory bar – 3×3 grid, no gap with map */
+    /* Host inventory bar – 3×3 grid, hidden by default (only host JS shows it) */
     .action-bar {
       width: 400px;
       margin: 0 auto 0;
-      display: none;
+      display: none;               /* shown only for host after login */
       box-sizing: border-box;
-      display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
+      gap: 3px;
       font-size: 12px;
     }
 
     .action-btn {
       position: relative;
       margin: 0;
-      padding: 4px 0 6px;
-      border-radius: 4px;
+      padding: 2px 0 3px;          /* smaller tiles */
+      border-radius: 0;            /* no rounded corners */
       border: 1px solid #111;
       background: #d9d9d9;
       color: #111;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-end;
-      gap: 2px;
+      justify-content: center;
+      gap: 1px;
       user-select: none;
       font-family: Arial, Helvetica, sans-serif;
       text-transform: none;
       box-sizing: border-box;
-      min-height: 56px;
-    }
-
-    /* yellow + badge like inventory tiles */
-    .action-btn::before {
-      content: '+';
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #ffd73a;
-      font-size: 11px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      min-height: 32px;            /* about half of before */
     }
 
     .action-btn span.label {
       display: inline-block;
-      font-size: 18px;
+      font-size: 16px; /* emoji big-ish */
       line-height: 1;
+      font-weight: bold;
     }
 
     .action-btn span.key {
       display: inline-block;
-      font-size: 11px;
+      font-size: 10px;
       opacity: 0.7;
+      font-weight: bold;
     }
 
     .action-btn:active {
@@ -360,21 +358,21 @@
     }
 
     .action-btn.active-flash {
-      outline: 2px solid #00ff88;
-      outline-offset: 0;
+      background: #00ff88;   /* whole tile green when active */
+      color: #000;
+      border-color: #00ff88;
     }
 
     /* Slightly bigger action buttons/fonts on host page */
     body.host-scale .action-btn {
-      padding: 6px 0 8px;
-      min-height: 60px;
-      font-size: 15px;
+      min-height: 36px;
+      font-size: 14px;
     }
     body.host-scale .action-btn span.label {
-      font-size: 19px;
+      font-size: 17px;
     }
     body.host-scale .action-btn span.key {
-      font-size: 12px;
+      font-size: 11px;
     }
 
     /* Player chat bar styled like host login, no gap with map */
@@ -589,9 +587,9 @@
         z-index: 1006;
       }
 
-      /* main popups docked left on mobile as well */
+      /* main popups docked left, still above map area */
       .popup-message {
-        top: 6px;
+        top: -22px;
         left: -2px;
         transform: none;
         max-width: 72vw;
@@ -711,7 +709,7 @@
       <div class="door door1 door-horizontal" data-target="room1"></div>
       <div class="door door2 door-vertical" data-target="room5"></div>
 
-      <div class="clickable-region"
+      <div id="shower-area" class="clickable-region"
            style="left: 0px; top: 0px; width: 24px; height: 24px;"
            onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
       </div>
@@ -792,8 +790,11 @@
     <button class="action-btn" data-action="water">
       <span class="label">🌳</span><span class="key">W</span>
     </button>
-    <button class="action-btn" data-action="shower">
+    <button class="action-btn" data-action="showerOn">
       <span class="label">🚿</span><span class="key">S</span>
+    </button>
+    <button class="action-btn" data-action="showerOff">
+      <span class="label">🚫</span><span class="key">X</span>
     </button>
     <button class="action-btn" data-action="brush">
       <span class="label">🦷</span><span class="key">B</span>
@@ -834,6 +835,7 @@
   let hostRoom     = 'room5';
   let currentAudio = null;
   let tvAudio      = null;
+  let showerAudio  = null;
   let moveAudio    = null;
   let hostUnlocked = !isHost;
   window.currentRoom = currentRoom;
@@ -857,6 +859,7 @@
   const instructionBox= document.getElementById('instructionBox');
   const popupMsgEl    = document.getElementById('popup-message');
   const tvAreaEl      = document.getElementById('tv-area');
+  const showerAreaEl  = document.getElementById('shower-area');
   const playerIndicator = document.getElementById('player-indicator'); // "..." bubble
 
   const roomGraph = {
@@ -883,7 +886,7 @@
     room1: ['water'],
     room2: [],
     room3: ['table','dinner'],
-    room4: ['shower','brush'],
+    room4: ['showerOn','showerOff','brush'],
     room5: ['piano','tvOn','tvOff'],
     room6: [],
     room7: ['sleep']
@@ -961,15 +964,16 @@
   };
 
   const actionMessages = {
-    sleep:  'is going to sleep',
-    table:  'dressing the table…',
-    piano:  'is playing piano',
-    water:  'gardening',
-    shower: 'is taking a shower',
-    brush:  'is brushing her teeth',
-    dinner: 'preparing food',
-    tvOn:   'turned the TV on',
-    tvOff:  'turned TV off'
+    sleep:     'is going to sleep',
+    table:     'dressing the table…',
+    piano:     'is playing piano',
+    water:     'gardening',
+    showerOn:  'is taking a shower',
+    showerOff: 'stopped the shower',
+    brush:     'is brushing her teeth',
+    dinner:    'preparing food',
+    tvOn:      'turned the TV on',
+    tvOff:     'turned TV off'
   };
 
   function pickRandomFromPool(poolName) {
@@ -1108,6 +1112,12 @@
     else tvAreaEl.classList.remove('tv-on');
   }
 
+  function setShowerVisualState(on) {
+    if (!showerAreaEl) return;
+    if (on) showerAreaEl.classList.add('shower-on');
+    else showerAreaEl.classList.remove('shower-on');
+  }
+
   function triggerHostArrivalEffect() {
     if (!hostEl) return;
     hostEl.classList.add('arrival-sparkle');
@@ -1196,6 +1206,8 @@
 
     if (kind === 'tvOn') setTvVisualState(true);
     else if (kind === 'tvOff') setTvVisualState(false);
+    if (kind === 'showerOn') setShowerVisualState(true);
+    else if (kind === 'showerOff') setShowerVisualState(false);
 
     const msg = actionMessages[kind];
     if (!msg) return;
@@ -1382,6 +1394,16 @@
     }
   }
 
+  function stopShowerLoop() {
+    if (showerAudio) {
+      try {
+        showerAudio.pause();
+        showerAudio.currentTime = 0;
+      } catch (e) {}
+      showerAudio = null;
+    }
+  }
+
   function triggerHostAction(kind) {
     if (!isHost || !hostUnlocked) return;
 
@@ -1400,6 +1422,13 @@
       return;
     }
 
+    if (kind === 'showerOff') {
+      flashButton('showerOff');
+      stopShowerLoop();
+      setShowerVisualState(false);
+      return;
+    }
+
     flashButton(kind);
 
     switch (kind) {
@@ -1415,9 +1444,20 @@
       case 'water':
         playSound(pickRandomFromPool('water'));
         break;
-      case 'shower':
-        playSound(pickRandomFromPool('shower'));
+      case 'showerOn': {
+        stopShowerLoop();
+        setShowerVisualState(true);
+        const url = pickRandomFromPool('shower');
+        if (!url) break;
+        try {
+          showerAudio = new Audio(url);
+          showerAudio.loop = true;
+          showerAudio.play().catch(() => {});
+        } catch (e) {
+          console.error(e);
+        }
         break;
+      }
       case 'brush':
         playSound(pickRandomFromPool('brush'));
         break;
@@ -1485,7 +1525,11 @@
         break;
       case 's':
       case 'S':
-        triggerHostAction('shower');
+        triggerHostAction('showerOn');
+        break;
+      case 'x':
+      case 'X':
+        triggerHostAction('showerOff');
         break;
       case 'b':
       case 'B':
@@ -1570,6 +1614,9 @@
       updateActiveRoom(currentRoom);
       moveElementToRoom(playerEl, currentRoom, 'player');
       socket.emit('playerMove', { roomId: currentRoom });
+
+      // players never see the action bar
+      if (actionBarEl) actionBarEl.style.display = 'none';
     }
   });
 </script>
