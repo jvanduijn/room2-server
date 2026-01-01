@@ -42,6 +42,17 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('hostPosition', { roomId: hostRoom });
   });
 
+  // Host actions (sleep, shower, tv on, etc.) – broadcast to players
+  socket.on('hostAction', ({ kind }) => {
+    if (socket.data.role !== 'host') {
+      console.log('Ignoring hostAction from non-host client', socket.id);
+      return;
+    }
+    if (!kind) return;
+    console.log('Host triggered action:', kind);
+    socket.broadcast.emit('hostAction', { kind });
+  });
+
   socket.on('disconnect', () => {
     console.log('Client disconnected', socket.id);
   });
