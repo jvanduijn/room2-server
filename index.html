@@ -26,26 +26,10 @@
       background-color: transparent;
     }
 
-    /* 30% bigger host page by scaling the game container */
+    /* 30% bigger host page by scaling the game container (desktop) */
     body.host-scale .everything {
       transform: scale(1.3);
       transform-origin: top center;
-    }
-
-    @media screen and (max-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
-      body {
-        transform: scale(0.95);
-        transform-origin: top;
-        overflow: visible;
-      }
-    }
-
-    @media screen and (max-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) {
-      body {
-        transform: scale(0.93);
-        transform-origin: top;
-        overflow: visible;
-      }
     }
 
     .everything {
@@ -132,7 +116,7 @@
       display: none;
     }
 
-    /* characters ~10% bigger */
+    /* characters ~10% bigger (base desktop) */
     .player {
       width: 22px;
       height: 40px;
@@ -148,7 +132,6 @@
       pointer-events: none;
     }
 
-    /* host character */
     .random-object {
       width: 22px;
       height: 40px;
@@ -242,7 +225,7 @@
     /* Centered popup above map (host & player messages) */
     .popup-message {
       position: absolute;
-      top: -24px; /* closer to map */
+      top: -24px;
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
@@ -256,7 +239,6 @@
       text-align: left;
       border: 1px solid #00ff88;
       box-sizing: border-box;
-      display: none;
       align-items: center;
       gap: 2px;
     }
@@ -295,7 +277,7 @@
       color: #00ff88;
       padding: 6px 10px;
       border: 1px solid #00ff88;
-      font-size: 11px; /* same as banner / "volume ON is allowed" */
+      font-size: 11px; /* same feel as banner */
       text-align: left;
       z-index: 1005;
       width: auto;
@@ -304,12 +286,6 @@
       border-radius: 0;
       box-sizing: border-box;
       gap: 2px;
-    }
-
-    @media (max-width: 768px) {
-      .instruction-box {
-        max-width: 260px;
-      }
     }
 
     /* Host-only action bar – "inventory" style, white background */
@@ -362,7 +338,7 @@
       border-color: #00ff88;
     }
 
-    /* Player chat bar – styled like a popup */
+    /* Player chat bar – default desktop position under map */
     .player-chat {
       width: 400px;
       margin: 4px auto 0;
@@ -495,6 +471,60 @@
     .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
 
     .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
+
+    /* --- PHONE / SMALL SCREEN TWEAKS --- */
+    @media (max-width: 480px) {
+      body {
+        align-items: flex-start;
+      }
+
+      .everything {
+        margin-top: 28px;
+      }
+
+      /* Slightly shrink the whole map area and center it better vertically */
+      #map {
+        transform: scale(0.9);
+        transform-origin: top center;
+        margin-top: 18px;
+      }
+
+      /* Chat input fixed to bottom like WhatsApp */
+      .player-chat {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 8px;
+        margin: 0;
+        width: 94vw;
+        max-width: 414px;
+      }
+
+      /* Volume banner +10% size */
+      .host-banner {
+        font-size: 12px;
+        padding: 3px 7px;
+      }
+
+      /* Popup icons +10% */
+      .popup-message .actor-icon {
+        width: 15px;
+        height: 20px;
+      }
+
+      /* Player + host characters +10% */
+      .player,
+      .random-object {
+        width: 24px;
+        height: 44px;
+      }
+
+      /* Host view not over-scaled on phone */
+      body.host-scale .everything {
+        transform: scale(1.0);
+        transform-origin: top center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -664,7 +694,7 @@
       </div>
     </div>
 
-    <!-- furniture popup now attached to map bottom-left -->
+    <!-- furniture popup attached to map bottom-left -->
     <div id="instructionBox" class="instruction-box"></div>
   </div><!-- /map -->
 
@@ -714,7 +744,7 @@
 
   console.log('Multiplayer client starting. isHost =', isHost);
 
-  // Make host page 30% bigger visually
+  // Make host page 30% bigger visually (desktop), mobile override in CSS
   if (isHost) {
     document.body.classList.add('host-scale');
   }
@@ -963,12 +993,11 @@
     }, 2500);
   }
 
-  // *** FIXED, SCALE-SAFE POSITIONING ***
+  // SCALE-SAFE POSITIONING (works even when map/.everything are transformed)
   function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
 
-    // Use offset values so CSS scale doesn't affect game logic
     const x = room.offsetLeft + room.offsetWidth  / 2 - el.offsetWidth  / 2;
     const y = room.offsetTop  + room.offsetHeight / 2 - el.offsetHeight / 2;
 
@@ -1039,7 +1068,6 @@
       socket.emit('playerMove', { roomId: currentRoom });
     }
 
-    // play move sound slightly into the animation
     setTimeout(playMoveSound, 150);
   }
 
@@ -1105,7 +1133,7 @@
       setTvVisualState(false);
     }
 
-    // Text popup only for host (so player keeps "React to the host...")
+    // Text popup only for host (player keeps "React to the host…" focus)
     if (!isHost) return;
 
     const msg  = actionMessages[kind];
@@ -1131,7 +1159,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      // keep this visible until conversation ends or player has responded
+      // stays until conversation ends or player has responded
       if (popupMsgEl) {
         popupMsgEl.textContent = 'React to the host…';
         popupMsgEl.style.display = 'block';
@@ -1149,7 +1177,6 @@
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
 
-    // player can't react anymore, remove prompt
     if (!isHost && popupMsgEl) {
       popupMsgEl.style.display = 'none';
     }
@@ -1163,7 +1190,7 @@
     playSound(pickRandomFromPool('message'));
 
     if (message) {
-      // Player's response visible to host
+      // player's response visible to host
       showActorMessage('player', '' + message + '', 6000);
     } else {
       showActorMessage('player', 'no response..', 4000);
@@ -1198,7 +1225,8 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
-    // after sending you can't react anymore -> hide prompt
+
+    // After sending you can't react anymore -> hide prompt
     if (popupMsgEl && !isHost) {
       popupMsgEl.style.display = 'none';
     }
