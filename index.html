@@ -54,8 +54,8 @@
       position: absolute;
       top: 0;
       right: 0;
-      font-size: 11px;
-      padding: 2px 6px;
+      font-size: 12px;          /* ~7% bigger */
+      padding: 3px 7px;         /* slightly bigger */
       background: #000;
       color: #00ff88;
       border: 1px solid #00ff88;
@@ -117,7 +117,6 @@
       display: none;
     }
 
-    /* characters base */
     .player {
       width: 22px;
       height: 40px;
@@ -145,7 +144,6 @@
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    /* conversation "?" above host */
     .conversation-indicator {
       position: absolute;
       top: -22px;
@@ -161,7 +159,6 @@
       pointer-events: none;
     }
 
-    /* arrival effect */
     .random-object.arrival-sparkle {
       outline: 2px solid #00ff88;
       outline-offset: 1px;
@@ -208,7 +205,6 @@
       cursor: pointer;
     }
 
-    /* TV visual ON state */
     #tv-area.tv-on::after {
       content: "";
       position: absolute;
@@ -223,7 +219,6 @@
       100% { opacity: 1; }
     }
 
-    /* Centered popup (host & player messages) */
     .popup-message {
       position: absolute;
       top: -24px;
@@ -235,18 +230,18 @@
       border-radius: 0;
       font-size: 14px;
       display: none;
-      z-index: 1000; /* above banner */
+      z-index: 1000;
       max-width: 280px;
       text-align: left;
-      border: 1px solid #00ff88;
       box-sizing: border-box;
       align-items: center;
       gap: 2px;
+      /* no border anymore */
     }
 
     .popup-message .actor-icon {
       display: inline-block;
-      width: 13px;      /* a bit wider */
+      width: 13px;
       height: 20px;
       background-size: contain;
       background-repeat: no-repeat;
@@ -267,28 +262,27 @@
       white-space: nowrap;
     }
 
-    /* host vs player popup colors */
     .popup-message.host-msg {
-      background-color: #e0f4ff; /* light blue */
+      background-color: #e0f4ff;
     }
     .popup-message.player-msg {
-      background-color: #ffe0e0; /* light red */
+      background-color: #ffe0e0;
     }
 
-    /* Furniture popup attached to map bottom-left */
+    /* Furniture popup attached flush to map bottom-left */
     .instruction-box {
       display: none;
       position: absolute;
-      top: 100%;
+      top: calc(100% - 1px); /* removes visible gap with map border */
       left: 0;
-      margin-top: 4px;
+      margin-top: 0;
       background-color: #212121;
       color: #00ff88;
       padding: 6px 10px;
       border: 1px solid #00ff88;
       font-size: 11px;
       text-align: left;
-      z-index: 950; /* above banner, below main popup */
+      z-index: 950;
       width: auto;
       max-width: 260px;
       letter-spacing: 0.5px;
@@ -297,7 +291,6 @@
       gap: 2px;
     }
 
-    /* Host-only action bar */
     .action-bar {
       width: 400px;
       margin: 4px auto 0;
@@ -347,7 +340,18 @@
       border-color: #00ff88;
     }
 
-    /* Player chat bar (desktop – under map) */
+    /* Slightly bigger action buttons/fonts on host page */
+    body.host-scale .action-btn {
+      padding: 3px 0;
+      font-size: 15px;
+    }
+    body.host-scale .action-btn span.label {
+      font-size: 15px;
+    }
+    body.host-scale .action-btn span.key {
+      font-size: 14px;
+    }
+
     .player-chat {
       width: 400px;
       margin: 4px auto 0;
@@ -383,7 +387,6 @@
       transform: scale(0.97);
     }
 
-    /* Host login overlay – full screen */
     .host-login-overlay {
       position: fixed;
       inset: 0;
@@ -425,14 +428,14 @@
       border-radius: 0;
       border: 1px solid #00ff88;
       background: #050505;
-      color: #00ff88; /* green dots */
+      color: #00ff88;
       font-size: 14px;
       margin-bottom: 8px;
       font-family: Arial, Helvetica, sans-serif;
     }
 
     .host-login-input:focus {
-      outline: none;          /* no extra outline */
+      outline: none;
       box-shadow: none;
     }
 
@@ -453,7 +456,6 @@
       transform: scale(0.97);
     }
 
-    /* Room positions */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
     .room3 { top: 139px; left: 319px; width: 72px;  height: 131px; }
@@ -462,7 +464,6 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
-    /* Doors back to original offsets */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
@@ -486,7 +487,7 @@
 
     .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
 
-    /* --- PHONE / SMALL SCREEN TWEAKS --- */
+    /* PHONE / SMALL SCREEN TWEAKS */
     @media (max-width: 480px) {
       body {
         align-items: flex-start;
@@ -496,14 +497,12 @@
         margin-top: 24px;
       }
 
-      /* Slightly bigger map again */
       #map {
         transform: scale(0.96);
         transform-origin: top center;
         margin-top: 18px;
       }
 
-      /* Chat input fixed to bottom (WhatsApp style); font-size 16px to avoid zoom */
       .player-chat {
         position: fixed;
         left: 50%;
@@ -520,45 +519,41 @@
         font-size: 16px;
       }
 
-      /* Volume banner a bit up and left on phone */
       .host-banner {
         top: -8px;
         right: 25px;
-        font-size: 12px;
-        padding: 3px 7px;
+        font-size: 13px;      /* little bigger on phone as well */
+        padding: 4px 8px;
       }
 
-      /* Popup icons a little bigger on phone */
       .popup-message .actor-icon {
         width: 14px;
         height: 22px;
       }
 
-      /* Characters a bit bigger on phone */
       .player,
       .random-object {
         width: 24px;
         height: 44px;
       }
 
-      /* Furniture popup: bottom-left, above chat & keyboard */
+      /* Furniture popup higher so not cut off by bottom */
       .instruction-box {
         position: fixed;
         left: 4%;
-        bottom: 110px;
-        margin-top: 0;
+        bottom: 140px;  /* lifted compared to previous 110px */
+        top: auto;
         max-width: 70vw;
         z-index: 1006;
       }
 
-      /* Main popups 40px higher (overlapping bottom of the map) */
+      /* Main popups 10px lower than before (370 -> 380) */
       .popup-message {
-        top: 370px;
+        top: 380px;
         left: 50%;
         transform: translateX(-50%);
       }
 
-      /* Host view not over-scaled on phone */
       body.host-scale .everything {
         transform: scale(1.0);
         transform-origin: top center;
@@ -569,7 +564,7 @@
 <body>
 <div class="background"></div>
 
-<!-- host login overlay (full-screen, fully dark) -->
+<!-- host login overlay -->
 <div id="host-login" class="host-login-overlay">
   <div class="host-login-panel">
     <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
@@ -789,7 +784,7 @@
     document.body.classList.add('host-scale');
   }
 
-  let currentRoom  = 'room5'; // spawn in living room
+  let currentRoom  = 'room5';
   let hostRoom     = 'room5';
   let currentAudio = null;
   let tvAudio      = null;
@@ -816,8 +811,6 @@
   const instructionBox= document.getElementById('instructionBox');
   const popupMsgEl    = document.getElementById('popup-message');
   const tvAreaEl      = document.getElementById('tv-area');
-
-  const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
   const roomGraph = {
     room1: ['room2','room4'],
@@ -1042,7 +1035,6 @@
     }, 2500);
   }
 
-  // SCALE-SAFE POSITIONING
   function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
@@ -1074,21 +1066,14 @@
     const allowed = new Set(roomActions[roomId] || []);
     document.querySelectorAll('.action-btn').forEach(btn => {
       const action = btn.dataset.action;
-      if (allowed.has(action)) {
-        btn.style.display = 'flex';
-      } else {
-        btn.style.display = 'none';
-      }
+      btn.style.display = allowed.has(action) ? 'flex' : 'none';
     });
   }
 
   function setTvVisualState(on) {
     if (!tvAreaEl) return;
-    if (on) {
-      tvAreaEl.classList.add('tv-on');
-    } else {
-      tvAreaEl.classList.remove('tv-on');
-    }
+    if (on) tvAreaEl.classList.add('tv-on');
+    else tvAreaEl.classList.remove('tv-on');
   }
 
   function triggerHostArrivalEffect() {
@@ -1117,14 +1102,13 @@
       socket.emit('playerMove', { roomId: currentRoom });
     }
 
-    // disable move sound for player on mobile
+    // no move sound for player on mobile
     if (isHost || !isMobile) {
       setTimeout(playMoveSound, 150);
     }
   }
 
-  // --- SOCKET.IO ---
-
+  // SOCKET.IO
   socket.on('connect', () => {
     console.log('Connected to server with id', socket.id);
     socket.emit('join', { role: isHost ? 'host' : 'player' });
@@ -1178,11 +1162,8 @@
     if (!data || !data.kind) return;
     const kind = data.kind;
 
-    if (kind === 'tvOn') {
-      setTvVisualState(true);
-    } else if (kind === 'tvOff') {
-      setTvVisualState(false);
-    }
+    if (kind === 'tvOn') setTvVisualState(true);
+    else if (kind === 'tvOff') setTvVisualState(false);
 
     const msg = actionMessages[kind];
     if (!msg) return;
@@ -1222,19 +1203,16 @@
     if (isHost) {
       showHostWaitingMessage(5000);
     } else {
-      if (playerChatEl) {
-        playerChatEl.style.display = 'grid';
-      }
+      if (playerChatEl) playerChatEl.style.display = 'grid';
       if (chatInputEl) {
         chatInputEl.value = '';
-        // try to auto-open keyboard (may be limited by browser)
         chatInputEl.focus();
         setTimeout(() => chatInputEl.focus(), 0);
         chatInputEl.click();
       }
       if (popupMsgEl) {
         popupMsgEl.classList.remove('host-msg','player-msg');
-        popupMsgEl.classList.add('host-msg'); // about host
+        popupMsgEl.classList.add('host-msg');
         popupMsgEl.textContent = 'React to the host…';
         popupMsgEl.style.display = 'block';
       }
