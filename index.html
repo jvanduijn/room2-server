@@ -142,7 +142,7 @@
     /* "?" above host head during conversation */
     .conversation-indicator {
       position: absolute;
-      top: -12px;
+      top: -18px; /* slightly higher */
       left: 50%;
       transform: translateX(-50%);
       font-size: 14px;
@@ -189,17 +189,17 @@
       cursor: pointer;
     }
 
-    /* Centered popup above map, no rounded corners */
+    /* Centered popup above map, no rounded corners, ~10% bigger */
     .popup-message {
       position: absolute;
-      top: -26px;
+      top: -30px;
       left: 50%;
       transform: translateX(-50%);
       background-color: rgba(0, 0, 0, 0.9);
       color: #ffffff;
-      padding: 4px 10px;
+      padding: 5px 12px;  /* slightly bigger */
       border-radius: 0;
-      font-size: 12px;
+      font-size: 13px;    /* slightly bigger */
       display: none;
       z-index: 1000;
       max-width: 260px;
@@ -215,15 +215,15 @@
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #009933;
+      color: #008022; /* slightly darker green */
       padding: 4px 8px;
-      border: 2px solid #009933;
+      border: 2px solid #008022;
       font-size: 16px;
       text-align: center;
       z-index: 1005;
       width: auto;
       max-width: 300px;
-      box-shadow: 0 0 6px rgba(0, 153, 51, 0.4);
+      box-shadow: 0 0 6px rgba(0, 128, 34, 0.4);
       letter-spacing: 0.5px;
       border-radius: 0;
     }
@@ -246,12 +246,12 @@
 
     .action-btn {
       margin: 0;
-      padding: 4px 0;
+      padding: 5px 0;               /* a bit bigger */
       border-radius: 0;
-      border: 1px solid #000;
+      border: 2px solid #000;       /* thicker outline */
       background: #ffffff;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;              /* ~10% bigger (was 11) */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -262,12 +262,12 @@
 
     .action-btn span.key {
       display: inline-block;
-      min-width: 14px;
+      min-width: 16px;
       padding: 1px 3px;
       border-radius: 0;
-      border: 1px solid #000;
+      border: 2px solid #000;       /* thicker */
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 10px;
+      font-size: 11px;              /* slightly bigger */
       background: #f5f5f5;
       text-align: center;
     }
@@ -293,7 +293,6 @@
       margin: 4px auto 0;
       display: none; /* JS shows for players when conversation starts */
       box-sizing: border-box;
-      display: none;
       grid-template-columns: 1fr auto;
       gap: 4px;
       font-size: 12px;
@@ -624,7 +623,7 @@
     }
   };
 
-  const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
+  const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/touch.mp3';
 
   const soundPools = {
     sleep: [
@@ -642,7 +641,11 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
     ],
     piano: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3'
     ],
     water: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
@@ -673,14 +676,10 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3'
     ],
     tvOn: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav'
     ],
     move: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/clicksoundshort12.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3'
     ]
   };
 
@@ -703,7 +702,7 @@
     clearTimeout(showMessage._timeout);
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
-    }, 2000);
+    }, 4000);  // stay visible longer
   }
 
   function pickRandomFromPool(poolName) {
@@ -846,9 +845,12 @@
     currentConversationId = conversationId;
     hasRespondedThisRound = false;
 
+    // "?" visible for host and players
+    if (hostIndicator) hostIndicator.style.display = 'block';
+
     if (isHost) {
-      if (hostIndicator) hostIndicator.style.display = 'block';
-      showMessage('Ask something…');
+      // 'ask something' -> '............?'
+      showMessage('............?');
     } else {
       // Show chat input for players
       if (playerChatEl) {
@@ -878,8 +880,12 @@
     if (!isHost) return;
     if (!conversationId) return;
 
+    // subtle sound when reaction shows
+    playSound(pickRandomFromPool('move'));
+
     if (message) {
-      showMessage('message: ' + message);
+      // Format: [🧍‍♂️: "reaction"]
+      showMessage('[🧍‍♂️: "' + message + '"]');
     } else {
       showMessage('no responses this time.');
     }
@@ -1084,7 +1090,7 @@
       case '2':
         // Start conversation
         socket.emit('startConversation');
-        showMessage('asking…');
+        showMessage('............?');
         break;
     }
   });
