@@ -45,7 +45,7 @@
     .everything {
       position: relative;
       width: 400px;
-      height: 520px; /* map + action bar + chat bar + host banner */
+      height: 520px;
     }
 
     .background {
@@ -60,7 +60,6 @@
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/background1.png');
     }
 
-    /* small host banner above map, host only */
     .host-banner {
       position: absolute;
       top: 0;
@@ -127,7 +126,7 @@
       display: none;
     }
 
-    /* characters slightly bigger */
+    /* characters ~10% bigger */
     .player {
       width: 22px;
       height: 40px;
@@ -155,23 +154,23 @@
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    /* conversation "?" above host */
+    /* conversation "?" above host, styled like other popups */
     .conversation-indicator {
       position: absolute;
-      top: -20px; /* slightly higher */
+      top: -22px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 12px;
-      color: #00ff88;
+      font-size: 13px;
+      color: #007022;
       background: #ffffff;
       border: 1px solid #00ff88;
-      padding: 0 3px;
+      padding: 1px 5px;
       border-radius: 0;
       display: none;
       pointer-events: none;
     }
 
-    /* arrival effect outline */
+    /* arrival effect */
     .random-object.arrival-sparkle {
       outline: 2px solid #00ff88;
       outline-offset: 1px;
@@ -236,17 +235,17 @@
     /* Centered popup above map (host & player messages) */
     .popup-message {
       position: absolute;
-      top: -30px;
+      top: -24px; /* closer to map */
       left: 50%;
       transform: translateX(-50%);
-      background-color: #000000;
-      color: #ffffff;
-      padding: 4px 10px;
+      background-color: #ffffff;
+      color: #000000;
+      padding: 6px 12px;
       border-radius: 0;
-      font-size: 13px;
+      font-size: 14px;
       display: none;
       z-index: 1000;
-      max-width: 260px;
+      max-width: 280px;
       text-align: left;
       border: 1px solid #00ff88;
       box-sizing: border-box;
@@ -273,12 +272,12 @@
     }
 
     .popup-message .actor-text {
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.2;
       white-space: nowrap;
     }
 
-    /* Digital-style object popup (furniture) */
+    /* Digital-style object popup (furniture) – same language */
     .instruction-box {
       display: none;
       position: fixed;
@@ -286,16 +285,17 @@
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #007022; /* darker green */
-      padding: 6px 11px; /* slightly bigger */
+      color: #007022;
+      padding: 8px 14px;
       border: 2px solid #00ff88;
-      font-size: 16px;
+      font-size: 17px;
       text-align: center;
       z-index: 1005;
       width: auto;
       max-width: 300px;
       letter-spacing: 0.5px;
       border-radius: 0;
+      box-sizing: border-box;
     }
     @media (max-width: 768px) {
       .instruction-box {
@@ -304,13 +304,12 @@
       }
     }
 
-    /* Host-only action bar – grid "inventory" style */
+    /* Host-only action bar – "inventory" style, white background */
     .action-bar {
       width: 400px;
       margin: 4px auto 0;
-      display: none; /* only host sees it */
-      box-sizing: border-box;
       display: none;
+      box-sizing: border-box;
       grid-template-columns: repeat(9, 1fr);
       gap: 3px;
       font-size: 12px;
@@ -318,13 +317,13 @@
 
     .action-btn {
       margin: 0;
-      padding: 3px 0;
+      padding: 2px 0;
       border-radius: 0;
       border: 1px solid #00ff88;
-      background: #0a0a0a;
-      color: #e0ffe8;
+      background: #ffffff;
+      color: #000000;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -337,12 +336,12 @@
 
     .action-btn span.label {
       display: inline-block;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     .action-btn span.key {
       display: inline-block;
-      font-size: 12px;
+      font-size: 13px;
     }
 
     .action-btn:active {
@@ -355,7 +354,7 @@
       border-color: #007022;
     }
 
-    /* Player chat bar */
+    /* Player chat bar – styled like a popup */
     .player-chat {
       width: 400px;
       margin: 4px auto 0;
@@ -368,21 +367,22 @@
 
     .player-chat input {
       width: 100%;
-      padding: 4px 6px;
+      padding: 6px 10px;
       border-radius: 0;
-      border: 1px solid #000;
-      font-size: 12px;
+      border: 2px solid #00ff88;
+      background: #ffffff;
+      font-size: 14px;
       font-family: Arial, Helvetica, sans-serif;
       box-sizing: border-box;
     }
 
     .player-chat button {
-      padding: 4px 8px;
+      padding: 6px 10px;
       border-radius: 0;
-      border: 1px solid #000;
+      border: 2px solid #00ff88;
       background: #ffffff;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 14px;
       font-family: Arial, Helvetica, sans-serif;
     }
 
@@ -390,9 +390,9 @@
       transform: scale(0.97);
     }
 
-    /* Host login overlay */
+    /* Host login overlay – full screen */
     .host-login-overlay {
-      position: absolute;
+      position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.92);
       display: none;
@@ -407,21 +407,22 @@
       padding: 14px 18px;
       background: #000;
       border-radius: 0;
-      width: 260px;
+      width: 300px;
       box-sizing: border-box;
     }
 
-    .host-login-title {
+    .host-login-subtitle {
       font-size: 16px;
       margin-bottom: 10px;
-      text-transform: lowercase;
-    }
-
-    .host-login-subtitle {
-      font-size: 14px;
-      margin-bottom: 12px;
       color: #ffffff;
       text-transform: none;
+    }
+
+    .host-login-title {
+      font-size: 14px;
+      margin-bottom: 10px;
+      text-transform: lowercase;
+      color: #00ff88;
     }
 
     .host-login-input {
@@ -494,16 +495,14 @@
 <div class="everything">
   <div id="host-banner" class="host-banner">to join visit room2.nl</div>
 
-  <!-- furniture/object popup -->
   <div id="instructionBox" class="instruction-box"></div>
-  <!-- host/player popup -->
   <div id="popup-message" class="popup-message"></div>
 
   <!-- host login overlay -->
   <div id="host-login" class="host-login-overlay">
     <div class="host-login-panel">
-      <div class="host-login-title">host login</div>
       <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
+      <div class="host-login-title">host login</div>
       <input
         id="host-password"
         class="host-login-input"
@@ -601,7 +600,7 @@
       </div>
       <div class="clickable-region"
            style="left: 21px; top: 62px; width: 14px; height: 15px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Toilet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 0px; top: 33px; width: 8px; height: 22px;"
@@ -711,10 +710,9 @@
   let currentAudio = null;
   let tvAudio      = null;
   let moveAudio    = null;
-  let hostUnlocked = !isHost; // host locked until password success
+  let hostUnlocked = !isHost;
   window.currentRoom = currentRoom;
 
-  // conversation state client-side
   let currentConversationId = null;
   let hasRespondedThisRound = false;
 
@@ -747,7 +745,6 @@
     room7: ['room6']
   };
 
-  // arrow navigation for host
   const arrowNav = {
     room1: { up: null,    down: 'room4', left: null,    right: 'room2' },
     room2: { up: null,    down: 'room5', left: 'room1', right: 'room6' },
@@ -758,14 +755,13 @@
     room7: { up: 'room6', down: null,    left: null,    right: null }
   };
 
-  // room-specific actions
   const roomActions = {
     room1: ['water'],
-    room2: [], // computer lab
+    room2: [],
     room3: ['table','dinner'],
     room4: ['shower','brush'],
     room5: ['piano','tvOn','tvOff'],
-    room6: [], // hall
+    room6: [],
     room7: ['sleep']
   };
 
@@ -907,7 +903,6 @@
     playSound(CLICK_SOUND_URL);
   }
 
-  // simple text popup (no icons)
   function showMessage(text, duration = 4000) {
     if (!popupMsgEl || !text) return;
     popupMsgEl.textContent = text;
@@ -918,7 +913,6 @@
     }, duration);
   }
 
-  // popup with host/player icon
   function showActorMessage(actor, text, duration = 4000) {
     if (!popupMsgEl || !text) return;
     const iconClass = actor === 'player' ? 'actor-player' : 'actor-host';
@@ -932,12 +926,10 @@
     }, duration);
   }
 
-  // special: waiting for player's response
   function showHostWaitingMessage(duration = 4000) {
     if (!popupMsgEl) return;
     popupMsgEl.innerHTML =
-      '<span class="actor-icon actor-host"></span>' +
-      '<span class="actor-text">waiting for</span>' +
+      '<span class="actor-text">waiting for </span>' +
       '<span class="actor-icon actor-player"></span>' +
       '<span class="actor-text">\'s response</span>';
     popupMsgEl.style.display = 'flex';
@@ -948,7 +940,7 @@
   }
 
   function showObjectPopup(text) {
-    if (isHost) return;  // no furniture popups for host
+    if (isHost) return;
     instructionBox.textContent = text;
     instructionBox.style.display = 'block';
     clearTimeout(showObjectPopup._timeout);
@@ -1025,7 +1017,6 @@
     currentRoom = targetRoom;
     window.currentRoom = currentRoom;
     updateActiveRoom(currentRoom);
-    playMoveSound();
 
     if (isHost) {
       if (!hostUnlocked) return;
@@ -1036,6 +1027,9 @@
       moveElementToRoom(playerEl, currentRoom, 'player');
       socket.emit('playerMove', { roomId: currentRoom });
     }
+
+    // play move sound slightly into the animation
+    setTimeout(playMoveSound, 150);
   }
 
   // --- SOCKET.IO ---
@@ -1049,7 +1043,6 @@
     console.log('Disconnected from server');
   });
 
-  // host position updates for players
   socket.on('hostPosition', (data) => {
     if (!data || !data.roomId) return;
     hostRoom = data.roomId;
@@ -1057,7 +1050,6 @@
     moveElementToRoom(hostEl, hostRoom, 'host');
   });
 
-  // initial host position for host only
   socket.on('initialHostPosition', (data) => {
     if (!isHost) return;
     if (data && data.roomId) {
@@ -1065,11 +1057,9 @@
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
-      // actual spawn happens after login
     }
   });
 
-  // host comes online for players (after login)
   socket.on('hostOnline', ({ roomId }) => {
     if (isHost) return;
     hostRoom = roomId || 'room5';
@@ -1079,14 +1069,12 @@
     playSound(ARRIVAL_SOUND_URL);
   });
 
-  // hide host when offline
   socket.on('hostOffline', () => {
     if (!isHost) {
       hostEl.style.display = 'none';
     }
   });
 
-  // ghost player position -> visible to host as 70% opacity
   socket.on('ghostPlayerPosition', ({ roomId }) => {
     if (!isHost) return;
     if (!roomId) return;
@@ -1095,7 +1083,6 @@
     moveElementToRoom(playerEl, roomId, 'player');
   });
 
-  // host actions -> players see popup + tv state
   socket.on('hostAction', (data) => {
     if (!data || !data.kind) return;
     const kind = data.kind;
@@ -1112,7 +1099,6 @@
     }
   });
 
-  // conversation events
   socket.on('conversationStart', ({ conversationId }) => {
     console.log('conversationStart', conversationId);
     currentConversationId = conversationId;
@@ -1159,7 +1145,6 @@
     }
   });
 
-  // clicking host from player side: click sound + 10% grow
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
@@ -1173,7 +1158,6 @@
     }, 50);
   });
 
-  // player send message
   function sendPlayerMessage() {
     if (!playerChatEl || !chatInputEl) return;
     if (!currentConversationId) return;
@@ -1189,7 +1173,6 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
-    // no "message sent" popup
   }
 
   if (chatSendEl) {
@@ -1207,7 +1190,6 @@
     });
   }
 
-  // Doors & rooms
   document.querySelectorAll('.door').forEach(door => {
     const target  = door.dataset.target;
     door.addEventListener('click', (e) => {
@@ -1243,7 +1225,7 @@
     if (!isHost || !hostUnlocked) return;
 
     const allowed = new Set(roomActions[currentRoom] || []);
-    if (!allowed.has(kind)) return; // not allowed in this room
+    if (!allowed.has(kind)) return;
 
     const msg = actionMessages[kind];
     if (msg) showActorMessage('host', msg);
@@ -1305,7 +1287,6 @@
     });
   });
 
-  // keyboard for host
   document.addEventListener('keydown', (e) => {
     if (!isHost || !hostUnlocked) return;
 
@@ -1366,7 +1347,6 @@
     }
   });
 
-  // host login handling
   function completeHostLogin() {
     const val = (hostPasswordEl.value || '').trim();
     if (val !== 'host') return;
@@ -1375,14 +1355,12 @@
     hostLoginEl.style.display = 'none';
     hostBannerEl.style.display = 'block';
 
-    // show host + move to room + arrival effect
     hostEl.style.display = 'block';
     updateActiveRoom(hostRoom);
     moveElementToRoom(hostEl, hostRoom, 'host');
     triggerHostArrivalEffect();
     playSound(ARRIVAL_SOUND_URL);
 
-    // show action bar with correct room actions
     if (actionBarEl) {
       actionBarEl.style.display = 'grid';
       updateActionBarForRoom(hostRoom);
@@ -1407,22 +1385,18 @@
   }
 
   window.addEventListener('load', () => {
-    // hide host by default for everyone
     hostEl.style.display = 'none';
 
     if (isHost) {
-      // host sees banner & login overlay
       if (hostBannerEl) hostBannerEl.style.display = 'block';
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
 
-      // player element used as ghost, hide until first ghost event
       playerEl.style.display = 'none';
 
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
     } else {
-      // player start in living room
       hostBannerEl.style.display = 'none';
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
