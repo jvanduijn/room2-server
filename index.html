@@ -26,6 +26,12 @@
       background-color: transparent;
     }
 
+    /* 30% bigger host page by scaling the game container */
+    body.host-scale .everything {
+      transform: scale(1.3);
+      transform-origin: top center;
+    }
+
     @media screen and (max-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
       body {
         transform: scale(0.95);
@@ -142,6 +148,7 @@
       pointer-events: none;
     }
 
+    /* host character */
     .random-object {
       width: 22px;
       height: 40px;
@@ -707,6 +714,11 @@
 
   console.log('Multiplayer client starting. isHost =', isHost);
 
+  // Make host page 30% bigger visually
+  if (isHost) {
+    document.body.classList.add('host-scale');
+  }
+
   let currentRoom  = 'room5'; // spawn in living room
   let hostRoom     = 'room5';
   let currentAudio = null;
@@ -905,13 +917,11 @@
     playSound(CLICK_SOUND_URL);
   }
 
-  // duration: if null/undefined => persistent until manually hidden
-  function showMessage(text, duration) {
+  function showMessage(text, duration = 4000) {
     if (!popupMsgEl || !text) return;
     popupMsgEl.textContent = text;
     popupMsgEl.style.display = 'block';
     clearTimeout(showMessage._timeout);
-    if (duration == null) return;
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
     }, duration);
@@ -953,22 +963,19 @@
     }, 2500);
   }
 
+  // *** FIXED, SCALE-SAFE POSITIONING ***
   function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
 
-    const mapRect  = mapEl.getBoundingClientRect();
-    const roomRect = room.getBoundingClientRect();
-
-    let x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2;
-    let y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2;
+    // Use offset values so CSS scale doesn't affect game logic
+    const x = room.offsetLeft + room.offsetWidth  / 2 - el.offsetWidth  / 2;
+    const y = room.offsetTop  + room.offsetHeight / 2 - el.offsetHeight / 2;
 
     const offsetsByRole = positionOffsets[role] || {};
     const off = offsetsByRole[roomId] || { dx: 0, dy: 0 };
-    x += off.dx;
-    y += off.dy;
 
-    el.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
+    el.style.transform = 'translate3d(' + (x + off.dx) + 'px, ' + (y + off.dy) + 'px, 0)';
   }
 
   function updateActiveRoom(roomId) {
@@ -1120,8 +1127,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      // keep visible until you can't react anymore
-      showMessage('React to the host…', null);
+      showMessage('React to the host…', 3000);
     }
   });
 
@@ -1134,7 +1140,6 @@
 
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
-    if (popupMsgEl) popupMsgEl.style.display = 'none'; // hide "React..." when you can't react anymore
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
@@ -1145,6 +1150,7 @@
     playSound(pickRandomFromPool('message'));
 
     if (message) {
+      // Player's response visible to host
       showActorMessage('player', '' + message + '', 6000);
     } else {
       showActorMessage('player', 'no response..', 4000);
@@ -1179,9 +1185,6 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
-
-    // you can't react anymore -> hide "React to the host…"
-    if (popupMsgEl) popupMsgEl.style.display = 'none';
   }
 
   if (chatSendEl) {
@@ -1362,7 +1365,6 @@
 
     hostUnlocked = true;
     hostLoginEl.style.display = 'none';
-    hostBannerEl.style.display = 'block';
 
     hostEl.style.display = 'block';
     updateActiveRoom(hostRoom);
@@ -1396,11 +1398,15 @@
   window.addEventListener('load', () => {
     hostEl.style.display = 'none';
 
+    // Banner text differs for host vs player
+    if (hostBannerEl) {
+      hostBannerEl.textContent = isHost
+        ? 'to join visit room2.nl'
+        : 'volume ON is allowed';
+      hostBannerEl.style.display = 'block';
+    }
+
     if (isHost) {
-      if (hostBannerEl) {
-        hostBannerEl.textContent = 'to join visit room2.nl';
-        hostBannerEl.style.display = 'block';
-      }
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
 
       playerEl.style.display = 'none';
@@ -1409,10 +1415,6 @@
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
     } else {
-      if (hostBannerEl) {
-        hostBannerEl.textContent = 'volume ON is allowed';
-        hostBannerEl.style.display = 'block';
-      }
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
       currentRoom = 'room5';
