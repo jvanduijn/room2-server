@@ -26,7 +26,7 @@
       background-color: transparent;
     }
 
-    /* 30% bigger host page on desktop by scaling the game container */
+    /* host view ~30% bigger on desktop */
     body.host-scale .everything {
       transform: scale(1.3);
       transform-origin: top center;
@@ -86,7 +86,7 @@
     }
 
     @media screen and (max-width: 479px) {
-      #map { overflow: hidden; }
+      #map { overflow: visible; }
     }
 
     .room {
@@ -186,11 +186,11 @@
     }
     .door-horizontal {
       width: 40px;
-      height: 8px;   /* slightly slimmer so it doesn’t spill out */
+      height: 9px;
       border-radius: 1px;
     }
     .door-vertical {
-      width: 8px;    /* slightly slimmer so it doesn’t spill out */
+      width: 9px;
       height: 40px;
       border-radius: 1px;
     }
@@ -223,7 +223,7 @@
       100% { opacity: 1; }
     }
 
-    /* Centered popup (host & player messages) – default above map on desktop */
+    /* Centered popup (host & player messages) */
     .popup-message {
       position: absolute;
       top: -24px;
@@ -246,8 +246,8 @@
 
     .popup-message .actor-icon {
       display: inline-block;
-      width: 11px;
-      height: 20px;           /* same proportions as player (22x40) */
+      width: 13px;      /* a bit wider */
+      height: 20px;
       background-size: contain;
       background-repeat: no-repeat;
       flex-shrink: 0;
@@ -265,6 +265,14 @@
       font-size: 14px;
       line-height: 1.2;
       white-space: nowrap;
+    }
+
+    /* host vs player popup colors */
+    .popup-message.host-msg {
+      background-color: #e0f4ff; /* light blue */
+    }
+    .popup-message.player-msg {
+      background-color: #ffe0e0; /* light red */
     }
 
     /* Furniture popup attached to map bottom-left */
@@ -454,29 +462,29 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
-    /* Doors (slightly pulled in so they don't cross walls) */
-    .room1 .door1 { left: 68%; bottom: -10px; transform: translateX(-50%); }
-    .room1 .door2 { right: -10px; top: 59%; transform: translateY(-50%); }
+    /* Doors back to original offsets */
+    .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
+    .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
-    .room2 .door1 { left: -9px;  top: 50%; transform: translateY(-50%); }
-    .room2 .door3 { bottom: -10px; left: 59%; transform: translateX(-50%); }
-    .room2 .door4 { bottom: -10px; left: 89%; transform: translateX(-50%); }
+    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
+    .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
+    .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }
 
-    .room3 .door1 { left: -10px; top: 69%; transform: translateY(-50%); }
+    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); }
 
-    .room4 .door1 { left: 68%; top: -10px; transform: translateX(-50%); }
-    .room4 .door2 { right: -10px; top: 30%; transform: translateY(-50%); }
+    .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); }
+    .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
 
-    .room5 .door1 { left: -10px; top: 30%; transform: translateY(-50%); }
-    .room5 .door2 { right: -10px; top: 30%; transform: translateY(-50%); }
-    .room5 .door3 { top: -9px;  left: 82%; transform: translateX(-50%); }
+    .room5 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
+    .room5 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
+    .room5 .door3 { top: -11px; left: 82%; transform: translateX(-50%); }
 
-    .room6 .door1 { left: -10px; top: 30%; transform: translateY(-50%); }
-    .room6 .door2 { bottom: -10px; left: 50%; transform: translateX(-50%); }
-    .room6 .door3 { right: -10px; top: 50%; transform: translateY(-50%); }
-    .room6 .door4 { top: -10px; left: 50%; transform: translateX(-50%); }
+    .room6 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
+    .room6 .door2 { bottom: -12px; left: 50%; transform: translateX(-50%); }
+    .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }
+    .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
 
-    .room7 .door1 { top: -10px; left: 19%; transform: translateX(-50%); }
+    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
 
     /* --- PHONE / SMALL SCREEN TWEAKS --- */
     @media (max-width: 480px) {
@@ -488,14 +496,14 @@
         margin-top: 24px;
       }
 
-      /* Slightly bigger map than earlier phone version but still fitting */
+      /* Slightly bigger map again */
       #map {
-        transform: scale(0.93);
+        transform: scale(0.96);
         transform-origin: top center;
         margin-top: 18px;
       }
 
-      /* Chat input fixed to bottom like WhatsApp, with font >= 16px to avoid iOS zoom */
+      /* Chat input fixed to bottom (WhatsApp style); font-size 16px to avoid zoom */
       .player-chat {
         position: fixed;
         left: 50%;
@@ -512,7 +520,7 @@
         font-size: 16px;
       }
 
-      /* Volume banner a bit up and left */
+      /* Volume banner a bit up and left on phone */
       .host-banner {
         top: -8px;
         right: 25px;
@@ -520,32 +528,32 @@
         padding: 3px 7px;
       }
 
-      /* Popup icons +10% on phone */
+      /* Popup icons a little bigger on phone */
       .popup-message .actor-icon {
-        width: 12px;
+        width: 14px;
         height: 22px;
       }
 
-      /* Player + host characters +10% */
+      /* Characters a bit bigger on phone */
       .player,
       .random-object {
         width: 24px;
         height: 44px;
       }
 
-      /* Furniture popup: fixed bottom-left above chat so it's always visible */
+      /* Furniture popup: bottom-left, above chat & keyboard */
       .instruction-box {
         position: fixed;
         left: 4%;
-        bottom: 56px;
+        bottom: 110px;
         margin-top: 0;
         max-width: 70vw;
         z-index: 1006;
       }
 
-      /* Action/React popup below the map, centered */
+      /* Main popups 40px higher (overlapping bottom of the map) */
       .popup-message {
-        top: 410px;        /* just below scaled map */
+        top: 370px;
         left: 50%;
         transform: translateX(-50%);
       }
@@ -773,9 +781,10 @@
   window.isHost = isHost;
   const socket = io();
 
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent || '');
+
   console.log('Multiplayer client starting. isHost =', isHost);
 
-  // Scale host page (desktop); mobile overrides via CSS
   if (isHost) {
     document.body.classList.add('host-scale');
   }
@@ -980,6 +989,7 @@
 
   function showMessage(text, duration = 4000) {
     if (!popupMsgEl || !text) return;
+    popupMsgEl.classList.remove('host-msg','player-msg');
     popupMsgEl.textContent = text;
     popupMsgEl.style.display = 'block';
     clearTimeout(showMessage._timeout);
@@ -991,6 +1001,12 @@
   function showActorMessage(actor, text, duration = 4000) {
     if (!popupMsgEl || !text) return;
     const iconClass = actor === 'player' ? 'actor-player' : 'actor-host';
+    popupMsgEl.classList.remove('host-msg','player-msg');
+    if (actor === 'host') {
+      popupMsgEl.classList.add('host-msg');
+    } else if (actor === 'player') {
+      popupMsgEl.classList.add('player-msg');
+    }
     popupMsgEl.innerHTML =
       '<span class="actor-icon ' + iconClass + '"></span>' +
       '<span class="actor-text">' + text + '</span>';
@@ -1003,6 +1019,8 @@
 
   function showHostWaitingMessage(duration = 4000) {
     if (!popupMsgEl) return;
+    popupMsgEl.classList.remove('host-msg','player-msg');
+    popupMsgEl.classList.add('host-msg');
     popupMsgEl.innerHTML =
       '<span class="actor-text">waiting for </span>' +
       '<span class="actor-icon actor-player"></span>' +
@@ -1099,7 +1117,10 @@
       socket.emit('playerMove', { roomId: currentRoom });
     }
 
-    setTimeout(playMoveSound, 150);
+    // disable move sound for player on mobile
+    if (isHost || !isMobile) {
+      setTimeout(playMoveSound, 150);
+    }
   }
 
   // --- SOCKET.IO ---
@@ -1157,7 +1178,6 @@
     if (!data || !data.kind) return;
     const kind = data.kind;
 
-    // TV visual for everyone
     if (kind === 'tvOn') {
       setTvVisualState(true);
     } else if (kind === 'tvOff') {
@@ -1167,11 +1187,12 @@
     const msg = actionMessages[kind];
     if (!msg) return;
 
-    // Show action text to both host and player
     if (isHost) {
       showActorMessage('host', msg);
     } else {
       if (!popupMsgEl) return;
+      popupMsgEl.classList.remove('host-msg','player-msg');
+      popupMsgEl.classList.add('host-msg');
       popupMsgEl.innerHTML =
         '<span class="actor-icon actor-host"></span>' +
         '<span class="actor-text">' + msg + '</span>';
@@ -1179,8 +1200,9 @@
 
       clearTimeout(showActorMessage._timeout);
       showActorMessage._timeout = setTimeout(() => {
-        // If conversation still open and player hasn't responded, restore hint
         if (currentConversationId && !hasRespondedThisRound) {
+          popupMsgEl.classList.remove('host-msg','player-msg');
+          popupMsgEl.classList.add('host-msg');
           popupMsgEl.textContent = 'React to the host…';
           popupMsgEl.style.display = 'block';
         } else {
@@ -1205,10 +1227,14 @@
       }
       if (chatInputEl) {
         chatInputEl.value = '';
+        // try to auto-open keyboard (may be limited by browser)
         chatInputEl.focus();
+        setTimeout(() => chatInputEl.focus(), 0);
+        chatInputEl.click();
       }
-      // show and keep until player can't react anymore
       if (popupMsgEl) {
+        popupMsgEl.classList.remove('host-msg','player-msg');
+        popupMsgEl.classList.add('host-msg'); // about host
         popupMsgEl.textContent = 'React to the host…';
         popupMsgEl.style.display = 'block';
       }
@@ -1273,7 +1299,6 @@
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
 
-    // After sending, player can't react anymore -> hide hint
     if (popupMsgEl && !isHost) {
       popupMsgEl.style.display = 'none';
     }
@@ -1490,7 +1515,6 @@
   window.addEventListener('load', () => {
     hostEl.style.display = 'none';
 
-    // Banner text differs for host vs player
     if (hostBannerEl) {
       hostBannerEl.textContent = isHost
         ? 'to join visit room2.nl'
