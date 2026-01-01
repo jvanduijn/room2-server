@@ -52,7 +52,7 @@
 
     .host-banner {
       position: absolute;
-      top: 0;
+      top: 1;
       right: 0;
       font-size: 12px;          /* ~7% bigger */
       padding: 3px 7px;         /* slightly bigger */
@@ -63,7 +63,7 @@
       letter-spacing: 0.5px;
       display: none;
       text-transform: none;
-      z-index: 1 !important; /* below popups */
+      z-index: 0 !important; /* below popups */
     }
 
     #map {
@@ -277,10 +277,8 @@
       top: calc(100% - 1px); /* removes visible gap with map border */
       left: 0;
       margin-top: 0;
-
       font-size: 12px;          /* ~7% bigger */
       padding: 3px 7px;  
-
       background-color: #212121;
       color: #00ff88;
       border: 1px solid #00ff88;
@@ -291,7 +289,6 @@
       letter-spacing: 0.5px;
       border-radius: 0;
       box-sizing: border-box;
-      gap: 2px;
     }
 
     .action-bar {
@@ -524,7 +521,7 @@
 
       .host-banner {
         top: -8px;
-        z-index: 1 !important; /* below popups */
+        z-index: 0 !important; /* below popups */
         right: 13px;
         font-size: 13px;      /* little bigger on phone as well */
         padding: 4px 8px;
@@ -626,7 +623,7 @@
       </div>
       <div class="clickable-region"
            style="left: 94px; top: 105px; width: 25px; height: 27px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('3D printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
@@ -710,7 +707,7 @@
       </div>
       <div class="clickable-region"
            style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat, Welcome');}">
       </div>
     </div>
 
@@ -850,26 +847,26 @@
 
   const positionOffsets = {
   player: {
-    room1: { dx: -14, dy: 10 },   // moved more left
+    room1: { dx: -25, dy: 10 },   // moved more left
     room2: { dx: -12, dy: 5  },
     room3: { dx: -15, dy: 0  },   // more left
     room4: { dx: -14, dy: -1  },   // slightly more up
-    room5: { dx: -11, dy: 3  },
+    room5: { dx: -12, dy: 0  },
     room6: { dx: -12,  dy: 2  },   // hallway slightly more up + left
     room7: { dx: -11, dy: -2 }
   },
   host: {
-    room1: { dx: 8,  dy: -8  },  // slightly lower
+    room1: { dx: 8,  dy: -3  },  // slightly lower
     room2: { dx: 16, dy: -5  },  // slightly more right
-    room3: { dx: 10,  dy: 8   },  // slightly lower + a bit left
+    room3: { dx: 2,  dy: 20   },  // slightly lower + a bit left
     room4: { dx: 8,  dy: -5  },
     room5: { dx: 10, dy: -8  },
     room6: { dx: 6,  dy: -2  },
     room7: { dx: 10, dy: 0   }
   }
 };
-  const CLICK_SOUND_URL    = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
-  const ARRIVAL_SOUND_URL  = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/arrival1.mp3';
+  const CLICK_SOUND_URL    = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/touch.mp3';
+  const ARRIVAL_SOUND_URL  = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/entrance.wav';
 
   const soundPools = {
     sleep: [
@@ -887,11 +884,7 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
     ],
     piano: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie.mp3'
     ],
     water: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
@@ -901,25 +894,16 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3'
     ],
     shower: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/showerstart.wav'
     ],
     brush: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brushteeth.wav'
     ],
     dinner: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/pots.wav',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/baking.wav'
     ],
     tvOn: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav'
@@ -928,8 +912,7 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3'
     ],
     message: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/message1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/message1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/effectmessage.wav'
     ]
   };
 
