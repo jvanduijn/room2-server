@@ -45,7 +45,7 @@
     .everything {
       position: relative;
       width: 400px;
-      height: 460px; /* extra height for action bar */
+      height: 510px; /* map + action bar + chat bar */
     }
 
     .background {
@@ -139,6 +139,22 @@
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
+    /* "?" above host head during conversation */
+    .conversation-indicator {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #00cc44;
+      background: #ffffff;
+      border: 1px solid #00cc44;
+      padding: 0 4px;
+      border-radius: 0;
+      display: none;
+      pointer-events: none;
+    }
+
     .door {
       position: absolute;
       background-color: #131313;
@@ -199,15 +215,15 @@
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #00cc44;
+      color: #009933;
       padding: 4px 8px;
-      border: 2px solid #00cc44;
+      border: 2px solid #009933;
       font-size: 16px;
       text-align: center;
       z-index: 1005;
       width: auto;
       max-width: 300px;
-      box-shadow: 0 0 6px rgba(0, 204, 68, 0.4);
+      box-shadow: 0 0 6px rgba(0, 153, 51, 0.4);
       letter-spacing: 0.5px;
       border-radius: 0;
     }
@@ -271,6 +287,42 @@
       grid-column: span 1;
     }
 
+    /* Player chat bar (only visible during conversation for players) */
+    .player-chat {
+      width: 400px;
+      margin: 4px auto 0;
+      display: none; /* JS shows for players when conversation starts */
+      box-sizing: border-box;
+      display: none;
+      grid-template-columns: 1fr auto;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .player-chat input {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 0;
+      border: 1px solid #000;
+      font-size: 12px;
+      font-family: Arial, Helvetica, sans-serif;
+      box-sizing: border-box;
+    }
+
+    .player-chat button {
+      padding: 4px 8px;
+      border-radius: 0;
+      border: 1px solid #000;
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .player-chat button:active {
+      transform: scale(0.97);
+    }
+
     /* Room positions */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
@@ -314,7 +366,9 @@
 
   <div id="map">
     <div id="player" class="player"></div>
-    <div id="host" class="random-object"></div>
+    <div id="host" class="random-object">
+      <div id="host-indicator" class="conversation-indicator">?</div>
+    </div>
 
     <!-- ROOM 1 -->
     <div id="room1" class="room room1">
@@ -485,6 +539,12 @@
       ⏹ <span class="key">0</span>
     </button>
   </div>
+
+  <!-- Player chat bar (only shows for players during conversation) -->
+  <div id="player-chat" class="player-chat">
+    <input id="chat-input" type="text" maxlength="120" placeholder="type your reaction…" />
+    <button id="chat-send">send</button>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -501,7 +561,16 @@
   let moveAudio = null;
   window.currentRoom = currentRoom;
 
-  const actionBarEl = document.querySelector('.action-bar');
+  // Conversation state client-side
+  let currentConversationId = null;
+  let hasRespondedThisRound = false;
+
+  const actionBarEl   = document.querySelector('.action-bar');
+  const playerChatEl  = document.getElementById('player-chat');
+  const chatInputEl   = document.getElementById('chat-input');
+  const chatSendEl    = document.getElementById('chat-send');
+  const hostIndicator = document.getElementById('host-indicator');
+
   if (isHost && actionBarEl) {
     actionBarEl.style.display = 'grid';
   }
@@ -510,7 +579,7 @@
 
   const roomGraph = {
     room1: ['room2','room4'],
-    room2: ['room1','room5','room6'],   // no direct room3
+    room2: ['room1','room5','room6'],
     room3: ['room6'],
     room4: ['room1','room5'],
     room5: ['room2','room4','room6'],
@@ -573,11 +642,7 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
     ],
     piano: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie.mp3'
     ],
     water: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
@@ -615,11 +680,7 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
     ],
     move: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/clicksoundshort12.mp3'
     ]
   };
 
@@ -642,7 +703,7 @@
     clearTimeout(showMessage._timeout);
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
-    }, 1800);
+    }, 2000);
   }
 
   function pickRandomFromPool(poolName) {
@@ -770,7 +831,7 @@
     }
   });
 
-  // NEW: host actions are broadcast to players so they also see popup text
+  // Host actions -> player popups
   socket.on('hostAction', (data) => {
     if (!data || !data.kind) return;
     const msg = actionMessages[data.kind];
@@ -779,6 +840,52 @@
     }
   });
 
+  // Conversation events
+  socket.on('conversationStart', ({ conversationId }) => {
+    console.log('conversationStart', conversationId);
+    currentConversationId = conversationId;
+    hasRespondedThisRound = false;
+
+    if (isHost) {
+      if (hostIndicator) hostIndicator.style.display = 'block';
+      showMessage('Ask something…');
+    } else {
+      // Show chat input for players
+      if (playerChatEl) {
+        playerChatEl.style.display = 'grid';
+      }
+      if (chatInputEl) {
+        chatInputEl.value = '';
+        chatInputEl.focus();
+      }
+      showMessage('React to the host…');
+    }
+  });
+
+  socket.on('conversationEnd', ({ conversationId }) => {
+    console.log('conversationEnd', conversationId);
+    if (conversationId !== currentConversationId) return;
+
+    currentConversationId = null;
+    hasRespondedThisRound = false;
+
+    if (hostIndicator) hostIndicator.style.display = 'none';
+    if (playerChatEl) playerChatEl.style.display = 'none';
+  });
+
+  socket.on('conversationResult', ({ conversationId, message }) => {
+    console.log('conversationResult', conversationId, message);
+    if (!isHost) return;
+    if (!conversationId) return;
+
+    if (message) {
+      showMessage('message: ' + message);
+    } else {
+      showMessage('no responses this time.');
+    }
+  });
+
+  // Host click (player interaction)
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
@@ -792,6 +899,41 @@
     }, 50);
   });
 
+  // Player chat send
+  function sendPlayerMessage() {
+    if (!playerChatEl || !chatInputEl) return;
+    if (!currentConversationId) return;
+    if (hasRespondedThisRound) return;
+
+    const text = chatInputEl.value.trim();
+    if (!text) return;
+
+    socket.emit('playerMessage', {
+      conversationId: currentConversationId,
+      text
+    });
+
+    hasRespondedThisRound = true;
+    playerChatEl.style.display = 'none';
+    showMessage('message sent');
+  }
+
+  if (chatSendEl) {
+    chatSendEl.addEventListener('click', () => {
+      if (!isHost) sendPlayerMessage();
+    });
+  }
+
+  if (chatInputEl) {
+    chatInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!isHost) sendPlayerMessage();
+      }
+    });
+  }
+
+  // Doors & rooms
   document.querySelectorAll('.door').forEach(door => {
     const target  = door.dataset.target;
     door.addEventListener('click', (e) => {
@@ -886,58 +1028,64 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if (isHost) {
-      const dirKeyMap = {
-        ArrowUp: 'up',
-        ArrowDown: 'down',
-        ArrowLeft: 'left',
-        ArrowRight: 'right'
-      };
-      const dir = dirKeyMap[e.key];
-      if (dir) {
-        e.preventDefault();
-        const nav = arrowNav[currentRoom];
-        if (nav && nav[dir]) {
-          goToRoom(nav[dir]);
-        }
-      }
+    if (!isHost) return;
 
-      switch (e.key) {
-        case 'z':
-        case 'Z':
-          triggerHostAction('sleep');
-          break;
-        case 't':
-        case 'T':
-          triggerHostAction('table');
-          break;
-        case 'p':
-        case 'P':
-          triggerHostAction('piano');
-          break;
-        case 'w':
-        case 'W':
-          triggerHostAction('water');
-          break;
-        case 's':
-        case 'S':
-          triggerHostAction('shower');
-          break;
-        case 'b':
-        case 'B':
-          triggerHostAction('brush');
-          break;
-        case 'd':
-        case 'D':
-          triggerHostAction('dinner');
-          break;
-        case '1':
-          triggerHostAction('tvOn');
-          break;
-        case '0':
-          triggerHostAction('tvOff');
-          break;
+    const dirKeyMap = {
+      ArrowUp: 'up',
+      ArrowDown: 'down',
+      ArrowLeft: 'left',
+      ArrowRight: 'right'
+    };
+    const dir = dirKeyMap[e.key];
+    if (dir) {
+      e.preventDefault();
+      const nav = arrowNav[currentRoom];
+      if (nav && nav[dir]) {
+        goToRoom(nav[dir]);
       }
+    }
+
+    // Host actions via keyboard
+    switch (e.key) {
+      case 'z':
+      case 'Z':
+        triggerHostAction('sleep');
+        break;
+      case 't':
+      case 'T':
+        triggerHostAction('table');
+        break;
+      case 'p':
+      case 'P':
+        triggerHostAction('piano');
+        break;
+      case 'w':
+      case 'W':
+        triggerHostAction('water');
+        break;
+      case 's':
+      case 'S':
+        triggerHostAction('shower');
+        break;
+      case 'b':
+      case 'B':
+        triggerHostAction('brush');
+        break;
+      case 'd':
+      case 'D':
+        triggerHostAction('dinner');
+        break;
+      case '1':
+        triggerHostAction('tvOn');
+        break;
+      case '0':
+        triggerHostAction('tvOff');
+        break;
+      case '2':
+        // Start conversation
+        socket.emit('startConversation');
+        showMessage('asking…');
+        break;
     }
   });
 
