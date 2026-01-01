@@ -17,20 +17,35 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue",
-                   Helvetica, Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       user-select: none;
       overflow: hidden;
-      background-color: transparent; /* back to original */
+      background-color: transparent;
+    }
+
+    @media screen and (max-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) {
+      body {
+        transform: scale(0.95);
+        transform-origin: top;
+        overflow: visible;
+      }
+    }
+
+    @media screen and (max-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) {
+      body {
+        transform: scale(0.93);
+        transform-origin: top;
+        overflow: visible;
+      }
     }
 
     .everything {
       position: relative;
       width: 400px;
-      height: 460px;
+      height: 510px; /* map + action bar + chat bar */
     }
 
     .background {
@@ -56,21 +71,17 @@
       background-repeat: no-repeat;
       overflow: visible;
       background-position: 0 -3px;
-      border: 2px solid #111;
-      box-sizing: border-box;
+      border: 2px solid #333;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      padding: 5px;
       margin: 0 auto;
+      box-sizing: border-box;
     }
 
-    @media (max-width: 480px) {
-      .everything {
-        width: 360px;
-        height: 430px;
-      }
-      #map {
-        width: 360px;
-        height: 360px;
-        background-size: 360px;
-      }
+    @media screen and (max-width: 479px) {
+      #map { overflow: hidden; }
     }
 
     .room {
@@ -85,7 +96,7 @@
       text-align: center;
       cursor: pointer;
       opacity: 1;
-      transition: transform 0.28s ease-in-out, opacity 0.28s ease-in-out;
+      transition: transform 0.35s ease-in-out, opacity 0.2s ease-in-out;
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
       z-index: 1;
@@ -110,7 +121,7 @@
         no-repeat center center / contain;
       position: absolute;
       display: block;
-      transition: transform 0.40s cubic-bezier(0.25, 0.1, 0.25, 1);
+      transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
       will-change: transform;
       -webkit-tap-highlight-color: transparent;
       pointer-events: none;
@@ -125,226 +136,224 @@
       position: absolute;
       cursor: pointer;
       z-index: 1001;
-      transition: transform 0.40s cubic-bezier(0.25, 0.1, 0.25, 1);
+      transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
     }
 
-    /* phone: bigger characters */
-    @media (max-width: 480px) {
-      .player,
-      .random-object {
-        width: 23px;
-        height: 41px;
-      }
-    }
-
-    /* inline icons in popups: same size as characters */
-    .host-icon-inline,
-    .player-icon-inline {
-      display: inline-block;
-      width: 20px;
-      height: 36px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      vertical-align: middle;
-      margin-right: 4px;
-    }
-    .host-icon-inline {
-      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png');
-    }
-    .player-icon-inline {
-      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png');
-    }
-
-    @media (max-width: 480px) {
-      .host-icon-inline,
-      .player-icon-inline {
-        width: 23px;
-        height: 41px;
-      }
+    /* "?" above host head during conversation */
+    .conversation-indicator {
+      position: absolute;
+      top: -18px; /* slightly higher */
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #00cc44;
+      background: #ffffff;
+      border: 1px solid #00cc44;
+      padding: 0 4px;
+      border-radius: 0;
+      display: none;
+      pointer-events: none;
     }
 
     .door {
       position: absolute;
-      background-color: #111;
-      border: 1px solid #111;
+      background-color: #131313;
+      border: 1px solid #000;
       cursor: pointer;
       z-index: 2;
-      transition: background-color 0.15s ease, transform 0.10s ease;
+      transition: background-color 0.1s ease, transform 0.08s ease;
       pointer-events: none;
       -webkit-tap-highlight-color: transparent;
     }
     .door-horizontal {
       width: 40px;
       height: 9px;
+      border-radius: 1px;
     }
     .door-vertical {
       width: 9px;
       height: 40px;
+      border-radius: 1px;
     }
     .door:hover {
-      background-color: #c8ff00;
+      background-color: #ff9900;
       transform: scale(1.03);
     }
-    .door-popup { display: none; }
+
+    .door-popup {
+      display: none !important;
+    }
 
     .clickable-region {
       position: absolute;
       cursor: pointer;
     }
 
-    /* top host-status popup */
-    .top-message {
-      position: fixed;
-      top: 8%;
+    /* Centered popup above map, no rounded corners, ~10% bigger */
+    .popup-message {
+      position: absolute;
+      top: -30px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #d9ff00;   /* neon */
-      color: #000;
-      padding: 8px 14px;
-      border: 2px solid #000;
-      font-size: 15px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      background-color: rgba(0, 0, 0, 0.9);
+      color: #ffffff;
+      padding: 5px 12px;  /* slightly bigger */
+      border-radius: 0;
+      font-size: 13px;    /* slightly bigger */
       display: none;
-      z-index: 2000;
+      z-index: 1000;
+      max-width: 260px;
+      text-align: center;
+      border: 1px solid #000;
     }
 
-    .conversation-prompt {
-      position: fixed;
-      top: 5%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #ffffff;
-      color: #0033ff;
-      padding: 10px 18px;
-      border: 2px solid #0033ff;
-      font-size: 20px;
-      letter-spacing: 0.3em;
-      display: none;
-      z-index: 2100;
-    }
-
-    .conversation-reply {
-      position: fixed;
-      top: 14%;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #ffffff;
-      color: #111;
-      padding: 8px 14px;
-      border: 2px solid #ff2555;
-      font-size: 15px;
-      display: none;
-      z-index: 2100;
-      max-width: 320px;
-      text-align: left;
-    }
-
-    /* object popup: more digital + neon */
+    /* Digital-style object popup */
     .instruction-box {
       display: none;
       position: fixed;
-      bottom: 12%;
+      bottom: 15%;
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #00c04b;
-      padding: 6px 12px;
-      border: 2px solid #00ff66;
-      font-size: 14px;
+      color: #008022; /* slightly darker green */
+      padding: 4px 8px;
+      border: 2px solid #008022;
+      font-size: 16px;
       text-align: center;
       z-index: 1005;
-      max-width: 320px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      width: auto;
+      max-width: 300px;
+      box-shadow: 0 0 6px rgba(0, 128, 34, 0.4);
+      letter-spacing: 0.5px;
+      border-radius: 0;
     }
     @media (max-width: 768px) {
-      .instruction-box { bottom: 14%; }
+      .instruction-box {
+        bottom: 20%;
+        max-width: 350px;
+      }
     }
 
-    .host-question {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background-color: #d9ff00;
-      color: #0033ff;
-      border: 2px solid #0033ff;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      pointer-events: none;
-    }
-
-    .action-panel {
-      position: absolute;
-      bottom: -46px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      flex-wrap: nowrap;
+    /* Host-only action bar – hidden by default */
+    .action-bar {
+      width: 400px;
+      margin: 4px auto 0;
+      display: none; /* JS enables grid for host only */
+      grid-template-columns: repeat(8, 1fr);
       gap: 4px;
-      z-index: 1200;
+      font-size: 12px;
     }
 
     .action-btn {
-      width: 38px;
-      height: 32px;
+      margin: 0;
+      padding: 5px 0;               /* a bit bigger */
       border-radius: 0;
-      border: 2px solid #111;
-      background-color: #111;
-      color: #d9ff00;
-      font-size: 14px;
-      font-weight: 600;
-      display: inline-flex;
+      border: 2px solid #000;       /* thicker outline */
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 12px;              /* ~10% bigger (was 11) */
+      display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      padding: 0;
-      line-height: 1;
-    }
-    .action-btn span.key {
-      font-size: 11px;
-      margin-left: 2px;
-    }
-    .action-btn.active {
-      background-color: #d9ff00;
-      color: #111;
+      gap: 4px;
+      user-select: none;
+      font-family: Arial, Helvetica, sans-serif;
     }
 
-    /* room geometry */
+    .action-btn span.key {
+      display: inline-block;
+      min-width: 16px;
+      padding: 1px 3px;
+      border-radius: 0;
+      border: 2px solid #000;       /* thicker */
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;              /* slightly bigger */
+      background: #f5f5f5;
+      text-align: center;
+    }
+
+    .action-btn:active {
+      transform: scale(0.97);
+    }
+
+    .action-btn.active-flash {
+      background: #00cc44;
+      border-color: #00752a;
+      box-shadow: 0 0 4px rgba(0, 204, 68, 0.7);
+      color: #000;
+    }
+
+    .action-btn[data-action="tvOff"] {
+      grid-column: span 1;
+    }
+
+    /* Player chat bar (only visible during conversation for players) */
+    .player-chat {
+      width: 400px;
+      margin: 4px auto 0;
+      display: none; /* JS shows for players when conversation starts */
+      box-sizing: border-box;
+      grid-template-columns: 1fr auto;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .player-chat input {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 0;
+      border: 1px solid #000;
+      font-size: 12px;
+      font-family: Arial, Helvetica, sans-serif;
+      box-sizing: border-box;
+    }
+
+    .player-chat button {
+      padding: 4px 8px;
+      border-radius: 0;
+      border: 1px solid #000;
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .player-chat button:active {
+      transform: scale(0.97);
+    }
+
+    /* Room positions */
     .room1 { top: 9px;   left: 9px;   width: 72px;  height: 170px; }
     .room2 { top: 37px;  left: 90px;  width: 220px; height: 143px; }
     .room3 { top: 139px; left: 319px; width: 72px;  height: 131px; }
     .room4 { top: 188px; left: 9px;   width: 72px;  height: 81px;  }
     .room5 { top: 188px; left: 90px;  width: 159px; height: 81px;  }
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
-    .room7 { top: 278px; left: 257px; width: 134px; height: 90px;  }
+    .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
+    /* Door positions */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
-    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }  /* to room1 */
-    .room2 .door2 { right: -11px; top: 50%; transform: translateY(-50%); } /* now also to hall (room6) */
-    .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }/* to room5 */
-    .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }/* to room6 */
+    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
+    .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
+    .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }
 
-    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); } /* to room6 */
+    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); }
 
-    .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); } /* to room1 */
-    .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }/* to room5 */
+    .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); }
+    .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
 
-    .room5 .door1 { left: -13px; top: 30%; transform: translateY(-50%); } /* to room4 */
-    .room5 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }/* to room6 */
-    .room5 .door3 { top: -11px; left: 82%; transform: translateX(-50%); } /* to room2 */
+    .room5 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
+    .room5 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
+    .room5 .door3 { top: -11px; left: 82%; transform: translateX(-50%); }
 
-    .room6 .door1 { left: -13px; top: 30%; transform: translateY(-50%); } /* to room5 */
-    .room6 .door2 { bottom: -12px; left: 50%; transform: translateX(-50%); }/* to room7 */
-    .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }/* to room3 */
-    .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); } /* to room2 */
+    .room6 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
+    .room6 .door2 { bottom: -12px; left: 50%; transform: translateX(-50%); }
+    .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }
+    .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
 
-    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }  /* to room6 */
+    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
   </style>
 </head>
 <body>
@@ -352,15 +361,13 @@
 
 <div class="everything">
   <div id="instructionBox" class="instruction-box"></div>
-
-  <div id="topMessage" class="top-message"></div>
-  <div id="conversationPrompt" class="conversation-prompt">............?</div>
-  <div id="conversationReply" class="conversation-reply"></div>
+  <div id="popup-message" class="popup-message"></div>
 
   <div id="map">
     <div id="player" class="player"></div>
-    <div id="host" class="random-object"></div>
-    <div id="hostQuestion" class="host-question">?</div>
+    <div id="host" class="random-object">
+      <div id="host-indicator" class="conversation-indicator">?</div>
+    </div>
 
     <!-- ROOM 1 -->
     <div id="room1" class="room room1">
@@ -370,11 +377,11 @@
 
       <div class="clickable-region"
            style="left: 5px; top: 3px; width: 55px; height: 50px;"
-           onclick="if(currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; bottom: 3px; width: 55px; height: 45px;"
-           onclick="if(currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
     </div>
 
@@ -382,33 +389,32 @@
     <div id="room2" class="room room2">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room1"></div>
-      <div class="door door2 door-vertical" data-target="room6"></div>
       <div class="door door3 door-horizontal" data-target="room5"></div>
       <div class="door door4 door-horizontal" data-target="room6"></div>
 
       <div class="clickable-region"
            style="left: 98px; top: 5px; width: 38px; height: 30px;"
-           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 94px; top: 105px; width: 25px; height: 27px;"
-           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('3D printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('3D printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
-           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 3px; top: 3px; width: 60px; height: 46px;"
-           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; top: 3px; width: 80px; height: 46px;"
-           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; bottom: 3px; width: 80px; height: 46px;"
-           onclick="if(currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
     </div>
 
@@ -419,15 +425,15 @@
 
       <div class="clickable-region"
            style="left: 10px; top: 11px; width: 43px; height: 65px;"
-           onclick="if(currentRoom==='room3'){playClickSound(); showObjectPopup('Dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 8px; bottom: 1px; width: 13px; height: 11px;"
-           onclick="if(currentRoom==='room3'){playClickSound(); showObjectPopup('Stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 34px; bottom: 1px; width: 14px; height: 11px;"
-           onclick="if(currentRoom==='room3'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
       </div>
     </div>
 
@@ -439,19 +445,19 @@
 
       <div class="clickable-region"
            style="left: 0px; top: 0px; width: 24px; height: 24px;"
-           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 21px; top: 62px; width: 14px; height: 15px;"
-           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 0px; top: 33px; width: 8px; height: 22px;"
-           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 0px; top: 45px; width: 8px; height: 25px;"
-           onclick="if(currentRoom==='room4'){playClickSound(); showObjectPopup('Cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
       </div>
     </div>
 
@@ -464,19 +470,19 @@
 
       <div class="clickable-region"
            style="left: 94px; top: 25px; width: 55px; height: 45px;"
-           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
       </div>
       <div class="clickable-region"
            style="left: 24px; top: 2px; width: 34px; height: 8px;"
-           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 5px; bottom: 2px; width: 34px; height: 34px;"
-           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('Couch');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Couch');}">
       </div>
       <div class="clickable-region"
            style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
-           onclick="if(currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat');}">
       </div>
     </div>
 
@@ -495,172 +501,248 @@
       <div class="door door1 door-horizontal" data-target="room6"></div>
 
       <div class="clickable-region"
-           style="left: 75px; top: 19px; width: 55px; height: 47px;"
-           onclick="if(currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
+           style="left: 40px; top: 19px; width: 55px; height: 47px;"
+           onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
       </div>
     </div>
 
-    <!-- host-only action panel -->
-    <div id="actionPanel" class="action-panel">
-      <button class="action-btn" id="btn-z" data-key="z">😴<span class="key">Z</span></button>
-      <button class="action-btn" id="btn-t" data-key="t">🍽<span class="key">T</span></button>
-      <button class="action-btn" id="btn-p" data-key="p">🎹<span class="key">P</span></button>
-      <button class="action-btn" id="btn-w" data-key="w">🌱<span class="key">W</span></button>
-      <button class="action-btn" id="btn-s" data-key="s">🚿<span class="key">S</span></button>
-      <button class="action-btn" id="btn-b" data-key="b">🪥<span class="key">B</span></button>
-      <button class="action-btn" id="btn-d" data-key="d">🍳<span class="key">D</span></button>
-      <button class="action-btn" id="btn-1" data-key="1">📺<span class="key">1</span></button>
-      <button class="action-btn" id="btn-0" data-key="0">⏹<span class="key">0</span></button>
-    </div>
+  </div><!-- /map -->
 
+  <!-- Host-only action bar -->
+  <div class="action-bar">
+    <button class="action-btn" data-action="sleep">
+      😴 <span class="key">Z</span>
+    </button>
+    <button class="action-btn" data-action="table">
+      🍽 <span class="key">T</span>
+    </button>
+    <button class="action-btn" data-action="piano">
+      🎹 <span class="key">P</span>
+    </button>
+    <button class="action-btn" data-action="water">
+      🌳 <span class="key">W</span>
+    </button>
+    <button class="action-btn" data-action="shower">
+      🚿 <span class="key">S</span>
+    </button>
+    <button class="action-btn" data-action="brush">
+      🦷 <span class="key">B</span>
+    </button>
+    <button class="action-btn" data-action="dinner">
+      🍲 <span class="key">D</span>
+    </button>
+    <button class="action-btn" data-action="tvOn">
+      📺 <span class="key">1</span>
+    </button>
+    <button class="action-btn" data-action="tvOff">
+      ⏹ <span class="key">0</span>
+    </button>
+  </div>
+
+  <!-- Player chat bar (only shows for players during conversation) -->
+  <div id="player-chat" class="player-chat">
+    <input id="chat-input" type="text" maxlength="120" placeholder="type your reaction…" />
+    <button id="chat-send">send</button>
   </div>
 </div>
 
-<script src="https://cdn.socket.io/4.4.0/socket.io.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
   const isHost = window.location.search.includes('host=1');
   const socket = io();
+
+  console.log('Multiplayer client starting. isHost =', isHost);
 
   let currentRoom = 'room2';
   let hostRoom    = 'room2';
   let currentAudio = null;
   let tvAudio = null;
+  let moveAudio = null;
+  window.currentRoom = currentRoom;
 
-  const CONVERSATION_WINDOW_MS = 9000;
-  const REPLY_DISPLAY_MS       = 4500;
+  // Conversation state client-side
+  let currentConversationId = null;
+  let hasRespondedThisRound = false;
 
-  let hostConversationActive = false;
-  let conversationTimer = null;
+  const actionBarEl   = document.querySelector('.action-bar');
+  const playerChatEl  = document.getElementById('player-chat');
+  const chatInputEl   = document.getElementById('chat-input');
+  const chatSendEl    = document.getElementById('chat-send');
+  const hostIndicator = document.getElementById('host-indicator');
+
+  if (isHost && actionBarEl) {
+    actionBarEl.style.display = 'grid';
+  }
+
+  const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
   const roomGraph = {
     room1: ['room2','room4'],
-    room2: ['room1','room5','room6'],   // no direct kitchen
-    room3: ['room6'],                   // kitchen only via hall
+    room2: ['room1','room5','room6'],
+    room3: ['room6'],
     room4: ['room1','room5'],
     room5: ['room2','room4','room6'],
     room6: ['room2','room3','room5','room7'],
     room7: ['room6']
   };
 
-  const mapEl          = document.getElementById('map');
-  const playerEl       = document.getElementById('player');
-  const hostEl         = document.getElementById('host');
-  const hostQuestionEl = document.getElementById('hostQuestion');
-  const instructionBox = document.getElementById('instructionBox');
-  const topMessageEl   = document.getElementById('topMessage');
-  const convPromptEl   = document.getElementById('conversationPrompt');
-  const convReplyEl    = document.getElementById('conversationReply');
-  const actionPanel    = document.getElementById('actionPanel');
+  const arrowNav = {
+    room1: { up: null,    down: 'room4', left: null,    right: 'room2' },
+    room2: { up: null,    down: 'room5', left: 'room1', right: 'room6' },
+    room3: { up: null,    down: null,    left: 'room6', right: null },
+    room4: { up: 'room1', down: null,    left: null,    right: 'room5' },
+    room5: { up: 'room2', down: null,    left: 'room4', right: 'room6' },
+    room6: { up: 'room2', down: 'room7', left: 'room5', right: 'room3' },
+    room7: { up: 'room6', down: null,    left: null,    right: null }
+  };
 
-  const roomMoveSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/footstep5.mp3'
-  ];
+  const mapEl         = document.getElementById('map');
+  const playerEl      = document.getElementById('player');
+  const hostEl        = document.getElementById('host');
+  const instructionBox= document.getElementById('instructionBox');
+  const popupMsgEl    = document.getElementById('popup-message');
 
-  const clickSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3'
-  ];
+  const positionOffsets = {
+    player: {
+      room1: { dx: -8,  dy: 10 },
+      room2: { dx: -12, dy: 5  },
+      room3: { dx: -10, dy: 0  },
+      room4: { dx: -8,  dy: 5  },
+      room5: { dx: -10, dy: 8  },
+      room6: { dx: -6,  dy: 2  },
+      room7: { dx: -10, dy: 0  }
+    },
+    host: {
+      room1: { dx: 8,  dy: -10 },
+      room2: { dx: 12, dy: -5  },
+      room3: { dx: 10, dy: 0   },
+      room4: { dx: 8,  dy: -5  },
+      room5: { dx: 10, dy: -8  },
+      room6: { dx: 6,  dy: -2  },
+      room7: { dx: 10, dy: 0   }
+    }
+  };
 
-  const messageReceivedSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
-  ];
+  const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
 
-  const sleepSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sleep1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sleep2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sleep3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sleep4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sleep5.mp3'
-  ];
+  const soundPools = {
+    sleep: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3'
+    ],
+    table: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
+    ],
+    piano: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3'
+    ],
+    water: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3'
+    ],
+    shower: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3'
+    ],
+    brush: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3'
+    ],
+    dinner: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3'
+    ],
+    tvOn: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav'
+    ],
+    move: [
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3'
+    ]
+  };
 
-  const tableSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/table1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/table2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/table3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/table4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/table5.mp3'
-  ];
+  const actionMessages = {
+    sleep:  'The host is sleeping…',
+    table:  'The host is dressing the table…',
+    piano:  'The host is playing the piano…',
+    water:  'The host is watering a tree…',
+    shower: 'The host is taking a shower…',
+    brush:  'The host is brushing their teeth…',
+    dinner: 'The host is making dinner…',
+    tvOn:   'The host turned the TV on…',
+    tvOff:  'The host turned the TV off…'
+  };
 
-  const pianoSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/piano5.mp3'
-  ];
+  function showMessage(text) {
+    if (!popupMsgEl || !text) return;
+    popupMsgEl.textContent = text;
+    popupMsgEl.style.display = 'block';
+    clearTimeout(showMessage._timeout);
+    showMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, 4000);  // stay visible longer
+  }
 
-  const waterSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/water1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/water2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/water3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/water4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/water5.mp3'
-  ];
+  function pickRandomFromPool(poolName) {
+    const pool = soundPools[poolName];
+    if (!pool || !pool.length) return null;
+    const idx = Math.floor(Math.random() * pool.length);
+    return pool[idx];
+  }
 
-  const showerSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3'
-  ];
-
-  const brushSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brush1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brush2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brush3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brush4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brush5.mp3'
-  ];
-
-  const dinnerSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/dinner1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/dinner2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/dinner3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/dinner4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/dinner5.mp3'
-  ];
-
-  const tvLoopSounds = [
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop1.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop2.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop3.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop4.mp3',
-    'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvloop5.mp3'
-  ];
-
-  function playSound(url, loop = false) {
+  function playSound(url) {
     if (!url) return;
     try {
-      if (currentAudio && !loop) {
+      if (currentAudio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
       }
-      const audio = new Audio(url);
-      audio.loop = !!loop;
-      audio.play().catch(() => {});
-      if (!loop) currentAudio = audio;
-      return audio;
+      currentAudio = new Audio(url);
+      currentAudio.play().catch(() => {});
     } catch (e) {
       console.error(e);
     }
   }
 
-  function playRandom(list, loop = false) {
-    if (!list || !list.length) return;
-    const pick = list[Math.floor(Math.random() * list.length)];
-    return playSound(pick, loop);
+  function playMoveSound() {
+    const url = pickRandomFromPool('move');
+    if (!url) return;
+    try {
+      if (moveAudio) {
+        moveAudio.pause();
+        moveAudio.currentTime = 0;
+      }
+      moveAudio = new Audio(url);
+      moveAudio.play().catch(() => {});
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   function playClickSound() {
-    playRandom(clickSounds);
-  }
-
-  function playRoomMoveSound() {
-    playRandom(roomMoveSounds);
+    playSound(CLICK_SOUND_URL);
   }
 
   function showObjectPopup(text) {
@@ -672,356 +754,362 @@
     }, 2000);
   }
 
-  function showTopMessage(html) {
-    topMessageEl.innerHTML = html;
-    topMessageEl.style.display = 'block';
-    clearTimeout(showTopMessage._timeout);
-    showTopMessage._timeout = setTimeout(() => {
-      topMessageEl.style.display = 'none';
-    }, 2200);
-  }
-
-  function moveElementToRoom(el, roomId, withSound = false, role = null) {
+  function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
     if (!room || !el) return;
 
     const mapRect  = mapEl.getBoundingClientRect();
     const roomRect = room.getBoundingClientRect();
 
-    let offsetX = 0;
-    let offsetY = 0;
-    if (role === 'host') {
-      offsetX = 8;     // host a bit to the right
-    } else if (role === 'player') {
-      offsetX = -8;    // player a bit to the left
-    }
+    let x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2;
+    let y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2;
 
-    const x = roomRect.left - mapRect.left + roomRect.width / 2 - el.offsetWidth / 2 + offsetX;
-    const y = roomRect.top  - mapRect.top  + roomRect.height / 2 - el.offsetHeight / 2 + offsetY;
+    const offsetsByRole = positionOffsets[role] || {};
+    const off = offsetsByRole[roomId] || { dx: 0, dy: 0 };
+    x += off.dx;
+    y += off.dy;
 
     el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    if (withSound) playRoomMoveSound();
-
-    if (el === hostEl) {
-      positionHostQuestion();
-    }
   }
 
   function updateActiveRoom(roomId) {
     document.querySelectorAll('.room').forEach(r => {
       r.classList.toggle('active', r.id === roomId);
     });
+
     document.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'none');
     const room = document.getElementById(roomId);
-    room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
-  }
-
-  function goToRoom(targetRoom, fromHost = isHost) {
-    if (targetRoom === currentRoom) return;
-    if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) return;
-
-    currentRoom = targetRoom;
-    updateActiveRoom(currentRoom);
-
-    if (fromHost) {
-      hostRoom = currentRoom;
-      moveElementToRoom(hostEl, hostRoom, true, 'host');
-      socket.emit('hostMove', { roomId: hostRoom });
-    } else {
-      moveElementToRoom(playerEl, currentRoom, true, 'player');
+    if (room) {
+      room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
     }
   }
 
-  function positionHostQuestion() {
-    if (!hostConversationActive) {
-      hostQuestionEl.style.display = 'none';
+  function goToRoom(targetRoom) {
+    if (targetRoom === currentRoom) return;
+    if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) {
       return;
     }
-    const hostRect = hostEl.getBoundingClientRect();
-    const mapRect  = mapEl.getBoundingClientRect();
-    const x = hostRect.left - mapRect.left + hostRect.width / 2;
-    const y = hostRect.top  - mapRect.top - 30; // higher
-    hostQuestionEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    hostQuestionEl.style.display = 'flex';
+
+    currentRoom = targetRoom;
+    window.currentRoom = currentRoom;
+    updateActiveRoom(currentRoom);
+    playMoveSound();
+
+    if (isHost) {
+      hostRoom = currentRoom;
+      moveElementToRoom(hostEl, hostRoom, 'host');
+      socket.emit('hostMove', { roomId: hostRoom });
+    } else {
+      moveElementToRoom(playerEl, currentRoom, 'player');
+    }
   }
 
-  window.addEventListener('resize', () => {
-    moveElementToRoom(isHost ? hostEl : playerEl, currentRoom, false, isHost ? 'host' : 'player');
-    positionHostQuestion();
-  });
-
-  // --- Socket events ---
-
   socket.on('connect', () => {
+    console.log('Connected to server with id', socket.id);
     socket.emit('join', { role: isHost ? 'host' : 'player' });
   });
 
-  if (!isHost) {
-    socket.on('hostPosition', (data) => {
-      if (!data || !data.roomId) return;
-      hostRoom = data.roomId;
-      moveElementToRoom(hostEl, hostRoom, false, 'host');
-    });
-  }
+  socket.on('disconnect', () => {
+    console.log('Disconnected from server');
+  });
+
+  socket.on('hostPosition', (data) => {
+    if (!data || !data.roomId) return;
+    hostRoom = data.roomId;
+    moveElementToRoom(hostEl, hostRoom, 'host');
+  });
 
   socket.on('initialHostPosition', (data) => {
     if (!isHost) return;
     if (data && data.roomId) {
       hostRoom = data.roomId;
       currentRoom = hostRoom;
+      window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom, false, 'host');
+      moveElementToRoom(hostEl, hostRoom, 'host');
     }
   });
 
-  socket.on('hostAction', (payload) => {
-    if (isHost) return;
-    if (!payload || !payload.messageHtml) return;
-    showTopMessage(payload.messageHtml);
+  // Host actions -> player popups
+  socket.on('hostAction', (data) => {
+    if (!data || !data.kind) return;
+    const msg = actionMessages[data.kind];
+    if (msg) {
+      showMessage(msg);
+    }
   });
 
-  socket.on('conversationPrompt', () => {
-    convPromptEl.style.display = 'block';
-    hostConversationActive = true;
-    positionHostQuestion();
-  });
+  // Conversation events
+  socket.on('conversationStart', ({ conversationId }) => {
+    console.log('conversationStart', conversationId);
+    currentConversationId = conversationId;
+    hasRespondedThisRound = false;
 
-  socket.on('conversationEnd', () => {
-    convPromptEl.style.display = 'none';
-    hostConversationActive = false;
-    positionHostQuestion();
-  });
+    // "?" visible for host and players
+    if (hostIndicator) hostIndicator.style.display = 'block';
 
-  socket.on('conversationResult', (data) => {
-    if (!isHost) return;
-    if (!data || !data.text) {
-      convReplyEl.textContent = 'no response this time';
+    if (isHost) {
+      // 'ask something' -> '............?'
+      showMessage('............?');
     } else {
-      convReplyEl.innerHTML =
-        '<span class="player-icon-inline"></span>' +
-        '“' + escapeHtml(data.text) + '”';
-      playRandom(messageReceivedSounds);
+      // Show chat input for players
+      if (playerChatEl) {
+        playerChatEl.style.display = 'grid';
+      }
+      if (chatInputEl) {
+        chatInputEl.value = '';
+        chatInputEl.focus();
+      }
+      showMessage('React to the host…');
     }
-    convReplyEl.style.display = 'block';
-    clearTimeout(socket._replyTimer);
-    socket._replyTimer = setTimeout(() => {
-      convReplyEl.style.display = 'none';
-    }, REPLY_DISPLAY_MS);
   });
 
-  // host actions map
-  const actionMap = {
-    z: {
-      buttonId: 'btn-z',
-      sounds: sleepSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is sleeping…'
-    },
-    t: {
-      buttonId: 'btn-t',
-      sounds: tableSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is dressing the table…'
-    },
-    p: {
-      buttonId: 'btn-p',
-      sounds: pianoSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is playing the piano…'
-    },
-    w: {
-      buttonId: 'btn-w',
-      sounds: waterSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is watering a tree…'
-    },
-    s: {
-      buttonId: 'btn-s',
-      sounds: showerSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is taking a shower…'
-    },
-    b: {
-      buttonId: 'btn-b',
-      sounds: brushSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is brushing teeth…'
-    },
-    d: {
-      buttonId: 'btn-d',
-      sounds: dinnerSounds,
-      messageHtml: '<span class="host-icon-inline"></span>is making dinner…'
-    },
-    '1': {
-      buttonId: 'btn-1',
-      tvOn: true,
-      messageHtml: '<span class="host-icon-inline"></span>turned the TV on…'
-    },
-    '0': {
-      buttonId: 'btn-0',
-      tvOff: true,
-      messageHtml: '<span class="host-icon-inline"></span>turned the TV off…'
-    }
-  };
+  socket.on('conversationEnd', ({ conversationId }) => {
+    console.log('conversationEnd', conversationId);
+    if (conversationId !== currentConversationId) return;
 
-  function triggerHostAction(key) {
+    currentConversationId = null;
+    hasRespondedThisRound = false;
+
+    if (hostIndicator) hostIndicator.style.display = 'none';
+    if (playerChatEl) playerChatEl.style.display = 'none';
+  });
+
+  socket.on('conversationResult', ({ conversationId, message }) => {
+    console.log('conversationResult', conversationId, message);
     if (!isHost) return;
-    const a = actionMap[key];
-    if (!a) return;
+    if (!conversationId) return;
 
-    document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
-    const btn = a.buttonId ? document.getElementById(a.buttonId) : null;
-    if (btn) {
-      btn.classList.add('active');
-      setTimeout(() => btn.classList.remove('active'), 250);
-    }
+    // subtle sound when reaction shows
+    playSound(pickRandomFromPool('move'));
 
-    if (a.tvOn) {
-      if (tvAudio) { tvAudio.pause(); tvAudio = null; }
-      tvAudio = playRandom(tvLoopSounds, true);
-    } else if (a.tvOff) {
-      if (tvAudio) { tvAudio.pause(); tvAudio = null; }
+    if (message) {
+      // Format: [🧍‍♂️: "reaction"]
+      showMessage('[🧍‍♂️: "' + message + '"]');
     } else {
-      playRandom(a.sounds);
+      showMessage('no responses this time.');
     }
-
-    const html = a.messageHtml;
-    showTopMessage(html);
-    socket.emit('hostAction', { messageHtml: html });
-  }
-
-  document.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!isHost) return;
-      triggerHostAction(btn.dataset.key);
-    });
   });
 
-  // player clicking host -> bump + click sound
+  // Host click (player interaction)
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
+
     playClickSound();
-    const original = hostEl.style.transform || '';
-    hostEl.style.transform = original + ' scale(1.1)';
-    setTimeout(() => { hostEl.style.transform = original; }, 50);
+
+    const originalTransform = hostEl.style.transform || '';
+    hostEl.style.transform = originalTransform + ' scale(1.1)';
+    setTimeout(() => {
+      moveElementToRoom(hostEl, hostRoom, 'host');
+    }, 50);
   });
 
-  // doors and rooms
+  // Player chat send
+  function sendPlayerMessage() {
+    if (!playerChatEl || !chatInputEl) return;
+    if (!currentConversationId) return;
+    if (hasRespondedThisRound) return;
+
+    const text = chatInputEl.value.trim();
+    if (!text) return;
+
+    socket.emit('playerMessage', {
+      conversationId: currentConversationId,
+      text
+    });
+
+    hasRespondedThisRound = true;
+    playerChatEl.style.display = 'none';
+    showMessage('message sent');
+  }
+
+  if (chatSendEl) {
+    chatSendEl.addEventListener('click', () => {
+      if (!isHost) sendPlayerMessage();
+    });
+  }
+
+  if (chatInputEl) {
+    chatInputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!isHost) sendPlayerMessage();
+      }
+    });
+  }
+
+  // Doors & rooms
   document.querySelectorAll('.door').forEach(door => {
-    const target = door.dataset.target;
+    const target  = door.dataset.target;
     door.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!target) return;
-      goToRoom(target, isHost);
+      if (target) goToRoom(target);
     });
   });
 
   document.querySelectorAll('.room').forEach(room => {
     room.addEventListener('click', () => {
-      goToRoom(room.id, isHost);
+      goToRoom(room.id);
     });
   });
 
-  // keyboard: arrow keys & actions
-  window.addEventListener('keydown', (e) => {
-    const key = e.key;
+  function flashButton(actionName) {
+    const btn = document.querySelector(`.action-btn[data-action="${actionName}"]`);
+    if (!btn) return;
+    btn.classList.add('active-flash');
+    setTimeout(() => btn.classList.remove('active-flash'), 300);
+  }
 
-    if (isHost && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) {
-      handleArrowMove(key);
+  function stopTvLoop() {
+    if (tvAudio) {
+      try {
+        tvAudio.pause();
+        tvAudio.currentTime = 0;
+      } catch (e) {}
+      tvAudio = null;
+    }
+  }
+
+  function triggerHostAction(kind) {
+    if (!isHost) return;
+
+    const msg = actionMessages[kind];
+    if (msg) showMessage(msg);
+
+    // notify players
+    socket.emit('hostAction', { kind });
+
+    if (kind === 'tvOff') {
+      flashButton('tvOff');
+      stopTvLoop();
       return;
     }
 
-    if (isHost && key === '2') {
-      if (hostConversationActive) return;
-      hostConversationActive = true;
-      convPromptEl.style.display = 'block';
-      positionHostQuestion();
-      socket.emit('startConversation');
-      if (conversationTimer) clearTimeout(conversationTimer);
-      conversationTimer = setTimeout(() => {
-        hostConversationActive = false;
-        convPromptEl.style.display = 'none';
-        positionHostQuestion();
-        socket.emit('endConversation');
-      }, CONVERSATION_WINDOW_MS);
-      return;
-    }
+    flashButton(kind);
 
-    if (!isHost && hostConversationActive && key === 'Enter') {
-      const msg = prompt('type a reaction');
-      if (msg && msg.trim()) {
-        socket.emit('submitReaction', { text: msg.trim() });
+    switch (kind) {
+      case 'sleep':
+        playSound(pickRandomFromPool('sleep'));
+        break;
+      case 'table':
+        playSound(pickRandomFromPool('table'));
+        break;
+      case 'piano':
+        playSound(pickRandomFromPool('piano'));
+        break;
+      case 'water':
+        playSound(pickRandomFromPool('water'));
+        break;
+      case 'shower':
+        playSound(pickRandomFromPool('shower'));
+        break;
+      case 'brush':
+        playSound(pickRandomFromPool('brush'));
+        break;
+      case 'dinner':
+        playSound(pickRandomFromPool('dinner'));
+        break;
+      case 'tvOn': {
+        stopTvLoop();
+        const url = pickRandomFromPool('tvOn');
+        if (!url) return;
+        try {
+          tvAudio = new Audio(url);
+          tvAudio.loop = true;
+          tvAudio.play().catch(() => {});
+        } catch (e) {
+          console.error(e);
+        }
+        break;
       }
-      return;
     }
+  }
 
-    const lower = key.toLowerCase();
-    if (isHost && actionMap[lower]) {
-      triggerHostAction(lower);
-    }
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      triggerHostAction(action);
+    });
   });
 
-  function handleArrowMove(key) {
-    const neighbors = roomGraph[currentRoom] || [];
-    if (!neighbors.length) return;
+  document.addEventListener('keydown', (e) => {
+    if (!isHost) return;
 
-    const curRect = document.getElementById(currentRoom).getBoundingClientRect();
-    const cx = curRect.left + curRect.width / 2;
-    const cy = curRect.top  + curRect.height / 2;
-
-    let bestId = null;
-    let bestDist = Infinity;
-
-    neighbors.forEach(id => {
-      const r = document.getElementById(id);
-      if (!r) return;
-      const nx = r.left + r.width / 2;
-      const ny = r.top  + r.height / 2;
-      const dx = nx - cx;
-      const dy = ny - cy;
-
-      if (key === 'ArrowUp'    && dy >= 0) return;
-      if (key === 'ArrowDown'  && dy <= 0) return;
-      if (key === 'ArrowLeft'  && dx >= 0) return;
-      if (key === 'ArrowRight' && dx <= 0) return;
-
-      const dist = Math.abs(dx) + Math.abs(dy);
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestId = id;
+    const dirKeyMap = {
+      ArrowUp: 'up',
+      ArrowDown: 'down',
+      ArrowLeft: 'left',
+      ArrowRight: 'right'
+    };
+    const dir = dirKeyMap[e.key];
+    if (dir) {
+      e.preventDefault();
+      const nav = arrowNav[currentRoom];
+      if (nav && nav[dir]) {
+        goToRoom(nav[dir]);
       }
-    });
-
-    if (bestId) {
-      goToRoom(bestId, true);
     }
-  }
 
-  // hide action panel for players (also on phone)
-  if (!isHost && actionPanel) {
-    actionPanel.style.display = 'none';
-  }
+    // Host actions via keyboard
+    switch (e.key) {
+      case 'z':
+      case 'Z':
+        triggerHostAction('sleep');
+        break;
+      case 't':
+      case 'T':
+        triggerHostAction('table');
+        break;
+      case 'p':
+      case 'P':
+        triggerHostAction('piano');
+        break;
+      case 'w':
+      case 'W':
+        triggerHostAction('water');
+        break;
+      case 's':
+      case 'S':
+        triggerHostAction('shower');
+        break;
+      case 'b':
+      case 'B':
+        triggerHostAction('brush');
+        break;
+      case 'd':
+      case 'D':
+        triggerHostAction('dinner');
+        break;
+      case '1':
+        triggerHostAction('tvOn');
+        break;
+      case '0':
+        triggerHostAction('tvOff');
+        break;
+      case '2':
+        // Start conversation
+        socket.emit('startConversation');
+        showMessage('............?');
+        break;
+    }
+  });
 
   window.addEventListener('load', () => {
     if (isHost) {
       playerEl.style.display = 'none';
       currentRoom = hostRoom;
+      window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(hostEl, hostRoom, false, 'host');
+      moveElementToRoom(hostEl, hostRoom, 'host');
     } else {
       hostRoom = 'room2';
       currentRoom = 'room2';
+      window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
-      moveElementToRoom(playerEl, currentRoom, false, 'player');
+      moveElementToRoom(playerEl, currentRoom, 'player');
     }
   });
-
-  function escapeHtml(str) {
-    return str.replace(/[&<>"']/g, function(m) {
-      return ({
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        '"':'&quot;',
-        "'":'&#39;'
-      })[m];
-    });
-  }
 </script>
 </body>
 </html>
