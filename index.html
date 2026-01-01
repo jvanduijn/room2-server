@@ -42,16 +42,6 @@
       }
     }
 
-    /* host visual zoom wrapper */
-    #host-scale-wrapper {
-      display: inline-block;
-      transform-origin: top center;
-    }
-
-    body.host-mode #host-scale-wrapper {
-      transform: scale(1.3);
-    }
-
     .everything {
       position: relative;
       width: 400px;
@@ -245,7 +235,7 @@
     /* Centered popup above map (host & player messages) */
     .popup-message {
       position: absolute;
-      top: 6px; /* ~30px lower than before, inside map */
+      top: -24px; /* closer to map */
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
@@ -259,8 +249,9 @@
       text-align: left;
       border: 1px solid #00ff88;
       box-sizing: border-box;
+      display: none;
       align-items: center;
-      gap: 2px; /* icon closer to text */
+      gap: 4px;
     }
 
     .popup-message .actor-icon {
@@ -286,24 +277,31 @@
       white-space: nowrap;
     }
 
-    /* Furniture popup – attached to map bottom-left, styled like banner */
+    /* Digital-style object popup (furniture) – same language */
     .instruction-box {
       display: none;
-      position: absolute;
-      left: 4px;
-      bottom: 4px;
-      background-color: #000000;
-      color: #00ff88;
-      padding: 2px 6px;
-      border: 1px solid #00ff88;
-      font-size: 11px; /* same as banner */
-      text-align: left;
+      position: fixed;
+      bottom: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ffffff;
+      color: #007022;
+      padding: 8px 14px;
+      border: 2px solid #00ff88;
+      font-size: 17px;
+      text-align: center;
       z-index: 1005;
       width: auto;
-      max-width: 260px;
+      max-width: 300px;
       letter-spacing: 0.5px;
       border-radius: 0;
       box-sizing: border-box;
+    }
+    @media (max-width: 768px) {
+      .instruction-box {
+        bottom: 20%;
+        max-width: 350px;
+      }
     }
 
     /* Host-only action bar – "inventory" style, white background */
@@ -353,7 +351,7 @@
     .action-btn.active-flash {
       background: #00ff88;
       color: #000;
-      border-color: #007022;
+      border-color: #00ff88;
     }
 
     /* Player chat bar – styled like a popup */
@@ -417,13 +415,6 @@
       font-size: 16px;
       margin-bottom: 10px;
       color: #ffffff;
-      text-transform: none;
-    }
-
-    .host-login-players {
-      font-size: 12px;
-      margin-bottom: 8px;
-      color: #00ff88;
       text-transform: none;
     }
 
@@ -501,215 +492,210 @@
 <body>
 <div class="background"></div>
 
-<div id="host-scale-wrapper">
-  <div class="everything">
-    <div id="host-banner" class="host-banner"></div>
+<div class="everything">
+  <div id="host-banner" class="host-banner">to join visit room2.nl</div>
 
-    <div id="popup-message" class="popup-message"></div>
+  <div id="instructionBox" class="instruction-box"></div>
+  <div id="popup-message" class="popup-message"></div>
 
-    <!-- host login overlay -->
-    <div id="host-login" class="host-login-overlay">
-      <div class="host-login-panel">
-        <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
-        <div id="players-online" class="host-login-players">players online [0/100]</div>
-        <div class="host-login-title">host login</div>
-        <input
-          id="host-password"
-          class="host-login-input"
-          type="password"
-          maxlength="16"
-          autocomplete="off"
-        />
-        <button id="host-login-button" class="host-login-button">enter</button>
+  <!-- host login overlay -->
+  <div id="host-login" class="host-login-overlay">
+    <div class="host-login-panel">
+      <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
+      <div class="host-login-title">host login</div>
+      <input
+        id="host-password"
+        class="host-login-input"
+        type="password"
+        maxlength="16"
+        autocomplete="off"
+      />
+      <button id="host-login-button" class="host-login-button">enter</button>
+    </div>
+  </div>
+
+  <div id="map">
+    <div id="player" class="player"></div>
+    <div id="host" class="random-object">
+      <div id="host-indicator" class="conversation-indicator">?</div>
+    </div>
+
+    <!-- ROOM 1 -->
+    <div id="room1" class="room room1">
+      <div class="room-label"></div>
+      <div class="door door1 door-horizontal" data-target="room4"></div>
+      <div class="door door2 door-vertical" data-target="room2"></div>
+
+      <div class="clickable-region"
+           style="left: 5px; top: 3px; width: 55px; height: 50px;"
+           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 3px; bottom: 3px; width: 55px; height: 45px;"
+           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
     </div>
 
-    <div id="map">
-      <!-- furniture popup now inside map -->
-      <div id="instructionBox" class="instruction-box"></div>
+    <!-- ROOM 2 – computer lab -->
+    <div id="room2" class="room room2">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room1"></div>
+      <div class="door door3 door-horizontal" data-target="room5"></div>
+      <div class="door door4 door-horizontal" data-target="room6"></div>
 
-      <div id="player" class="player"></div>
-      <div id="host" class="random-object">
-        <div id="host-indicator" class="conversation-indicator">?</div>
+      <div class="clickable-region"
+           style="left: 98px; top: 5px; width: 38px; height: 30px;"
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
       </div>
-
-      <!-- ROOM 1 -->
-      <div id="room1" class="room room1">
-        <div class="room-label"></div>
-        <div class="door door1 door-horizontal" data-target="room4"></div>
-        <div class="door door2 door-vertical" data-target="room2"></div>
-
-        <div class="clickable-region"
-             style="left: 5px; top: 3px; width: 55px; height: 50px;"
-             onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 3px; bottom: 3px; width: 55px; height: 45px;"
-             onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
-        </div>
+      <div class="clickable-region"
+           style="left: 94px; top: 105px; width: 25px; height: 27px;"
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('3D printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
       </div>
-
-      <!-- ROOM 2 – computer lab -->
-      <div id="room2" class="room room2">
-        <div class="room-label"></div>
-        <div class="door door1 door-vertical" data-target="room1"></div>
-        <div class="door door3 door-horizontal" data-target="room5"></div>
-        <div class="door door4 door-horizontal" data-target="room6"></div>
-
-        <div class="clickable-region"
-             style="left: 98px; top: 5px; width: 38px; height: 30px;"
-             onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 94px; top: 105px; width: 25px; height: 27px;"
-             onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('3D printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
-             onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="right: 3px; top: 3px; width: 60px; height: 46px;"
-             onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 3px; top: 3px; width: 80px; height: 46px;"
-             onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 3px; bottom: 3px; width: 80px; height: 46px;"
-             onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
-        </div>
+      <div class="clickable-region"
+           style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
       </div>
-
-      <!-- ROOM 3 – kitchen -->
-      <div id="room3" class="room room3">
-        <div class="room-label"></div>
-        <div class="door door1 door-vertical" data-target="room6"></div>
-
-        <div class="clickable-region"
-             style="left: 10px; top: 11px; width: 43px; height: 65px;"
-             onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 8px; bottom: 1px; width: 13px; height: 11px;"
-             onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 34px; bottom: 1px; width: 14px; height: 11px;"
-             onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
-        </div>
+      <div class="clickable-region"
+           style="right: 3px; top: 3px; width: 60px; height: 46px;"
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
       </div>
-
-      <!-- ROOM 4 – bathroom -->
-      <div id="room4" class="room room4">
-        <div class="room-label"></div>
-        <div class="door door1 door-horizontal" data-target="room1"></div>
-        <div class="door door2 door-vertical" data-target="room5"></div>
-
-        <div class="clickable-region"
-             style="left: 0px; top: 0px; width: 24px; height: 24px;"
-             onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 21px; top: 62px; width: 14px; height: 15px;"
-             onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Toilet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 0px; top: 33px; width: 8px; height: 22px;"
-             onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="right: 0px; top: 45px; width: 8px; height: 25px;"
-             onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
-        </div>
+      <div class="clickable-region"
+           style="left: 3px; top: 3px; width: 80px; height: 46px;"
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
-
-      <!-- ROOM 5 – living -->
-      <div id="room5" class="room room5">
-        <div class="room-label"></div>
-        <div class="door door1 door-vertical" data-target="room4"></div>
-        <div class="door door2 door-vertical" data-target="room6"></div>
-        <div class="door door3 door-horizontal" data-target="room2"></div>
-
-        <div class="clickable-region"
-             style="left: 94px; top: 25px; width: 55px; height: 45px;"
-             onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
-        </div>
-        <div id="tv-area" class="clickable-region"
-             style="left: 24px; top: 2px; width: 34px; height: 8px;"
-             onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 5px; bottom: 2px; width: 34px; height: 34px;"
-             onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Couch');}">
-        </div>
-        <div class="clickable-region"
-             style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
-             onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat');}">
-        </div>
+      <div class="clickable-region"
+           style="left: 3px; bottom: 3px; width: 80px; height: 46px;"
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
-
-      <!-- ROOM 6 – hall -->
-      <div id="room6" class="room room6">
-        <div class="room-label"></div>
-        <div class="door door1 door-vertical" data-target="room5"></div>
-        <div class="door door2 door-horizontal" data-target="room7"></div>
-        <div class="door door3 door-vertical" data-target="room3"></div>
-        <div class="door door4 door-horizontal" data-target="room2"></div>
-      </div>
-
-      <!-- ROOM 7 – bedroom -->
-      <div id="room7" class="room room7">
-        <div class="room-label"></div>
-        <div class="door door1 door-horizontal" data-target="room6"></div>
-
-        <div class="clickable-region"
-             style="left: 40px; top: 19px; width: 55px; height: 47px;"
-             onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
-        </div>
-      </div>
-
-    </div><!-- /map -->
-
-    <!-- Host-only action bar -->
-    <div class="action-bar">
-      <button class="action-btn" data-action="sleep">
-        <span class="label">😴</span><span class="key">Z</span>
-      </button>
-      <button class="action-btn" data-action="table">
-        <span class="label">🍽</span><span class="key">T</span>
-      </button>
-      <button class="action-btn" data-action="piano">
-        <span class="label">🎹</span><span class="key">P</span>
-      </button>
-      <button class="action-btn" data-action="water">
-        <span class="label">🌳</span><span class="key">W</span>
-      </button>
-      <button class="action-btn" data-action="shower">
-        <span class="label">🚿</span><span class="key">S</span>
-      </button>
-      <button class="action-btn" data-action="brush">
-        <span class="label">🦷</span><span class="key">B</span>
-      </button>
-      <button class="action-btn" data-action="dinner">
-        <span class="label">🍲</span><span class="key">D</span>
-      </button>
-      <button class="action-btn" data-action="tvOn">
-        <span class="label">📺</span><span class="key">1</span>
-      </button>
-      <button class="action-btn" data-action="tvOff">
-        <span class="label">⏹</span><span class="key">0</span>
-      </button>
     </div>
 
-    <!-- Player chat bar -->
-    <div id="player-chat" class="player-chat">
-      <input id="chat-input" type="text" maxlength="120" placeholder="type your reaction…" />
-      <button id="chat-send">send</button>
+    <!-- ROOM 3 – kitchen -->
+    <div id="room3" class="room room3">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room6"></div>
+
+      <div class="clickable-region"
+           style="left: 10px; top: 11px; width: 43px; height: 65px;"
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 8px; bottom: 1px; width: 13px; height: 11px;"
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 34px; bottom: 1px; width: 14px; height: 11px;"
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
+      </div>
     </div>
-  </div><!-- /everything -->
-</div><!-- /host-scale-wrapper -->
+
+    <!-- ROOM 4 – bathroom -->
+    <div id="room4" class="room room4">
+      <div class="room-label"></div>
+      <div class="door door1 door-horizontal" data-target="room1"></div>
+      <div class="door door2 door-vertical" data-target="room5"></div>
+
+      <div class="clickable-region"
+           style="left: 0px; top: 0px; width: 24px; height: 24px;"
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 21px; top: 62px; width: 14px; height: 15px;"
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Toilet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 0px; top: 33px; width: 8px; height: 22px;"
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="right: 0px; top: 45px; width: 8px; height: 25px;"
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
+      </div>
+    </div>
+
+    <!-- ROOM 5 – living -->
+    <div id="room5" class="room room5">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room4"></div>
+      <div class="door door2 door-vertical" data-target="room6"></div>
+      <div class="door door3 door-horizontal" data-target="room2"></div>
+
+      <div class="clickable-region"
+           style="left: 94px; top: 25px; width: 55px; height: 45px;"
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
+      </div>
+      <div id="tv-area" class="clickable-region"
+           style="left: 24px; top: 2px; width: 34px; height: 8px;"
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 5px; bottom: 2px; width: 34px; height: 34px;"
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Couch');}">
+      </div>
+      <div class="clickable-region"
+           style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat');}">
+      </div>
+    </div>
+
+    <!-- ROOM 6 – hall -->
+    <div id="room6" class="room room6">
+      <div class="room-label"></div>
+      <div class="door door1 door-vertical" data-target="room5"></div>
+      <div class="door door2 door-horizontal" data-target="room7"></div>
+      <div class="door door3 door-vertical" data-target="room3"></div>
+      <div class="door door4 door-horizontal" data-target="room2"></div>
+    </div>
+
+    <!-- ROOM 7 – bedroom -->
+    <div id="room7" class="room room7">
+      <div class="room-label"></div>
+      <div class="door door1 door-horizontal" data-target="room6"></div>
+
+      <div class="clickable-region"
+           style="left: 40px; top: 19px; width: 55px; height: 47px;"
+           onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
+      </div>
+    </div>
+
+  </div><!-- /map -->
+
+  <!-- Host-only action bar -->
+  <div class="action-bar">
+    <button class="action-btn" data-action="sleep">
+      <span class="label">😴</span><span class="key">Z</span>
+    </button>
+    <button class="action-btn" data-action="table">
+      <span class="label">🍽</span><span class="key">T</span>
+    </button>
+    <button class="action-btn" data-action="piano">
+      <span class="label">🎹</span><span class="key">P</span>
+    </button>
+    <button class="action-btn" data-action="water">
+      <span class="label">🌳</span><span class="key">W</span>
+    </button>
+    <button class="action-btn" data-action="shower">
+      <span class="label">🚿</span><span class="key">S</span>
+    </button>
+    <button class="action-btn" data-action="brush">
+      <span class="label">🦷</span><span class="key">B</span>
+    </button>
+    <button class="action-btn" data-action="dinner">
+      <span class="label">🍲</span><span class="key">D</span>
+    </button>
+    <button class="action-btn" data-action="tvOn">
+      <span class="label">📺</span><span class="key">1</span>
+    </button>
+    <button class="action-btn" data-action="tvOff">
+      <span class="label">⏹</span><span class="key">0</span>
+    </button>
+  </div>
+
+  <!-- Player chat bar -->
+  <div id="player-chat" class="player-chat">
+    <input id="chat-input" type="text" maxlength="120" placeholder="type your reaction…" />
+    <button id="chat-send">send</button>
+  </div>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -718,10 +704,6 @@
   const socket = io();
 
   console.log('Multiplayer client starting. isHost =', isHost);
-
-  if (isHost) {
-    document.body.classList.add('host-mode');
-  }
 
   let currentRoom  = 'room5'; // spawn in living room
   let hostRoom     = 'room5';
@@ -733,7 +715,6 @@
 
   let currentConversationId = null;
   let hasRespondedThisRound = false;
-  let conversationActive = false;
 
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
@@ -744,7 +725,6 @@
   const hostLoginEl   = document.getElementById('host-login');
   const hostPasswordEl= document.getElementById('host-password');
   const hostLoginBtn  = document.getElementById('host-login-button');
-  const playersOnlineEl = document.getElementById('players-online');
 
   const mapEl         = document.getElementById('map');
   const playerEl      = document.getElementById('player');
@@ -883,13 +863,6 @@
     tvOff:  'turned the TV off'
   };
 
-  function updatePlayersOnline(count) {
-    if (!playersOnlineEl) return;
-    const safe = typeof count === 'number' && count >= 0 ? count : 0;
-    playersOnlineEl.textContent = `players online [${safe}/100]`;
-  }
-  updatePlayersOnline(0);
-
   function pickRandomFromPool(poolName) {
     const pool = soundPools[poolName];
     if (!pool || !pool.length) return null;
@@ -930,18 +903,17 @@
     playSound(CLICK_SOUND_URL);
   }
 
-  function showMessage(text, duration) {
+  function showMessage(text, duration = 4000) {
     if (!popupMsgEl || !text) return;
     popupMsgEl.textContent = text;
     popupMsgEl.style.display = 'block';
     clearTimeout(showMessage._timeout);
-    if (duration === null || duration === undefined) return;
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
     }, duration);
   }
 
-  function showActorMessage(actor, text, duration) {
+  function showActorMessage(actor, text, duration = 4000) {
     if (!popupMsgEl || !text) return;
     const iconClass = actor === 'player' ? 'actor-player' : 'actor-host';
     popupMsgEl.innerHTML =
@@ -949,13 +921,12 @@
       '<span class="actor-text">' + text + '</span>';
     popupMsgEl.style.display = 'flex';
     clearTimeout(showActorMessage._timeout);
-    if (duration === null || duration === undefined) return;
     showActorMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
     }, duration);
   }
 
-  function showHostWaitingMessage() {
+  function showHostWaitingMessage(duration = 4000) {
     if (!popupMsgEl) return;
     popupMsgEl.innerHTML =
       '<span class="actor-text">waiting for </span>' +
@@ -963,7 +934,9 @@
       '<span class="actor-text">\'s response</span>';
     popupMsgEl.style.display = 'flex';
     clearTimeout(showHostWaitingMessage._timeout);
-    // no timeout: stays until result or conversation end
+    showHostWaitingMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, duration);
   }
 
   function showObjectPopup(text) {
@@ -1055,6 +1028,7 @@
       socket.emit('playerMove', { roomId: currentRoom });
     }
 
+    // play move sound slightly into the animation
     setTimeout(playMoveSound, 150);
   }
 
@@ -1067,11 +1041,6 @@
 
   socket.on('disconnect', () => {
     console.log('Disconnected from server');
-  });
-
-  // optional: server can emit { count } here
-  socket.on('playerCount', ({ count }) => {
-    updatePlayersOnline(count);
   });
 
   socket.on('hostPosition', (data) => {
@@ -1125,11 +1094,8 @@
       setTvVisualState(false);
     }
 
-    // during conversation, don't let actions override reactions
-    if (conversationActive) return;
-
     if (msg) {
-      showActorMessage('host', msg, 4000);
+      showActorMessage('host', msg);
     }
   });
 
@@ -1137,12 +1103,11 @@
     console.log('conversationStart', conversationId);
     currentConversationId = conversationId;
     hasRespondedThisRound = false;
-    conversationActive = true;
 
     if (hostIndicator) hostIndicator.style.display = 'block';
 
     if (isHost) {
-      showHostWaitingMessage();
+      showHostWaitingMessage(5000);
     } else {
       if (playerChatEl) {
         playerChatEl.style.display = 'grid';
@@ -1151,8 +1116,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      // persistent hint until conversation ends
-      showMessage('React to the host…', null);
+      showMessage('React to the host…', 3000);
     }
   });
 
@@ -1162,11 +1126,9 @@
 
     currentConversationId = null;
     hasRespondedThisRound = false;
-    conversationActive = false;
 
     if (hostIndicator) hostIndicator.style.display = 'none';
-    if (playerChatEl)  playerChatEl.style.display = 'none';
-    if (popupMsgEl)    popupMsgEl.style.display = 'none';
+    if (playerChatEl) playerChatEl.style.display = 'none';
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
@@ -1177,8 +1139,7 @@
     playSound(pickRandomFromPool('message'));
 
     if (message) {
-      // no quotes around message
-      showActorMessage('player', message, 6000);
+      showActorMessage('player', '"' + message + '"', 6000);
     } else {
       showActorMessage('player', 'no response this time.', 4000);
     }
@@ -1212,8 +1173,6 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
-    // they can no longer react; hide hint
-    if (popupMsgEl) popupMsgEl.style.display = 'none';
   }
 
   if (chatSendEl) {
@@ -1269,11 +1228,7 @@
     if (!allowed.has(kind)) return;
 
     const msg = actionMessages[kind];
-
-    // Don't override conversation popups with host actions
-    if (!conversationActive && msg) {
-      showActorMessage('host', msg, 4000);
-    }
+    if (msg) showActorMessage('host', msg);
 
     socket.emit('hostAction', { kind });
 
@@ -1387,7 +1342,7 @@
         break;
       case '2':
         socket.emit('startConversation');
-        showHostWaitingMessage();
+        showHostWaitingMessage(5000);
         break;
     }
   });
@@ -1398,6 +1353,7 @@
 
     hostUnlocked = true;
     hostLoginEl.style.display = 'none';
+    hostBannerEl.style.display = 'block';
 
     hostEl.style.display = 'block';
     updateActiveRoom(hostRoom);
@@ -1432,10 +1388,7 @@
     hostEl.style.display = 'none';
 
     if (isHost) {
-      if (hostBannerEl) {
-        hostBannerEl.textContent = 'to join visit room2.nl';
-        hostBannerEl.style.display = 'block';
-      }
+      if (hostBannerEl) hostBannerEl.style.display = 'block';
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
 
       playerEl.style.display = 'none';
@@ -1444,10 +1397,7 @@
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
     } else {
-      if (hostBannerEl) {
-        hostBannerEl.textContent = 'volume ON is allowed';
-        hostBannerEl.style.display = 'block';
-      }
+      hostBannerEl.style.display = 'none';
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
       currentRoom = 'room5';
