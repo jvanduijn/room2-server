@@ -465,7 +465,7 @@
     .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
-    .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
+    .room1 .door2 { right: -12px; top: 59%; transform: translateY(-50%); }
 
     .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
     .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
@@ -485,7 +485,7 @@
     .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }
     .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
 
-    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
+    .room7 .door1 { top: -12px; left: 18%; transform: translateX(-50%); }
 
     /* PHONE / SMALL SCREEN TWEAKS */
     @media (max-width: 480px) {
@@ -498,7 +498,7 @@
       }
 
       #map {
-        transform: scale(0.96);
+        transform: scale(0.95);
         transform-origin: top center;
         margin-top: 18px;
       }
@@ -521,7 +521,7 @@
 
       .host-banner {
         top: -8px;
-        right: 25px;
+        right: 13px;
         font-size: 13px;      /* little bigger on phone as well */
         padding: 4px 8px;
       }
@@ -540,9 +540,10 @@
       /* Furniture popup higher so not cut off by bottom */
       .instruction-box {
         position: fixed;
-        left: 4%;
-        bottom: 140px;  /* lifted compared to previous 110px */
+        left: 1%;
+        bottom: 115px;  /* lifted compared to previous 110px */
         top: auto;
+        font-size: 13px;      /* little bigger on phone as well */
         max-width: 70vw;
         z-index: 1006;
       }
