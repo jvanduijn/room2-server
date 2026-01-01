@@ -22,7 +22,6 @@
       justify-content: center;
       align-items: center;
       user-select: none;
-      overflow: hidden;
       background-color: transparent;
     }
 
@@ -308,12 +307,12 @@
 
     /* Host inventory bar – 3×3 grid, hidden by default (only host JS shows it) */
     .action-bar {
-      width: 400px;
+      width: 300px;
       margin: 0 auto 0;
       display: none;               /* shown only for host after login */
       box-sizing: border-box;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      gap: 4px;
       font-size: 12px;
     }
 
@@ -359,7 +358,6 @@
     .action-btn.active-flash {
       background: #00ff88;   /* whole tile green when active */
       color: #000;
-      border-color: #00ff88;
     }
 
     /* Slightly bigger action buttons/fonts on host page */
