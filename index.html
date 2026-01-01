@@ -251,12 +251,12 @@
       box-sizing: border-box;
       display: none;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
     }
 
     .popup-message .actor-icon {
       display: inline-block;
-      width: 10px;
+      width: 13px;
       height: 18px;
       background-size: contain;
       background-repeat: no-repeat;
@@ -281,22 +281,28 @@
     .instruction-box {
       display: none;
       position: fixed;
-      bottom: 15%;
+      bottom: 17%;
       left: 50%;
       transform: translateX(-50%);
       background-color: #ffffff;
-      color: #007022;
-      padding: 8px 14px;
-      border: 2px solid #00ff88;
-      font-size: 17px;
+      color: #00ff88;
+      padding: 6px 12px;
+      border: 1px solid #00ff88;
+      font-size: 14px;
       text-align: center;
       z-index: 1005;
       width: auto;
-      max-width: 300px;
+      max-width: 280px;
       letter-spacing: 0.5px;
       border-radius: 0;
       box-sizing: border-box;
+      gap: 2px;
     }
+
+
+
+
+
     @media (max-width: 768px) {
       .instruction-box {
         bottom: 20%;
@@ -1139,9 +1145,9 @@
     playSound(pickRandomFromPool('message'));
 
     if (message) {
-      showActorMessage('player', '"' + message + '"', 6000);
+      showActorMessage('player', '' + message + '', 6000);
     } else {
-      showActorMessage('player', 'no response this time.', 4000);
+      showActorMessage('player', 'no response..', 4000);
     }
   });
 
