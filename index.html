@@ -45,7 +45,7 @@
     .everything {
       position: relative;
       width: 400px;
-      height: 510px; /* map + action bar + chat bar */
+      height: 520px; /* map + action bar + chat bar + host banner */
     }
 
     .background {
@@ -58,6 +58,21 @@
       background-position: center;
       z-index: -1;
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/background1.png');
+    }
+
+    /* small host banner above map, host only */
+    .host-banner {
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-size: 11px;
+      padding: 2px 6px;
+      background: #000;
+      color: #00ff88;
+      border: 1px solid #00ff88;
+      letter-spacing: 0.5px;
+      display: none;
+      text-transform: none;
     }
 
     #map {
@@ -76,7 +91,7 @@
       flex-wrap: wrap;
       justify-content: space-between;
       padding: 5px;
-      margin: 0 auto;
+      margin: 18px auto 0;
       box-sizing: border-box;
     }
 
@@ -112,9 +127,10 @@
       display: none;
     }
 
+    /* characters slightly bigger */
     .player {
-      width: 22px;   /* 10% bigger */
-      height: 40px;  /* 10% bigger */
+      width: 22px;
+      height: 40px;
       z-index: 999;
       background:
         url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png')
@@ -128,8 +144,8 @@
     }
 
     .random-object {
-      width: 22px;   /* 10% bigger */
-      height: 40px;  /* 10% bigger */
+      width: 22px;
+      height: 40px;
       background:
         url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png')
         no-repeat center center / contain;
@@ -137,41 +153,35 @@
       cursor: pointer;
       z-index: 1001;
       transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
-      display: none; /* shown when host actually joins / when players see host */
     }
 
-    /* inline icons in popups: same size as sprites */
-    .host-icon-inline,
-    .player-icon-inline {
-      display: inline-block;
-      width: 22px;
-      height: 40px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      vertical-align: middle;
-      margin-right: 4px;
-    }
-    .host-icon-inline {
-      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png');
-    }
-    .player-icon-inline {
-      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png');
-    }
-
-    /* "?" above host head during conversation */
+    /* conversation "?" above host */
     .conversation-indicator {
       position: absolute;
-      top: -22px; /* slightly higher */
+      top: -20px; /* slightly higher */
       left: 50%;
       transform: translateX(-50%);
-      font-size: 13px;
-      color: #0033ff;
-      background: #d9ff00;
-      border: 1px solid #0033ff;
-      padding: 0 4px;
+      font-size: 12px;
+      color: #00ff88;
+      background: #ffffff;
+      border: 1px solid #00ff88;
+      padding: 0 3px;
       border-radius: 0;
       display: none;
       pointer-events: none;
+    }
+
+    /* arrival effect outline */
+    .random-object.arrival-sparkle {
+      outline: 2px solid #00ff88;
+      outline-offset: 1px;
+      animation: hostArrival 0.8s ease-out;
+    }
+
+    @keyframes hostArrival {
+      0%   { opacity: 0; }
+      25%  { opacity: 1; }
+      100% { opacity: 1; outline-color: transparent; }
     }
 
     .door {
@@ -208,45 +218,83 @@
       cursor: pointer;
     }
 
-    /* Unified neon status popup (host actions, convo, replies) */
+    /* TV visual ON state */
+    #tv-area.tv-on::after {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border: 2px solid #00ff88;
+      animation: tvPulse 0.6s infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes tvPulse {
+      0%   { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Centered popup above map (host & player messages) */
     .popup-message {
       position: absolute;
       top: -30px;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #d9ff00;
-      color: #000;
-      padding: 3px 10px;  /* lower height */
+      background-color: #000000;
+      color: #ffffff;
+      padding: 4px 10px;
       border-radius: 0;
-      font-size: 12px;
+      font-size: 13px;
       display: none;
       z-index: 1000;
-      text-align: center;
-      border: 2px solid #000;
-      letter-spacing: 0.02em;
-      /* no text-transform: keep original casing */
-      white-space: nowrap;       /* always one line */
-      max-width: none;
+      max-width: 260px;
+      text-align: left;
+      border: 1px solid #00ff88;
+      box-sizing: border-box;
+      display: none;
+      align-items: center;
+      gap: 4px;
     }
 
-    /* Digital-style object popup – same family as popup-message */
+    .popup-message .actor-icon {
+      display: inline-block;
+      width: 10px;
+      height: 18px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+    }
+
+    .popup-message .actor-host {
+      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png');
+    }
+
+    .popup-message .actor-player {
+      background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje1Tekengebied%201%404x.png');
+    }
+
+    .popup-message .actor-text {
+      font-size: 13px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    /* Digital-style object popup (furniture) */
     .instruction-box {
       display: none;
       position: fixed;
       bottom: 15%;
       left: 50%;
       transform: translateX(-50%);
-      background-color: #d9ff00;
-      color: #000;
-      padding: 4px 10px;  /* smaller */
-      border: 2px solid #000;
-      font-size: 14px;
+      background-color: #ffffff;
+      color: #007022; /* darker green */
+      padding: 6px 11px; /* slightly bigger */
+      border: 2px solid #00ff88;
+      font-size: 16px;
       text-align: center;
       z-index: 1005;
       width: auto;
       max-width: 300px;
-      letter-spacing: 0.02em;
-      /* no uppercase transform here either */
+      letter-spacing: 0.5px;
       border-radius: 0;
     }
     @media (max-width: 768px) {
@@ -256,42 +304,45 @@
       }
     }
 
-    /* Host-only action bar – hidden by default */
+    /* Host-only action bar – grid "inventory" style */
     .action-bar {
       width: 400px;
       margin: 4px auto 0;
-      display: none; /* JS enables grid for host only */
-      grid-template-columns: repeat(8, 1fr);
-      gap: 4px;
+      display: none; /* only host sees it */
+      box-sizing: border-box;
+      display: none;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 3px;
       font-size: 12px;
     }
 
     .action-btn {
       margin: 0;
-      padding: 3px 0;               /* less padding */
+      padding: 3px 0;
       border-radius: 0;
-      border: 2px solid #000;
-      background: #ffffff;
+      border: 1px solid #00ff88;
+      background: #0a0a0a;
+      color: #e0ffe8;
       cursor: pointer;
-      font-size: 13px;              /* slightly bigger */
+      font-size: 13px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 2px;                     /* emoji + letter closer */
+      gap: 2px;
       user-select: none;
       font-family: Arial, Helvetica, sans-serif;
+      text-transform: none;
+      box-sizing: border-box;
+    }
+
+    .action-btn span.label {
+      display: inline-block;
+      font-size: 13px;
     }
 
     .action-btn span.key {
       display: inline-block;
-      min-width: 16px;
-      padding: 0;
-      border-radius: 0;
-      border: none;               /* no inner outline */
-      font-family: Arial, Helvetica, sans-serif;
       font-size: 12px;
-      background: transparent;
-      text-align: center;
     }
 
     .action-btn:active {
@@ -299,13 +350,9 @@
     }
 
     .action-btn.active-flash {
-      background: #d9ff00;
-      border-color: #000;
+      background: #00ff88;
       color: #000;
-    }
-
-    .action-btn[data-action="tvOff"] {
-      grid-column: span 1;
+      border-color: #007022;
     }
 
     /* Player chat bar */
@@ -343,77 +390,68 @@
       transform: scale(0.97);
     }
 
-    /* Host overlay (login screen) */
-    #host-overlay {
-      position: fixed;
+    /* Host login overlay */
+    .host-login-overlay {
+      position: absolute;
       inset: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.92);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 2000;
+      color: #00ff88;
     }
 
-    .host-overlay-inner {
-      background: #d9ff00;
-      border: 2px solid #000;
-      padding: 16px 18px;
-      width: 280px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase; /* for title/labels only */
-    }
-
-    .host-overlay-title {
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-
-    .host-overlay-info {
-      font-size: 14px;
-      line-height: 1.4;
-      text-transform: none;          /* keep natural casing */
-      font-weight: bold;
-    }
-
-    .host-overlay-label {
-      margin-top: 6px;
-      font-size: 11px;
-    }
-
-    .host-overlay-input {
-      margin-top: 2px;
-      padding: 4px 6px;
-      border: 2px solid #000;
+    .host-login-panel {
+      border: 2px solid #00ff88;
+      padding: 14px 18px;
+      background: #000;
       border-radius: 0;
-      font-size: 13px;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #fff;
+      width: 260px;
+      box-sizing: border-box;
     }
 
-    .host-overlay-button {
-      margin-top: 10px;
+    .host-login-title {
+      font-size: 16px;
+      margin-bottom: 10px;
+      text-transform: lowercase;
+    }
+
+    .host-login-subtitle {
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: #ffffff;
+      text-transform: none;
+    }
+
+    .host-login-input {
+      width: 100%;
+      box-sizing: border-box;
       padding: 6px 8px;
       border-radius: 0;
-      border: 2px solid #000;
-      background: #ffffff;
-      font-size: 12px;
+      border: 1px solid #00ff88;
+      background: #050505;
+      color: #ffffff;
+      font-size: 14px;
+      margin-bottom: 8px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .host-login-button {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 0;
+      border: 1px solid #00ff88;
+      background: #00ff88;
+      color: #000;
       cursor: pointer;
-      text-align: center;
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform: lowercase;
     }
 
-    .host-overlay-button:active {
+    .host-login-button:active {
       transform: scale(0.97);
-    }
-
-    .host-overlay-error {
-      margin-top: 6px;
-      font-size: 11px;
-      color: #ff0000;
-      min-height: 14px;
     }
 
     /* Room positions */
@@ -425,7 +463,7 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
-    /* Door positions */
+    /* Doors */
     .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
     .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
 
@@ -453,23 +491,29 @@
 <body>
 <div class="background"></div>
 
-<!-- HOST LOGIN OVERLAY (only used on host side) -->
-<div id="host-overlay">
-  <div class="host-overlay-inner">
-    <div class="host-overlay-title">room_2 host login</div>
-    <div class="host-overlay-info">
-      to join room2 please visit <strong>room2.nl</strong>
-    </div>
-    <div class="host-overlay-label">enter host password</div>
-    <input id="host-password" class="host-overlay-input" type="password" autocomplete="off" />
-    <div id="host-overlay-error" class="host-overlay-error"></div>
-    <div id="host-enter" class="host-overlay-button">ENTER</div>
-  </div>
-</div>
-
 <div class="everything">
+  <div id="host-banner" class="host-banner">to join visit room2.nl</div>
+
+  <!-- furniture/object popup -->
   <div id="instructionBox" class="instruction-box"></div>
+  <!-- host/player popup -->
   <div id="popup-message" class="popup-message"></div>
+
+  <!-- host login overlay -->
+  <div id="host-login" class="host-login-overlay">
+    <div class="host-login-panel">
+      <div class="host-login-title">host login</div>
+      <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
+      <input
+        id="host-password"
+        class="host-login-input"
+        type="password"
+        maxlength="16"
+        autocomplete="off"
+      />
+      <button id="host-login-button" class="host-login-button">enter</button>
+    </div>
+  </div>
 
   <div id="map">
     <div id="player" class="player"></div>
@@ -569,7 +613,7 @@
       </div>
     </div>
 
-    <!-- ROOM 5 – living (spawn room) -->
+    <!-- ROOM 5 – living -->
     <div id="room5" class="room room5">
       <div class="room-label"></div>
       <div class="door door1 door-vertical" data-target="room4"></div>
@@ -580,7 +624,7 @@
            style="left: 94px; top: 25px; width: 55px; height: 45px;"
            onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
       </div>
-      <div class="clickable-region"
+      <div id="tv-area" class="clickable-region"
            style="left: 24px; top: 2px; width: 34px; height: 8px;"
            onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
       </div>
@@ -619,35 +663,35 @@
   <!-- Host-only action bar -->
   <div class="action-bar">
     <button class="action-btn" data-action="sleep">
-      😴 <span class="key">Z</span>
+      <span class="label">😴</span><span class="key">Z</span>
     </button>
     <button class="action-btn" data-action="table">
-      🍽 <span class="key">T</span>
+      <span class="label">🍽</span><span class="key">T</span>
     </button>
     <button class="action-btn" data-action="piano">
-      🎹 <span class="key">P</span>
+      <span class="label">🎹</span><span class="key">P</span>
     </button>
     <button class="action-btn" data-action="water">
-      🌳 <span class="key">W</span>
+      <span class="label">🌳</span><span class="key">W</span>
     </button>
     <button class="action-btn" data-action="shower">
-      🚿 <span class="key">S</span>
+      <span class="label">🚿</span><span class="key">S</span>
     </button>
     <button class="action-btn" data-action="brush">
-      🦷 <span class="key">B</span>
+      <span class="label">🦷</span><span class="key">B</span>
     </button>
     <button class="action-btn" data-action="dinner">
-      🍲 <span class="key">D</span>
+      <span class="label">🍲</span><span class="key">D</span>
     </button>
     <button class="action-btn" data-action="tvOn">
-      📺 <span class="key">1</span>
+      <span class="label">📺</span><span class="key">1</span>
     </button>
     <button class="action-btn" data-action="tvOff">
-      ⏹ <span class="key">0</span>
+      <span class="label">⏹</span><span class="key">0</span>
     </button>
   </div>
 
-  <!-- Player chat bar (only shows for players during conversation) -->
+  <!-- Player chat bar -->
   <div id="player-chat" class="player-chat">
     <input id="chat-input" type="text" maxlength="120" placeholder="type your reaction…" />
     <button id="chat-send">send</button>
@@ -657,19 +701,20 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
   const isHost = window.location.search.includes('host=1');
+  window.isHost = isHost;
   const socket = io();
 
   console.log('Multiplayer client starting. isHost =', isHost);
 
-  // spawn in living room by default
-  let currentRoom = 'room5';
-  let hostRoom    = 'room5';
+  let currentRoom  = 'room5'; // spawn in living room
+  let hostRoom     = 'room5';
   let currentAudio = null;
-  let tvAudio = null;
-  let moveAudio = null;
+  let tvAudio      = null;
+  let moveAudio    = null;
+  let hostUnlocked = !isHost; // host locked until password success
   window.currentRoom = currentRoom;
 
-  // Conversation state client-side
+  // conversation state client-side
   let currentConversationId = null;
   let hasRespondedThisRound = false;
 
@@ -678,17 +723,17 @@
   const chatInputEl   = document.getElementById('chat-input');
   const chatSendEl    = document.getElementById('chat-send');
   const hostIndicator = document.getElementById('host-indicator');
+  const hostBannerEl  = document.getElementById('host-banner');
+  const hostLoginEl   = document.getElementById('host-login');
+  const hostPasswordEl= document.getElementById('host-password');
+  const hostLoginBtn  = document.getElementById('host-login-button');
 
-  const hostOverlay      = document.getElementById('host-overlay');
-  const hostPasswordInput= document.getElementById('host-password');
-  const hostEnterBtn     = document.getElementById('host-enter');
-  const hostOverlayError = document.getElementById('host-overlay-error');
-
-  let hostUnlocked = !isHost; // players are always "unlocked", host needs password
-
-  if (isHost && actionBarEl) {
-    actionBarEl.style.display = 'grid';
-  }
+  const mapEl         = document.getElementById('map');
+  const playerEl      = document.getElementById('player');
+  const hostEl        = document.getElementById('host');
+  const instructionBox= document.getElementById('instructionBox');
+  const popupMsgEl    = document.getElementById('popup-message');
+  const tvAreaEl      = document.getElementById('tv-area');
 
   const rooms = ['room1','room2','room3','room4','room5','room6','room7'];
 
@@ -702,6 +747,7 @@
     room7: ['room6']
   };
 
+  // arrow navigation for host
   const arrowNav = {
     room1: { up: null,    down: 'room4', left: null,    right: 'room2' },
     room2: { up: null,    down: 'room5', left: 'room1', right: 'room6' },
@@ -712,11 +758,16 @@
     room7: { up: 'room6', down: null,    left: null,    right: null }
   };
 
-  const mapEl         = document.getElementById('map');
-  const playerEl      = document.getElementById('player');
-  const hostEl        = document.getElementById('host');
-  const instructionBox= document.getElementById('instructionBox');
-  const popupMsgEl    = document.getElementById('popup-message');
+  // room-specific actions
+  const roomActions = {
+    room1: ['water'],
+    room2: [], // computer lab
+    room3: ['table','dinner'],
+    room4: ['shower','brush'],
+    room5: ['piano','tvOn','tvOff'],
+    room6: [], // hall
+    room7: ['sleep']
+  };
 
   const positionOffsets = {
     player: {
@@ -739,7 +790,8 @@
     }
   };
 
-  const CLICK_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
+  const CLICK_SOUND_URL    = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3';
+  const ARRIVAL_SOUND_URL  = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/arrival1.mp3';
 
   const soundPools = {
     sleep: [
@@ -798,50 +850,22 @@
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3'
     ],
     message: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/message1.mp3',
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/message1.mp3'
     ]
   };
 
   const actionMessages = {
-    sleep:  '<span class="host-icon-inline"></span>is sleeping…',
-    table:  '<span class="host-icon-inline"></span>is dressing the table…',
-    piano:  '<span class="host-icon-inline"></span>is playing the piano…',
-    water:  '<span class="host-icon-inline"></span>is watering a tree…',
-    shower: '<span class="host-icon-inline"></span>is taking a shower…',
-    brush:  '<span class="host-icon-inline"></span>is brushing teeth…',
-    dinner: '<span class="host-icon-inline"></span>is making dinner…',
-    tvOn:   '<span class="host-icon-inline"></span>turned the TV on…',
-    tvOff:  '<span class="host-icon-inline"></span>turned the TV off…'
+    sleep:  'is sleeping…',
+    table:  'is dressing the table…',
+    piano:  'is playing the piano…',
+    water:  'is watering a tree…',
+    shower: 'is taking a shower…',
+    brush:  'is brushing their teeth…',
+    dinner: 'is making dinner…',
+    tvOn:   'turned the TV on',
+    tvOff:  'turned the TV off'
   };
-
-  // Room constraints for actions
-  const actionAllowedRooms = {
-    sleep:  ['room7'],       // bedroom
-    table:  ['room3'],       // kitchen
-    dinner: ['room3'],       // kitchen
-    shower: ['room4'],       // bathroom
-    brush:  ['room4'],       // bathroom
-    piano:  ['room5'],       // living
-    tvOn:   ['room5'],       // living
-    tvOff:  ['room5'],       // living
-    water:  rooms            // anywhere
-  };
-
-  function isActionAllowedHere(kind) {
-    const allowed = actionAllowedRooms[kind];
-    if (!allowed) return true;
-    return allowed.includes(currentRoom);
-  }
-
-  function showMessage(html) {
-    if (!popupMsgEl || !html) return;
-    popupMsgEl.innerHTML = html;
-    popupMsgEl.style.display = 'block';
-    clearTimeout(showMessage._timeout);
-    showMessage._timeout = setTimeout(() => {
-      popupMsgEl.style.display = 'none';
-    }, 4000);
-  }
 
   function pickRandomFromPool(poolName) {
     const pool = soundPools[poolName];
@@ -883,13 +907,54 @@
     playSound(CLICK_SOUND_URL);
   }
 
+  // simple text popup (no icons)
+  function showMessage(text, duration = 4000) {
+    if (!popupMsgEl || !text) return;
+    popupMsgEl.textContent = text;
+    popupMsgEl.style.display = 'block';
+    clearTimeout(showMessage._timeout);
+    showMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, duration);
+  }
+
+  // popup with host/player icon
+  function showActorMessage(actor, text, duration = 4000) {
+    if (!popupMsgEl || !text) return;
+    const iconClass = actor === 'player' ? 'actor-player' : 'actor-host';
+    popupMsgEl.innerHTML =
+      '<span class="actor-icon ' + iconClass + '"></span>' +
+      '<span class="actor-text">' + text + '</span>';
+    popupMsgEl.style.display = 'flex';
+    clearTimeout(showActorMessage._timeout);
+    showActorMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, duration);
+  }
+
+  // special: waiting for player's response
+  function showHostWaitingMessage(duration = 4000) {
+    if (!popupMsgEl) return;
+    popupMsgEl.innerHTML =
+      '<span class="actor-icon actor-host"></span>' +
+      '<span class="actor-text">waiting for</span>' +
+      '<span class="actor-icon actor-player"></span>' +
+      '<span class="actor-text">\'s response</span>';
+    popupMsgEl.style.display = 'flex';
+    clearTimeout(showHostWaitingMessage._timeout);
+    showHostWaitingMessage._timeout = setTimeout(() => {
+      popupMsgEl.style.display = 'none';
+    }, duration);
+  }
+
   function showObjectPopup(text) {
+    if (isHost) return;  // no furniture popups for host
     instructionBox.textContent = text;
     instructionBox.style.display = 'block';
     clearTimeout(showObjectPopup._timeout);
     showObjectPopup._timeout = setTimeout(() => {
       instructionBox.style.display = 'none';
-    }, 2000);
+    }, 2500);
   }
 
   function moveElementToRoom(el, roomId, role) {
@@ -907,7 +972,7 @@
     x += off.dx;
     y += off.dy;
 
-    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    el.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)';
   }
 
   function updateActiveRoom(roomId) {
@@ -920,6 +985,35 @@
     if (room) {
       room.querySelectorAll('.door').forEach(d => d.style.pointerEvents = 'auto');
     }
+
+    if (isHost) updateActionBarForRoom(roomId);
+  }
+
+  function updateActionBarForRoom(roomId) {
+    const allowed = new Set(roomActions[roomId] || []);
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      const action = btn.dataset.action;
+      if (allowed.has(action)) {
+        btn.style.display = 'flex';
+      } else {
+        btn.style.display = 'none';
+      }
+    });
+  }
+
+  function setTvVisualState(on) {
+    if (!tvAreaEl) return;
+    if (on) {
+      tvAreaEl.classList.add('tv-on');
+    } else {
+      tvAreaEl.classList.remove('tv-on');
+    }
+  }
+
+  function triggerHostArrivalEffect() {
+    if (!hostEl) return;
+    hostEl.classList.add('arrival-sparkle');
+    setTimeout(() => hostEl.classList.remove('arrival-sparkle'), 900);
   }
 
   function goToRoom(targetRoom) {
@@ -933,59 +1027,92 @@
     updateActiveRoom(currentRoom);
     playMoveSound();
 
-    if (isHost && hostUnlocked) {
+    if (isHost) {
+      if (!hostUnlocked) return;
       hostRoom = currentRoom;
       moveElementToRoom(hostEl, hostRoom, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
-    } else if (!isHost) {
+    } else {
       moveElementToRoom(playerEl, currentRoom, 'player');
+      socket.emit('playerMove', { roomId: currentRoom });
     }
   }
 
-  // SOCKET.IO
+  // --- SOCKET.IO ---
 
   socket.on('connect', () => {
     console.log('Connected to server with id', socket.id);
-    // players join immediately; host joins after password
-    if (!isHost) {
-      socket.emit('join', { role: 'player' });
-    }
+    socket.emit('join', { role: isHost ? 'host' : 'player' });
   });
 
   socket.on('disconnect', () => {
     console.log('Disconnected from server');
   });
 
+  // host position updates for players
   socket.on('hostPosition', (data) => {
     if (!data || !data.roomId) return;
-    // players only get this once host is actually online (after server fix)
     hostRoom = data.roomId;
     hostEl.style.display = 'block';
     moveElementToRoom(hostEl, hostRoom, 'host');
   });
 
+  // initial host position for host only
   socket.on('initialHostPosition', (data) => {
-    if (!isHost || !hostUnlocked) return;
+    if (!isHost) return;
     if (data && data.roomId) {
       hostRoom = data.roomId;
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
-      hostEl.style.display = 'block';
-      moveElementToRoom(hostEl, hostRoom, 'host');
+      // actual spawn happens after login
     }
   });
 
-  // Host actions -> player popups
+  // host comes online for players (after login)
+  socket.on('hostOnline', ({ roomId }) => {
+    if (isHost) return;
+    hostRoom = roomId || 'room5';
+    hostEl.style.display = 'block';
+    moveElementToRoom(hostEl, hostRoom, 'host');
+    triggerHostArrivalEffect();
+    playSound(ARRIVAL_SOUND_URL);
+  });
+
+  // hide host when offline
+  socket.on('hostOffline', () => {
+    if (!isHost) {
+      hostEl.style.display = 'none';
+    }
+  });
+
+  // ghost player position -> visible to host as 70% opacity
+  socket.on('ghostPlayerPosition', ({ roomId }) => {
+    if (!isHost) return;
+    if (!roomId) return;
+    playerEl.style.opacity = '0.7';
+    playerEl.style.display = 'block';
+    moveElementToRoom(playerEl, roomId, 'player');
+  });
+
+  // host actions -> players see popup + tv state
   socket.on('hostAction', (data) => {
     if (!data || !data.kind) return;
-    const msg = actionMessages[data.kind];
+    const kind = data.kind;
+    const msg  = actionMessages[kind];
+
+    if (kind === 'tvOn') {
+      setTvVisualState(true);
+    } else if (kind === 'tvOff') {
+      setTvVisualState(false);
+    }
+
     if (msg) {
-      showMessage(msg);
+      showActorMessage('host', msg);
     }
   });
 
-  // Conversation events
+  // conversation events
   socket.on('conversationStart', ({ conversationId }) => {
     console.log('conversationStart', conversationId);
     currentConversationId = conversationId;
@@ -994,7 +1121,7 @@
     if (hostIndicator) hostIndicator.style.display = 'block';
 
     if (isHost) {
-      showMessage('............?');
+      showHostWaitingMessage(5000);
     } else {
       if (playerChatEl) {
         playerChatEl.style.display = 'grid';
@@ -1003,7 +1130,7 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      showMessage('react to the host…');
+      showMessage('React to the host…', 3000);
     }
   });
 
@@ -1023,18 +1150,16 @@
     if (!isHost) return;
     if (!conversationId) return;
 
-    // custom "message received" sound
     playSound(pickRandomFromPool('message'));
 
     if (message) {
-      const safe = escapeHtml(message);
-      showMessage('<span class="player-icon-inline"></span>“' + safe + '”');
+      showActorMessage('player', '"' + message + '"', 6000);
     } else {
-      showMessage('no responses this time.');
+      showActorMessage('player', 'no response this time.', 4000);
     }
   });
 
-  // Host clickable for players: grows 10% on click if in same room
+  // clicking host from player side: click sound + 10% grow
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
@@ -1048,7 +1173,7 @@
     }, 50);
   });
 
-  // Player chat send
+  // player send message
   function sendPlayerMessage() {
     if (!playerChatEl || !chatInputEl) return;
     if (!currentConversationId) return;
@@ -1064,6 +1189,7 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
+    // no "message sent" popup
   }
 
   if (chatSendEl) {
@@ -1097,10 +1223,10 @@
   });
 
   function flashButton(actionName) {
-    const btn = document.querySelector(`.action-btn[data-action="${actionName}"]`);
+    const btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
     if (!btn) return;
     btn.classList.add('active-flash');
-    setTimeout(() => btn.classList.remove('active-flash'), 300);
+    setTimeout(() => btn.classList.remove('active-flash'), 250);
   }
 
   function stopTvLoop() {
@@ -1115,17 +1241,19 @@
 
   function triggerHostAction(kind) {
     if (!isHost || !hostUnlocked) return;
-    if (!isActionAllowedHere(kind)) return; // wrong room -> ignore
+
+    const allowed = new Set(roomActions[currentRoom] || []);
+    if (!allowed.has(kind)) return; // not allowed in this room
 
     const msg = actionMessages[kind];
-    if (msg) showMessage(msg);
+    if (msg) showActorMessage('host', msg);
 
-    // notify players
     socket.emit('hostAction', { kind });
 
     if (kind === 'tvOff') {
       flashButton('tvOff');
       stopTvLoop();
+      setTvVisualState(false);
       return;
     }
 
@@ -1155,6 +1283,7 @@
         break;
       case 'tvOn': {
         stopTvLoop();
+        setTvVisualState(true);
         const url = pickRandomFromPool('tvOn');
         if (!url) return;
         try {
@@ -1176,6 +1305,7 @@
     });
   });
 
+  // keyboard for host
   document.addEventListener('keydown', (e) => {
     if (!isHost || !hostUnlocked) return;
 
@@ -1194,7 +1324,6 @@
       }
     }
 
-    // Host actions via keyboard
     switch (e.key) {
       case 'z':
       case 'Z':
@@ -1231,81 +1360,79 @@
         triggerHostAction('tvOff');
         break;
       case '2':
-        // Start conversation
         socket.emit('startConversation');
-        showMessage('............?');
+        showHostWaitingMessage(5000);
         break;
     }
   });
 
-  // HOST OVERLAY LOGIC
-  function unlockHost() {
-    const value = (hostPasswordInput.value || '').trim();
-    if (value === 'host') {
-      hostUnlocked = true;
-      hostOverlay.style.display = 'none';
+  // host login handling
+  function completeHostLogin() {
+    const val = (hostPasswordEl.value || '').trim();
+    if (val !== 'host') return;
 
-      // now officially join as host
-      socket.emit('join', { role: 'host' });
+    hostUnlocked = true;
+    hostLoginEl.style.display = 'none';
+    hostBannerEl.style.display = 'block';
 
-      hostRoom = 'room5';
-      currentRoom = 'room5';
-      window.currentRoom = currentRoom;
-      updateActiveRoom(currentRoom);
-      hostEl.style.display = 'block';
-      moveElementToRoom(hostEl, hostRoom, 'host');
-      hostOverlayError.textContent = '';
-    } else {
-      hostOverlayError.textContent = 'wrong password';
+    // show host + move to room + arrival effect
+    hostEl.style.display = 'block';
+    updateActiveRoom(hostRoom);
+    moveElementToRoom(hostEl, hostRoom, 'host');
+    triggerHostArrivalEffect();
+    playSound(ARRIVAL_SOUND_URL);
+
+    // show action bar with correct room actions
+    if (actionBarEl) {
+      actionBarEl.style.display = 'grid';
+      updateActionBarForRoom(hostRoom);
     }
+
+    socket.emit('hostReady');
   }
 
-  if (isHost) {
-    hostOverlay.style.display = 'flex';
-    if (hostPasswordInput) {
-      setTimeout(() => hostPasswordInput.focus(), 50);
-    }
-  } else {
-    // players never see overlay
-    hostOverlay.style.display = 'none';
+  if (hostLoginBtn) {
+    hostLoginBtn.addEventListener('click', () => {
+      completeHostLogin();
+    });
   }
 
-  if (hostEnterBtn) {
-    hostEnterBtn.addEventListener('click', unlockHost);
-  }
-  if (hostPasswordInput) {
-    hostPasswordInput.addEventListener('keydown', (e) => {
+  if (hostPasswordEl) {
+    hostPasswordEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        unlockHost();
+        completeHostLogin();
       }
     });
   }
 
   window.addEventListener('load', () => {
+    // hide host by default for everyone
+    hostEl.style.display = 'none';
+
     if (isHost) {
+      // host sees banner & login overlay
+      if (hostBannerEl) hostBannerEl.style.display = 'block';
+      if (hostLoginEl)  hostLoginEl.style.display = 'flex';
+
+      // player element used as ghost, hide until first ghost event
       playerEl.style.display = 'none';
-      // host will spawn after unlockHost()
+
+      currentRoom = hostRoom;
+      window.currentRoom = currentRoom;
+      updateActiveRoom(currentRoom);
     } else {
-      hostRoom = 'room5';
+      // player start in living room
+      hostBannerEl.style.display = 'none';
+      if (hostLoginEl) hostLoginEl.style.display = 'none';
+
       currentRoom = 'room5';
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
       moveElementToRoom(playerEl, currentRoom, 'player');
+      socket.emit('playerMove', { roomId: currentRoom });
     }
   });
-
-  function escapeHtml(str) {
-    return str.replace(/[&<>"']/g, function(m) {
-      return ({
-        '&':'&amp;',
-        '<':'&lt;',
-        '>':'&gt;',
-        '"':'&quot;',
-        "'":'&#39;'
-      })[m];
-    });
-  }
 </script>
 </body>
 </html>
