@@ -15,6 +15,11 @@ app.use(express.static(__dirname));
 // Host state
 let hostRoom = 'room2';
 
+// Conversation state
+let conversationId = 0;
+let conversationMessages = [];
+let conversationTimer = null;
+
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 
@@ -51,6 +56,58 @@ io.on('connection', (socket) => {
     if (!kind) return;
     console.log('Host triggered action:', kind);
     socket.broadcast.emit('hostAction', { kind });
+  });
+
+  // Host starts a conversation round (key "2")
+  socket.on('startConversation', () => {
+    if (socket.data.role !== 'host') {
+      console.log('Ignoring startConversation from non-host client', socket.id);
+      return;
+    }
+
+    conversationId += 1;
+    conversationMessages = [];
+    if (conversationTimer) clearTimeout(conversationTimer);
+    const thisId = conversationId;
+
+    console.log('Conversation started, id =', thisId);
+
+    // Let everyone know a round started
+    io.emit('conversationStart', { conversationId: thisId });
+
+    // After 6 seconds, pick one random message and send it only to host
+    conversationTimer = setTimeout(() => {
+      // If a new conversation already started, ignore this timer
+      if (conversationId !== thisId) return;
+
+      let chosen = null;
+      if (conversationMessages.length > 0) {
+        const idx = Math.floor(Math.random() * conversationMessages.length);
+        chosen = conversationMessages[idx];
+      }
+
+      // Send result only to host that started it
+      io.to(socket.id).emit('conversationResult', {
+        conversationId: thisId,
+        message: chosen
+      });
+
+      // Let everyone hide their UI
+      io.emit('conversationEnd', { conversationId: thisId });
+      console.log('Conversation ended, chosen message:', chosen);
+    }, 6000);
+  });
+
+  // Player sends a message for the current conversation
+  socket.on('playerMessage', ({ conversationId: cid, text }) => {
+    if (!text || typeof text !== 'string') return;
+    if (!cid || cid !== conversationId) return; // old round, ignore
+
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    conversationMessages.push(trimmed);
+    console.log('Received player message for conversation', cid, ':', trimmed);
   });
 
   socket.on('disconnect', () => {
