@@ -62,7 +62,7 @@
       letter-spacing: 0.5px;
       display: none;
       text-transform: none;
-      z-index: 1100;
+      z-index: 900; /* below popups */
     }
 
     #map {
@@ -186,11 +186,11 @@
     }
     .door-horizontal {
       width: 40px;
-      height: 9px;
+      height: 8px;   /* slightly slimmer so it doesn’t spill out */
       border-radius: 1px;
     }
     .door-vertical {
-      width: 9px;
+      width: 8px;    /* slightly slimmer so it doesn’t spill out */
       height: 40px;
       border-radius: 1px;
     }
@@ -223,7 +223,7 @@
       100% { opacity: 1; }
     }
 
-    /* Centered popup above map (host & player messages) */
+    /* Centered popup (host & player messages) – default above map on desktop */
     .popup-message {
       position: absolute;
       top: -24px;
@@ -235,7 +235,7 @@
       border-radius: 0;
       font-size: 14px;
       display: none;
-      z-index: 1000;
+      z-index: 1000; /* above banner */
       max-width: 280px;
       text-align: left;
       border: 1px solid #00ff88;
@@ -246,8 +246,8 @@
 
     .popup-message .actor-icon {
       display: inline-block;
-      width: 13px;
-      height: 18px;
+      width: 11px;
+      height: 20px;           /* same proportions as player (22x40) */
       background-size: contain;
       background-repeat: no-repeat;
       flex-shrink: 0;
@@ -280,7 +280,7 @@
       border: 1px solid #00ff88;
       font-size: 11px;
       text-align: left;
-      z-index: 1005;
+      z-index: 950; /* above banner, below main popup */
       width: auto;
       max-width: 260px;
       letter-spacing: 0.5px;
@@ -417,10 +417,15 @@
       border-radius: 0;
       border: 1px solid #00ff88;
       background: #050505;
-      color: #ffffff;
+      color: #00ff88; /* green dots */
       font-size: 14px;
       margin-bottom: 8px;
       font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .host-login-input:focus {
+      outline: none;          /* no extra outline */
+      box-shadow: none;
     }
 
     .host-login-button {
@@ -449,29 +454,29 @@
     .room6 { top: 188px; left: 257px; width: 54px;  height: 81px;  }
     .room7 { top: 278px; left: 257px; width: 90px;  height: 90px;  }
 
-    /* Doors */
-    .room1 .door1 { left: 68%; bottom: -12px; transform: translateX(-50%); }
-    .room1 .door2 { right: -13px; top: 59%; transform: translateY(-50%); }
+    /* Doors (slightly pulled in so they don't cross walls) */
+    .room1 .door1 { left: 68%; bottom: -10px; transform: translateX(-50%); }
+    .room1 .door2 { right: -10px; top: 59%; transform: translateY(-50%); }
 
-    .room2 .door1 { left: -11px; top: 50%; transform: translateY(-50%); }
-    .room2 .door3 { bottom: -12px; left: 59%; transform: translateX(-50%); }
-    .room2 .door4 { bottom: -12px; left: 89%; transform: translateX(-50%); }
+    .room2 .door1 { left: -9px;  top: 50%; transform: translateY(-50%); }
+    .room2 .door3 { bottom: -10px; left: 59%; transform: translateX(-50%); }
+    .room2 .door4 { bottom: -10px; left: 89%; transform: translateX(-50%); }
 
-    .room3 .door1 { left: -13px; top: 69%; transform: translateY(-50%); }
+    .room3 .door1 { left: -10px; top: 69%; transform: translateY(-50%); }
 
-    .room4 .door1 { left: 68%; top: -12px; transform: translateX(-50%); }
-    .room4 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
+    .room4 .door1 { left: 68%; top: -10px; transform: translateX(-50%); }
+    .room4 .door2 { right: -10px; top: 30%; transform: translateY(-50%); }
 
-    .room5 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
-    .room5 .door2 { right: -13px; top: 30%; transform: translateY(-50%); }
-    .room5 .door3 { top: -11px; left: 82%; transform: translateX(-50%); }
+    .room5 .door1 { left: -10px; top: 30%; transform: translateY(-50%); }
+    .room5 .door2 { right: -10px; top: 30%; transform: translateY(-50%); }
+    .room5 .door3 { top: -9px;  left: 82%; transform: translateX(-50%); }
 
-    .room6 .door1 { left: -13px; top: 30%; transform: translateY(-50%); }
-    .room6 .door2 { bottom: -12px; left: 50%; transform: translateX(-50%); }
-    .room6 .door3 { right: -12px; top: 50%; transform: translateY(-50%); }
-    .room6 .door4 { top: -12px; left: 50%; transform: translateX(-50%); }
+    .room6 .door1 { left: -10px; top: 30%; transform: translateY(-50%); }
+    .room6 .door2 { bottom: -10px; left: 50%; transform: translateX(-50%); }
+    .room6 .door3 { right: -10px; top: 50%; transform: translateY(-50%); }
+    .room6 .door4 { top: -10px; left: 50%; transform: translateX(-50%); }
 
-    .room7 .door1 { top: -12px; left: 19%; transform: translateX(-50%); }
+    .room7 .door1 { top: -10px; left: 19%; transform: translateX(-50%); }
 
     /* --- PHONE / SMALL SCREEN TWEAKS --- */
     @media (max-width: 480px) {
@@ -483,7 +488,7 @@
         margin-top: 24px;
       }
 
-      /* Slightly bigger map than before but still fitting */
+      /* Slightly bigger map than earlier phone version but still fitting */
       #map {
         transform: scale(0.93);
         transform-origin: top center;
@@ -515,10 +520,10 @@
         padding: 3px 7px;
       }
 
-      /* Popup icons +10% */
+      /* Popup icons +10% on phone */
       .popup-message .actor-icon {
-        width: 15px;
-        height: 20px;
+        width: 12px;
+        height: 22px;
       }
 
       /* Player + host characters +10% */
@@ -528,7 +533,7 @@
         height: 44px;
       }
 
-      /* Furniture popup: fixed bottom-left above chat so it's visible */
+      /* Furniture popup: fixed bottom-left above chat so it's always visible */
       .instruction-box {
         position: fixed;
         left: 4%;
@@ -536,6 +541,13 @@
         margin-top: 0;
         max-width: 70vw;
         z-index: 1006;
+      }
+
+      /* Action/React popup below the map, centered */
+      .popup-message {
+        top: 410px;        /* just below scaled map */
+        left: 50%;
+        transform: translateX(-50%);
       }
 
       /* Host view not over-scaled on phone */
@@ -549,7 +561,7 @@
 <body>
 <div class="background"></div>
 
-<!-- host login overlay (full-screen) -->
+<!-- host login overlay (full-screen, fully dark) -->
 <div id="host-login" class="host-login-overlay">
   <div class="host-login-panel">
     <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
