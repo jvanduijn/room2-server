@@ -9,113 +9,164 @@ const io     = new Server(server, {
   cors: { origin: "*" }
 });
 
-// Serve index.html and any other files from this same folder
+// Serve index.html + assets from this folder
 app.use(express.static(__dirname));
 
-// Host state
-let hostRoom = 'room2';
+// --- HOST STATE ---
+let hostRoom       = 'room5';   // spawn in living room
+let hostConnected  = false;
+let hostSocketId   = null;
 
-// Conversation state
-let conversationId = 0;
-let conversationMessages = [];
-let conversationTimer = null;
+// --- CONVERSATION STATE (for the "2" key feature) ---
+let currentConversationId = null;
+let conversationResponses = [];
+let conversationTimeout   = null;
+
+// 8–9 seconds window for players to respond
+const CONVERSATION_DURATION_MS = 9000;
+
+// Helper: reset conversation state
+function clearConversationState() {
+  currentConversationId = null;
+  conversationResponses = [];
+  if (conversationTimeout) {
+    clearTimeout(conversationTimeout);
+    conversationTimeout = null;
+  }
+}
 
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 
+  // --- JOIN ---
   socket.on('join', ({ role }) => {
     socket.data.role = role;
     console.log(`Client ${socket.id} joined as ${role}`);
 
-    // Send current host position to the new client
-    socket.emit('hostPosition', { roomId: hostRoom });
     if (role === 'host') {
+      hostConnected = true;
+      hostSocketId  = socket.id;
+
+      // Send initial position just to the host
       socket.emit('initialHostPosition', { roomId: hostRoom });
+    } else {
+      // Player: only show host if a host is actually connected
+      if (hostConnected) {
+        socket.emit('hostPosition', { roomId: hostRoom });
+      }
     }
   });
 
-  // Only the host can move the blue character
+  // --- HOST MOVEMENT (blue character) ---
   socket.on('hostMove', ({ roomId }) => {
-    if (socket.data.role !== 'host') {
-      console.log('Ignoring hostMove from non-host client', socket.id);
-      return;
-    }
+    if (socket.data.role !== 'host') return;
     if (!roomId) return;
 
     hostRoom = roomId;
     console.log('Host moved to room:', hostRoom);
+
+    // Broadcast to all other clients (players)
     socket.broadcast.emit('hostPosition', { roomId: hostRoom });
   });
 
-  // Host actions (sleep, shower, tv on, etc.) – broadcast to players
-  socket.on('hostAction', ({ kind }) => {
-    if (socket.data.role !== 'host') {
-      console.log('Ignoring hostAction from non-host client', socket.id);
-      return;
-    }
-    if (!kind) return;
-    console.log('Host triggered action:', kind);
-    socket.broadcast.emit('hostAction', { kind });
+  // --- HOST ACTIONS (sleep, shower, tv on/off, etc) ---
+  socket.on('hostAction', (data) => {
+    if (socket.data.role !== 'host') return;
+    if (!data || !data.kind) return;
+
+    // Broadcast to everyone else (players) so they see the popup
+    socket.broadcast.emit('hostAction', { kind: data.kind });
   });
 
-  // Host starts a conversation round (key "2")
+  // --- CONVERSATION START (host presses "2") ---
   socket.on('startConversation', () => {
-    if (socket.data.role !== 'host') {
-      console.log('Ignoring startConversation from non-host client', socket.id);
-      return;
-    }
+    if (socket.data.role !== 'host') return;
 
-    conversationId += 1;
-    conversationMessages = [];
-    if (conversationTimer) clearTimeout(conversationTimer);
-    const thisId = conversationId;
+    // Only one conversation at a time
+    if (currentConversationId) return;
 
-    console.log('Conversation started, id =', thisId);
+    // New conversation id
+    const conversationId =
+      Date.now().toString() + '-' + Math.random().toString(36).slice(2);
 
-    // Let everyone know a round started
-    io.emit('conversationStart', { conversationId: thisId });
+    currentConversationId = conversationId;
+    conversationResponses = [];
 
-    // Give players more time (12s) to react
-    conversationTimer = setTimeout(() => {
-      // If a new conversation already started, ignore this timer
-      if (conversationId !== thisId) return;
+    console.log('Conversation started', conversationId);
 
-      let chosen = null;
-      if (conversationMessages.length > 0) {
-        const idx = Math.floor(Math.random() * conversationMessages.length);
-        chosen = conversationMessages[idx];
+    // Notify all clients (host + players)
+    io.emit('conversationStart', { conversationId });
+
+    // After a timeout, pick one response (if any) and show it to host
+    conversationTimeout = setTimeout(() => {
+      console.log('Conversation ending', conversationId);
+
+      let chosenMessage = null;
+      if (conversationResponses.length > 0) {
+        const idx = Math.floor(Math.random() * conversationResponses.length);
+        chosenMessage = conversationResponses[idx].text;
       }
 
-      // Send result only to host
-      io.to(socket.id).emit('conversationResult', {
-        conversationId: thisId,
-        message: chosen
-      });
+      // Send chosen response only to host
+      if (hostSocketId && hostConnected) {
+        io.to(hostSocketId).emit('conversationResult', {
+          conversationId,
+          message: chosenMessage || null
+        });
+      }
 
-      // Let everyone hide their UI
-      io.emit('conversationEnd', { conversationId: thisId });
-      console.log('Conversation ended, chosen message:', chosen);
-    }, 12000); // 12 seconds
+      // Notify everyone that this conversation round ended
+      io.emit('conversationEnd', { conversationId });
+
+      // Reset state
+      clearConversationState();
+    }, CONVERSATION_DURATION_MS);
   });
 
-  // Player sends a message for the current conversation
-  socket.on('playerMessage', ({ conversationId: cid, text }) => {
-    if (!text || typeof text !== 'string') return;
-    if (!cid || cid !== conversationId) return; // old round, ignore
+  // --- PLAYER MESSAGES (during conversation) ---
+  socket.on('playerMessage', ({ conversationId, text }) => {
+    // Only players should send this, but we don't strictly enforce role here
+    if (!currentConversationId) return;
+    if (conversationId !== currentConversationId) return;
 
-    const trimmed = text.trim();
+    const trimmed = (text || '').toString().slice(0, 120);
     if (!trimmed) return;
 
-    conversationMessages.push(trimmed);
-    console.log('Received player message for conversation', cid, ':', trimmed);
+    conversationResponses.push({
+      socketId: socket.id,
+      text: trimmed
+    });
+
+    console.log('Player response recorded', socket.id, trimmed);
   });
 
+  // --- DISCONNECT ---
   socket.on('disconnect', () => {
     console.log('Client disconnected', socket.id);
+
+    // If the host disconnects, mark offline + end conversation if active
+    if (socket.id === hostSocketId) {
+      hostConnected = false;
+      hostSocketId  = null;
+
+      // Let players hide the host
+      io.emit('hostOffline');
+
+      // If host leaves mid-conversation, end it for players
+      if (currentConversationId) {
+        const endedConversationId = currentConversationId;
+
+        clearConversationState();
+
+        io.emit('conversationEnd', {
+          conversationId: endedConversationId
+        });
+      }
+    }
   });
 });
 
-// IMPORTANT for Render: use provided PORT, fallback to 3000 locally
+// IMPORTANT for Render / local
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log('room_2 server listening on port ' + PORT);
