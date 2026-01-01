@@ -284,22 +284,22 @@
       white-space: nowrap;
     }
 
-    /* Digital-style object popup (furniture) – same language */
+    /* Digital-style object popup (furniture) – attached under left of map */
     .instruction-box {
       display: none;
-      position: fixed;
-      bottom: 17%;
-      left: 50%;
-      transform: translateX(-50%);
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 4px;
       background-color: #212121;
       color: #00ff88;
-      padding: 6px 12px;
+      padding: 6px 10px;
       border: 1px solid #00ff88;
-      font-size: 14px;
-      text-align: center;
+      font-size: 11px; /* same as banner / "volume ON is allowed" */
+      text-align: left;
       z-index: 1005;
       width: auto;
-      max-width: 280px;
+      max-width: 260px;
       letter-spacing: 0.5px;
       border-radius: 0;
       box-sizing: border-box;
@@ -308,8 +308,7 @@
 
     @media (max-width: 768px) {
       .instruction-box {
-        bottom: 20%;
-        max-width: 350px;
+        max-width: 260px;
       }
     }
 
@@ -501,27 +500,26 @@
 <body>
 <div class="background"></div>
 
+<!-- host login overlay (full-screen) -->
+<div id="host-login" class="host-login-overlay">
+  <div class="host-login-panel">
+    <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
+    <div class="host-login-title">host login</div>
+    <input
+      id="host-password"
+      class="host-login-input"
+      type="password"
+      maxlength="16"
+      autocomplete="off"
+    />
+    <button id="host-login-button" class="host-login-button">enter</button>
+  </div>
+</div>
+
 <div class="everything">
   <div id="host-banner" class="host-banner">to join visit room2.nl</div>
 
-  <div id="instructionBox" class="instruction-box"></div>
   <div id="popup-message" class="popup-message"></div>
-
-  <!-- host login overlay -->
-  <div id="host-login" class="host-login-overlay">
-    <div class="host-login-panel">
-      <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
-      <div class="host-login-title">host login</div>
-      <input
-        id="host-password"
-        class="host-login-input"
-        type="password"
-        maxlength="16"
-        autocomplete="off"
-      />
-      <button id="host-login-button" class="host-login-button">enter</button>
-    </div>
-  </div>
 
   <div id="map">
     <div id="player" class="player"></div>
@@ -666,6 +664,8 @@
       </div>
     </div>
 
+    <!-- furniture popup now attached to map bottom-left -->
+    <div id="instructionBox" class="instruction-box"></div>
   </div><!-- /map -->
 
   <!-- Host-only action bar -->
@@ -1097,14 +1097,18 @@
   socket.on('hostAction', (data) => {
     if (!data || !data.kind) return;
     const kind = data.kind;
-    const msg  = actionMessages[kind];
 
+    // TV visual for everyone
     if (kind === 'tvOn') {
       setTvVisualState(true);
     } else if (kind === 'tvOff') {
       setTvVisualState(false);
     }
 
+    // Text popup only for host (so player keeps "React to the host...")
+    if (!isHost) return;
+
+    const msg  = actionMessages[kind];
     if (msg) {
       showActorMessage('host', msg);
     }
@@ -1127,7 +1131,11 @@
         chatInputEl.value = '';
         chatInputEl.focus();
       }
-      showMessage('React to the host…', 3000);
+      // keep this visible until conversation ends or player has responded
+      if (popupMsgEl) {
+        popupMsgEl.textContent = 'React to the host…';
+        popupMsgEl.style.display = 'block';
+      }
     }
   });
 
@@ -1140,6 +1148,11 @@
 
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
+
+    // player can't react anymore, remove prompt
+    if (!isHost && popupMsgEl) {
+      popupMsgEl.style.display = 'none';
+    }
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
@@ -1185,6 +1198,10 @@
 
     hasRespondedThisRound = true;
     playerChatEl.style.display = 'none';
+    // after sending you can't react anymore -> hide prompt
+    if (popupMsgEl && !isHost) {
+      popupMsgEl.style.display = 'none';
+    }
   }
 
   if (chatSendEl) {
