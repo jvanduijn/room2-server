@@ -63,7 +63,7 @@
       letter-spacing: 0.5px;
       display: none;
       text-transform: none;
-      z-index: 900; /* below popups */
+      z-index: 1 !important; /* below popups */
     }
 
     #map {
@@ -236,13 +236,13 @@
       text-align: left;
       box-sizing: border-box;
       align-items: center;
-      gap: 2px;
+      gap: 2px !important;
       /* no border anymore */
     }
 
     .popup-message .actor-icon {
       display: inline-block;
-      width: 13px;
+      width: 15px;
       height: 20px;
       background-size: contain;
       background-repeat: no-repeat;
@@ -277,11 +277,13 @@
       top: calc(100% - 1px); /* removes visible gap with map border */
       left: 0;
       margin-top: 0;
+
+      font-size: 12px;          /* ~7% bigger */
+      padding: 3px 7px;  
+
       background-color: #212121;
       color: #00ff88;
-      padding: 6px 10px;
       border: 1px solid #00ff88;
-      font-size: 11px;
       text-align: left;
       z-index: 950;
       width: auto;
@@ -522,6 +524,7 @@
 
       .host-banner {
         top: -8px;
+        z-index: 1 !important; /* below popups */
         right: 13px;
         font-size: 13px;      /* little bigger on phone as well */
         padding: 4px 8px;
@@ -545,6 +548,7 @@
         bottom: 115px;  /* lifted compared to previous 110px */
         top: auto;
         font-size: 13px;      /* little bigger on phone as well */
+        padding: 4px 8px;
         max-width: 70vw;
         z-index: 1006;
       }
@@ -857,7 +861,7 @@
   host: {
     room1: { dx: 8,  dy: -8  },  // slightly lower
     room2: { dx: 16, dy: -5  },  // slightly more right
-    room3: { dx: 15,  dy: 2   },  // slightly lower + a bit left
+    room3: { dx: 10,  dy: 8   },  // slightly lower + a bit left
     room4: { dx: 8,  dy: -5  },
     room5: { dx: 10, dy: -8  },
     room6: { dx: 6,  dy: -2  },
@@ -933,7 +937,7 @@
     sleep:  'is going to sleep',
     table:  'dressing the table…',
     piano:  'is playing piano',
-    water:  'is gardening',
+    water:  'gardening',
     shower: 'is taking a shower',
     brush:  'is brushing her teeth',
     dinner: 'preparing food',
