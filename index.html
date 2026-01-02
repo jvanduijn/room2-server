@@ -367,7 +367,6 @@
     .action-btn.active-flash {
       background: #00ff88;   /* whole tile green when active */
       color: #111111;
-      border: 1px solid #1f1f1f;
     }
 
     /* Slightly bigger action buttons/fonts on host page */
@@ -539,8 +538,17 @@
         margin-top: 24px;
       }
 
+      html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;          /* disables scrolling */
+  overscroll-behavior: none; /* prevents rubber-band */
+  touch-action: manipulation;/* avoids scroll gestures becoming scroll */
+}
+
       #map {
-        transform: scale(0.94) !important;
+        transform: scale(0.93) !important;
         transform-origin: top center;
         margin-top: 18px;
       }
@@ -564,7 +572,6 @@
       }
 
       .host-banner {
-        top: -20px !important;
         z-index: 1 !important; /* below popups */
         right: 13px;
         font-size: 15px;
@@ -582,24 +589,35 @@
         height: 44px;
       }
 
-      /* Furniture popup higher so not cut off by bottom */
       .instruction-box {
-        position: fixed;
-        left: 2px !important;
-        bottom: 60px !important;
-        font-size: 15px;
-        padding: 4px 8px;
-        max-width: 70vw;
-        z-index: 1006;
-      }
+  position: fixed;
+  left: 8px !important;
+  right: 8px !important;              /* allows wrapping and prevents clipping */
+  bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+  font-size: 15px;
+  padding: 6px 10px;
+  max-width: none;                    /* since we now use left+right */
+  z-index: 1006;
+  box-sizing: border-box;
+  white-space: normal;                /* allow wrapping */
+  line-height: 1.25;
+}
+.popup-message {
+  top: auto !important;               /* IMPORTANT: prevents stretched height */
+  bottom: calc(110px + env(safe-area-inset-bottom));
+  left: 8px;
+  right: 8px;
+  transform: none;
+  max-width: none;
+  width: auto;
+  align-items: center;
+  display: none;
+  white-space: normal;                /* allow wrapping on phone */
+}
 
-      /* main popups docked left, still above map area */
-      .popup-message {
-        bottom: 100px;
-        left: 50%;
-        transform: none;
-        max-width: 72vw;
-      }
+.popup-message .actor-text {
+  white-space: normal;                /* override nowrap on phone */
+}
 
       body.host-scale .everything {
         transform: scale(1.0);
