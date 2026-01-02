@@ -251,21 +251,20 @@
       text-align: left;
       box-sizing: border-box;
       align-items: center;
-      gap: 3px !important;  
+      gap: 3px !important;
     }
 
     .popup-message .actor-text.tight-after-icon {
-  margin-left: -2px; /* pull the 's' closer to the icon */
-}
-
+      margin-left: -2px; /* pull the 's' closer to the icon */
+    }
 
     .popup-message .actor-icon {
-  width: 10px;   /* was 15px */
-  height: 20px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  flex-shrink: 0;
-}
+      width: 10px;   /* was 15px */
+      height: 20px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      flex-shrink: 0;
+    }
 
     .popup-message .actor-host {
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png');
@@ -310,11 +309,11 @@
       box-sizing: border-box;
     }
 
-    /* Host inventory bar – 3×3 grid, hidden by default (only host JS shows it) */
+    /* Host inventory bar */
     .action-bar {
       width: 400px;
       margin: 0 auto 0;
-      display: none;               /* shown only for host after login */
+      display: none;
       box-sizing: border-box;
       grid-template-columns: repeat(5, 1fr);
       gap: 2px;
@@ -324,8 +323,8 @@
     .action-btn {
       position: relative;
       margin: 0;
-      padding: 2px 0 3px;          /* smaller tiles */
-      border-radius: 0;            /* no rounded corners */
+      padding: 2px 0 3px;
+      border-radius: 0;
       background: #ababab;
       color: #000000;
       cursor: pointer;
@@ -339,7 +338,7 @@
       font-family: Arial, Helvetica, sans-serif;
       text-transform: none;
       box-sizing: border-box;
-      min-height: 10px;            /* about half of before */
+      min-height: 10px;
       border: none;
       outline: none;
       box-shadow: none;
@@ -348,7 +347,7 @@
 
     .action-btn span.label {
       display: inline-block;
-      font-size: 15px; /* emoji big-ish */
+      font-size: 15px;
       line-height: 1;
       font-weight: bold;
     }
@@ -365,11 +364,10 @@
     }
 
     .action-btn.active-flash {
-      background: #00ff88;   /* whole tile green when active */
+      background: #00ff88;
       color: #111111;
     }
 
-    /* Slightly bigger action buttons/fonts on host page */
     body.host-scale .action-btn {
       min-height: 36px;
       font-size: 14px;
@@ -381,7 +379,7 @@
       font-size: 11px;
     }
 
-    /* Player chat bar styled like host login, no gap with map */
+    /* Player chat bar styled like host login */
     .player-chat {
       width: 400px;
       margin: 0 auto 0;
@@ -405,11 +403,22 @@
       font-size: 14px;
       font-family: Arial, Helvetica, sans-serif;
       box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
+      caret-color: #00ff88;
     }
 
     .player-chat input::placeholder {
       color: #00ff88;
       opacity: 0.6;
+    }
+
+    /* REMOVE iOS blue/purple focus ring */
+    .player-chat input:focus,
+    .player-chat input:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+      border-color: #00ff88 !important;
     }
 
     .player-chat button {
@@ -450,7 +459,7 @@
 
     .host-login-subtitle {
       font-size: 16px;
-      margin-bottom: 10px;
+      margin-bottom: 7px;
       color: #ffffff;
       text-transform: none;
     }
@@ -470,7 +479,7 @@
       border: 1px solid #00ff88;
       background: #050505;
       color: #00ff88;
-      font-size: 14px;
+      font-size: 16px;
       margin-bottom: 8px;
       font-family: Arial, Helvetica, sans-serif;
     }
@@ -536,48 +545,29 @@
 
       .everything {
         margin-top: 24px;
+        margin-bottom: 0px;
+        height: 520px; /* keep enough space for chat under map */
       }
 
       html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;          /* disables scrolling */
-  overscroll-behavior: none; /* prevents rubber-band */
-  touch-action: manipulation;/* avoids scroll gestures becoming scroll */
-}
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden;          /* disables scrolling */
+        overscroll-behavior: none; /* prevents rubber-band */
+        touch-action: manipulation;/* avoids scroll gestures becoming scroll */
+      }
 
       #map {
         transform: scale(0.93) !important;
         transform-origin: top center;
         margin-top: 18px;
-      }
-
-      #map {
-  overflow: visible !important;
-}
-
-      .player-chat {
-        position: fixed;
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: 0px;
-        margin: 0;
-        width: 100%;
-        max-width: 440px;
-        background: #000;
-        border: 2px solid #00ff88;
-        padding: 6px 8px;
-      }
-
-      .player-chat input,
-      .player-chat button {
-        font-size: 16px;
+        overflow: visible !important;
       }
 
       .host-banner {
         z-index: 1 !important; /* below popups */
-        right: 15px;
+        right: 14px;
         font-size: 13px;
         padding: 4px 8px;
       }
@@ -593,38 +583,64 @@
         height: 44px;
       }
 
+      /* Instruction box pinned top-left of the map */
       .instruction-box {
-  position: fixed;
-  left: 8px !important;
-  right: 8px !important;              /* allows wrapping and prevents clipping */
-  bottom: calc(70px + env(safe-area-inset-bottom)) !important;
-  font-size: 15px;
-  padding: 6px 10px;
-  max-width: none;                    /* since we now use left+right */
-  z-index: 1006;
-  box-sizing: border-box;
-  white-space: normal;                /* allow wrapping */
-  line-height: 1.25;
-}
-.popup-message {
-  top: auto !important;               /* IMPORTANT: prevents stretched height */
-  bottom: calc(60px + env(safe-area-inset-bottom));
-  left: 8px;
-  right: 8px;
-  transform: none;
-  align-items: center;
-  display: none;
-  white-space: normal;                /* allow wrapping on phone */
-}
+        position: absolute !important;
+        top: 8px !important;
+        left: 8px !important;
+        right: auto !important;
+        bottom: auto !important;
 
-.popup-message .actor-text {
-  white-space: normal;                /* override nowrap on phone */
-}
+        width: max-content;
+        max-width: 72vw;
 
-.everything {
-  height: auto !important;
-  min-height: 100vh; /* or 100dvh if you prefer */
-}
+        font-size: 15px;
+        padding: 6px 10px;
+        z-index: 1200;
+        box-sizing: border-box;
+        white-space: normal;
+        line-height: 1.25;
+      }
+
+      /* Popup message shrink-to-content (not full width) */
+      .popup-message {
+        top: 8px !important;
+        left: 8px !important;
+        right: auto !important;
+        bottom: auto !important;
+
+        width: max-content;
+        max-width: 72vw;
+
+        transform: none !important;
+        align-items: center;
+        display: none;
+        white-space: normal;
+      }
+
+      .popup-message .actor-text {
+        white-space: normal; /* override nowrap on phone */
+      }
+
+      /* Chat bar stuck to bottom of the MAP (below it), not screen bottom */
+      .player-chat {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(400px * 0.93 + 18px + 10px); /* map height * scale + map margin-top + a little gap */
+        margin: 0 auto;
+        width: 400px;
+        transform: none;
+
+        background: #000;
+        border: 2px solid #00ff88;
+        padding: 6px 8px;
+      }
+
+      .player-chat input,
+      .player-chat button {
+        font-size: 16px;
+      }
 
       body.host-scale .everything {
         transform: scale(1.0);
@@ -639,16 +655,16 @@
 <!-- host login overlay -->
 <div id="host-login" class="host-login-overlay">
   <div class="host-login-panel">
-    <div class="host-login-subtitle">to JOIN please visit room2.nl</div>
+    <div class="host-login-subtitle">want to JOIN? please visit room2.net</div>
     <div class="host-login-title">host login</div>
     <input
       id="host-password"
       class="host-login-input"
       type="password"
-      maxlength="16"
+      maxlength="10"
       autocomplete="off"
     />
-    <button id="host-login-button" class="host-login-button">enter</button>
+    <button id="host-login-button" class="host-login-button">enter as host</button>
   </div>
 </div>
 
@@ -1084,9 +1100,9 @@
     popupMsgEl.classList.remove('host-msg','player-msg');
     popupMsgEl.classList.add('host-msg');
     popupMsgEl.innerHTML =
-  '<span class="actor-text">waiting for </span>' +
-  '<span class="actor-icon actor-player"></span>' +
-  '<span class="actor-text tight-after-icon">\'s response</span>';
+      '<span class="actor-text">waiting for </span>' +
+      '<span class="actor-icon actor-player"></span>' +
+      '<span class="actor-text tight-after-icon">\'s response</span>';
     popupMsgEl.style.display = 'flex';
     clearTimeout(showHostWaitingMessage._timeout);
     showHostWaitingMessage._timeout = setTimeout(() => {
@@ -1177,7 +1193,6 @@
       socket.emit('playerMove', { roomId: currentRoom });
     }
 
-    // no move sound for player on mobile
     if (isHost || !isMobile) {
       setTimeout(playMoveSound, 100);
     }
@@ -1283,9 +1298,12 @@
       if (playerChatEl) playerChatEl.style.display = 'grid';
       if (chatInputEl) {
         chatInputEl.value = '';
-        chatInputEl.focus();
-        setTimeout(() => chatInputEl.focus(), 0);
-        chatInputEl.click();
+
+        // iOS: focus works better when visible + slight delay
+        setTimeout(() => {
+          try { chatInputEl.focus({ preventScroll: true }); } catch(e) { chatInputEl.focus(); }
+          chatInputEl.click();
+        }, 50);
       }
       if (popupMsgEl) {
         popupMsgEl.classList.remove('host-msg','player-msg');
@@ -1376,18 +1394,15 @@
       popupMsgEl.style.display = 'none';
     }
 
-    // Show "..." above the player locally AND tell the host
     if (playerIndicator) {
       playerIndicator.style.display = 'block';
     }
 
-    // Immediately tell host “player is typing/sent something”
     socket.emit('playerTyping', {
       conversationId: convId,
       typing: true
     });
 
-    // After a short delay, hide the bubble again (player & host)
     if (typingTimeout) clearTimeout(typingTimeout);
     typingTimeout = setTimeout(() => {
       if (playerIndicator) {
@@ -1397,7 +1412,7 @@
         conversationId: convId,
         typing: false
       });
-    }, 1500); // snappy
+    }, 1500);
   }
 
   if (chatSendEl) {
@@ -1414,7 +1429,6 @@
       }
     });
 
-    // typing indicator above the player (and inform host)
     chatInputEl.addEventListener('input', () => {
       if (!playerIndicator) return;
       const hasText = !!chatInputEl.value.trim();
@@ -1658,14 +1672,13 @@
 
     if (hostBannerEl) {
       hostBannerEl.textContent = isHost
-        ? 'to join visit room2.nl'
+        ? 'to join visit room2.net'
         : 'volume ON is allowed';
       hostBannerEl.style.display = 'block';
     }
 
     if (isHost) {
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
-
       playerEl.style.display = 'none';
 
       currentRoom = hostRoom;
@@ -1680,7 +1693,6 @@
       moveElementToRoom(playerEl, currentRoom, 'player');
       socket.emit('playerMove', { roomId: currentRoom });
 
-      // players never see the action bar
       if (actionBarEl) actionBarEl.style.display = 'none';
     }
   });
