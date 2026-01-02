@@ -237,7 +237,7 @@
     /* main dialogue popups (gardening, etc.) docked left, above map */
     .popup-message {
       position: absolute;
-      top: -32px;         /* above the map, no longer inside */
+      top: -35px;         /* above the map, no longer inside */
       left: -2px;         /* hugs left side */
       transform: none;
       background-color: #ffffff;
@@ -312,7 +312,7 @@
       display: none;               /* shown only for host after login */
       box-sizing: border-box;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0px;
+      gap: 4px;
       font-size: 13px;
     }
 
@@ -334,7 +334,7 @@
       font-family: Arial, Helvetica, sans-serif;
       text-transform: none;
       box-sizing: border-box;
-      min-height: 32px;            /* about half of before */
+      min-height: 22px;            /* about half of before */
     }
 
     .action-btn span.label {
@@ -611,7 +611,7 @@
 <!-- host login overlay -->
 <div id="host-login" class="host-login-overlay">
   <div class="host-login-panel">
-    <div class="host-login-subtitle">to join room2 please visit room2.nl</div>
+    <div class="host-login-subtitle">to JOIN please visit room2.nl</div>
     <div class="host-login-title">host login</div>
     <input
       id="host-password"
@@ -1566,7 +1566,6 @@
     updateActiveRoom(hostRoom);
     moveElementToRoom(hostEl, hostRoom, 'host');
     triggerHostArrivalEffect();
-    playSound(ARRIVAL_SOUND_URL);
 
     if (actionBarEl) {
       actionBarEl.style.display = 'grid';
