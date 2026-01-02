@@ -553,6 +553,10 @@
         margin-top: 18px;
       }
 
+      #map {
+  overflow: visible !important;
+}
+
       .player-chat {
         position: fixed;
         left: 50%;
@@ -573,8 +577,8 @@
 
       .host-banner {
         z-index: 1 !important; /* below popups */
-        right: 13px;
-        font-size: 15px;
+        right: 15px;
+        font-size: 13px;
         padding: 4px 8px;
       }
 
@@ -604,12 +608,10 @@
 }
 .popup-message {
   top: auto !important;               /* IMPORTANT: prevents stretched height */
-  bottom: calc(110px + env(safe-area-inset-bottom));
+  bottom: calc(60px + env(safe-area-inset-bottom));
   left: 8px;
   right: 8px;
   transform: none;
-  max-width: none;
-  width: auto;
   align-items: center;
   display: none;
   white-space: normal;                /* allow wrapping on phone */
@@ -617,6 +619,11 @@
 
 .popup-message .actor-text {
   white-space: normal;                /* override nowrap on phone */
+}
+
+.everything {
+  height: auto !important;
+  min-height: 100vh; /* or 100dvh if you prefer */
 }
 
       body.host-scale .everything {
