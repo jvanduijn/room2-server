@@ -800,7 +800,7 @@
       <span class="label">🚿</span><span class="key">S</span>
     </button>
     <button class="action-btn" data-action="showerOff">
-      <span class="label">🚫</span><span class="key">0</span>
+      <span class="label">🚫</span><span class="key">X</span>
     </button>
     <button class="action-btn" data-action="brush">
       <span class="label">🦷</span><span class="key">B</span>
@@ -1567,7 +1567,8 @@
       case 'S':
         triggerHostAction('showerOn');
         break;
-      case '0':
+      case 'X':
+      case 'x':
         triggerHostAction('showerOff');
         break;
       case 'b':
