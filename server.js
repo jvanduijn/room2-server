@@ -151,6 +151,19 @@ io.on('connection', (socket) => {
     console.log('Player response recorded', socket.id, trimmed);
   });
 
+  // --- PLAYER TYPING INDICATOR DURING CONVERSATION ---
+  socket.on('playerTyping', ({ conversationId, typing }) => {
+    // only track typing for the active conversation
+    if (!currentConversationId) return;
+    if (conversationId !== currentConversationId) return;
+    if (!hostSocketId || !hostConnected) return;
+
+    io.to(hostSocketId).emit('playerTyping', {
+      conversationId,
+      typing: !!typing
+    });
+  });
+
   // --- DISCONNECT ---
   socket.on('disconnect', () => {
     console.log('Client disconnected', socket.id);
