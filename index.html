@@ -237,7 +237,7 @@
     /* main dialogue popups (gardening, etc.) docked left, above map */
     .popup-message {
       position: absolute;
-      top: -35px;         /* above the map, no longer inside */
+      top: -34px;         /* above the map, no longer inside */
       left: -2px;         /* hugs left side */
       transform: none;
       background-color: #ffffff;
@@ -251,7 +251,7 @@
       text-align: left;
       box-sizing: border-box;
       align-items: center;
-      gap: 0px !important;  
+      gap: 3px !important;  
     }
 
     .popup-message .actor-icon {
@@ -295,7 +295,7 @@
       padding: 3px 7px;
       background-color: #212121;
       color: #00ff88;
-      border-top: none;
+      border-top: none !important;
       border: 1px solid #00ff88;
       text-align: left;
       z-index: 950;
@@ -737,7 +737,7 @@
 
       <div class="clickable-region"
            style="left: 94px; top: 25px; width: 55px; height: 45px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('grand piano');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand Piano');}">
       </div>
       <div id="tv-area" class="clickable-region"
            style="left: 24px; top: 2px; width: 34px; height: 8px;"
@@ -769,7 +769,7 @@
 
       <div class="clickable-region"
            style="left: 40px; top: 19px; width: 55px; height: 47px;"
-           onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('Bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
+           onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
       </div>
     </div>
 
