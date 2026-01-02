@@ -254,14 +254,18 @@
       gap: 3px !important;  
     }
 
+    .popup-message .actor-text.tight-after-icon {
+  margin-left: -4px; /* pull the 's' closer to the icon */
+}
+
+
     .popup-message .actor-icon {
-      display: inline-block;
-      width: 15px;
-      height: 20px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      flex-shrink: 0;
-    }
+  width: 10px;   /* was 15px */
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
 
     .popup-message .actor-host {
       background-image: url('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/poppetje2Tekengebied%201%404x.png');
@@ -1054,9 +1058,9 @@
     popupMsgEl.classList.remove('host-msg','player-msg');
     popupMsgEl.classList.add('host-msg');
     popupMsgEl.innerHTML =
-      '<span class="actor-text">waiting for </span>' +
-      '<span class="actor-icon actor-player"></span>' +
-      '<span class="actor-text">\'s response</span>';
+  '<span class="actor-text">waiting for </span>' +
+  '<span class="actor-icon actor-player"></span>' +
+  '<span class="actor-text tight-after-icon">\'s response</span>';
     popupMsgEl.style.display = 'flex';
     clearTimeout(showHostWaitingMessage._timeout);
     showHostWaitingMessage._timeout = setTimeout(() => {
