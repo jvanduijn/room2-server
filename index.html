@@ -57,7 +57,7 @@
       padding: 3px 7px;
       background: #000;
       color: #00ff88;
-      border: 1px solid #00ff88;
+      border: 1px solid #000;
       border-bottom: none;
       letter-spacing: 0.5px;
       display: none;
@@ -251,7 +251,7 @@
       text-align: left;
       box-sizing: border-box;
       align-items: center;
-      gap: 1px !important;   /* tighter gap between icon and text */
+      gap: 0px !important;  
     }
 
     .popup-message .actor-icon {
@@ -289,12 +289,13 @@
       display: none;
       position: absolute;
       top: calc(100% - 1px); /* removes visible gap with map border */
-      left: 0;
+      left: -2px;
       margin-top: 0;
       font-size: 12px;
       padding: 3px 7px;
       background-color: #212121;
       color: #00ff88;
+      border-top: none;
       border: 1px solid #00ff88;
       text-align: left;
       z-index: 950;
@@ -335,6 +336,10 @@
       text-transform: none;
       box-sizing: border-box;
       min-height: 22px;            /* about half of before */
+      border: none;
+      outline: none;
+      box-shadow: none;
+      appearance: none;
     }
 
     .action-btn span.label {
@@ -343,13 +348,6 @@
       line-height: 1;
       font-weight: bold;
     }
-
-    .action-btn {
-  border: none;
-  outline: none;
-  box-shadow: none;
-  appearance: none;
-}
 
     .action-btn span.key {
       display: inline-block;
@@ -646,11 +644,11 @@
 
       <div class="clickable-region"
            style="left: 5px; top: 3px; width: 55px; height: 50px;"
-           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; bottom: 3px; width: 55px; height: 45px;"
-           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('Virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
     </div>
 
@@ -663,27 +661,27 @@
 
       <div class="clickable-region"
            style="left: 98px; top: 5px; width: 38px; height: 30px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 94px; top: 105px; width: 25px; height: 27px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 3px; top: 3px; width: 60px; height: 46px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; top: 3px; width: 80px; height: 46px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; bottom: 3px; width: 80px; height: 46px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('Server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
     </div>
 
@@ -694,15 +692,15 @@
 
       <div class="clickable-region"
            style="left: 10px; top: 11px; width: 43px; height: 65px;"
-           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 8px; bottom: 1px; width: 13px; height: 11px;"
-           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 34px; bottom: 1px; width: 14px; height: 11px;"
-           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('Sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
       </div>
     </div>
 
@@ -714,19 +712,19 @@
 
       <div id="shower-area" class="clickable-region"
            style="left: 0px; top: 0px; width: 24px; height: 24px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 21px; top: 62px; width: 14px; height: 15px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Toilet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('toilet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 0px; top: 33px; width: 8px; height: 22px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 0px; top: 45px; width: 8px; height: 25px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('Cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
       </div>
     </div>
 
@@ -739,7 +737,7 @@
 
       <div class="clickable-region"
            style="left: 94px; top: 25px; width: 55px; height: 45px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand piano');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('grand piano');}">
       </div>
       <div id="tv-area" class="clickable-region"
            style="left: 24px; top: 2px; width: 34px; height: 8px;"
@@ -747,11 +745,11 @@
       </div>
       <div class="clickable-region"
            style="left: 5px; bottom: 2px; width: 34px; height: 34px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Couch');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('couch');}">
       </div>
       <div class="clickable-region"
            style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Doormat, Welcome');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('WELCOME doormat');}">
       </div>
     </div>
 
@@ -845,6 +843,7 @@
 
   let currentConversationId = null;
   let hasRespondedThisRound = false;
+  let typingTimeout = null; // for shared typing indicator timing
 
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
@@ -896,25 +895,26 @@
   };
 
   const positionOffsets = {
-  player: {
-    room1: { dx: -25, dy: 10 },
-    room2: { dx: -12, dy: 5  },
-    room3: { dx: -15, dy: 0  },
-    room4: { dx: -14, dy: -1  },
-    room5: { dx: -12, dy: 0  },
-    room6: { dx: -12,  dy: 2  },
-    room7: { dx: -11, dy: -2 }
-  },
-  host: {
-    room1: { dx: 8,  dy: -3  },
-    room2: { dx: 16, dy: -5  },
-    room3: { dx: 2,  dy: 20   },
-    room4: { dx: 8,  dy: -5  },
-    room5: { dx: 10, dy: -8  },
-    room6: { dx: 6,  dy: -2  },
-    room7: { dx: 10, dy: 0   }
-  }
-};
+    player: {
+      room1: { dx: -25, dy: 10 },
+      room2: { dx: -12, dy: 5  },
+      room3: { dx: -15, dy: 0  },
+      room4: { dx: -14, dy: -1  },
+      room5: { dx: -12, dy: 0  },
+      room6: { dx: -12,  dy: 2  },
+      room7: { dx: -11, dy: -2 }
+    },
+    host: {
+      room1: { dx: 8,  dy: -3  },
+      room2: { dx: 16, dy: -5  },
+      room3: { dx: 2,  dy: 20   },
+      room4: { dx: 8,  dy: -5  },
+      room5: { dx: 10, dy: -8  },
+      room6: { dx: 6,  dy: -2  },
+      room7: { dx: 10, dy: 0   }
+    }
+  };
+
   const CLICK_SOUND_URL    = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/touch.mp3';
   const ARRIVAL_SOUND_URL  = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/entrance.wav';
 
@@ -1149,7 +1149,7 @@
 
     // no move sound for player on mobile
     if (isHost || !isMobile) {
-      setTimeout(playMoveSound, 150);
+      setTimeout(playMoveSound, 100);
     }
   }
 
@@ -1186,7 +1186,6 @@
     hostEl.style.display = 'block';
     moveElementToRoom(hostEl, hostRoom, 'host');
     triggerHostArrivalEffect();
-    playSound(ARRIVAL_SOUND_URL);
   });
 
   socket.on('hostOffline', () => {
@@ -1303,6 +1302,15 @@
     }
   });
 
+  // Host receives typing indicator from player
+  socket.on('playerTyping', ({ conversationId, typing }) => {
+    if (!isHost) return;
+    if (!playerIndicator) return;
+    if (!currentConversationId || conversationId !== currentConversationId) return;
+
+    playerIndicator.style.display = typing ? 'block' : 'none';
+  });
+
   hostEl.addEventListener('click', () => {
     if (isHost) return;
     if (currentRoom !== hostRoom) return;
@@ -1324,8 +1332,10 @@
     const text = chatInputEl.value.trim();
     if (!text) return;
 
+    const convId = currentConversationId;
+
     socket.emit('playerMessage', {
-      conversationId: currentConversationId,
+      conversationId: convId,
       text
     });
 
@@ -1336,12 +1346,28 @@
       popupMsgEl.style.display = 'none';
     }
 
+    // Show "..." above the player locally AND tell the host
     if (playerIndicator) {
       playerIndicator.style.display = 'block';
-      setTimeout(() => {
-        if (playerIndicator) playerIndicator.style.display = 'none';
-      }, 2000);
     }
+
+    // Immediately tell host “player is typing/sent something”
+    socket.emit('playerTyping', {
+      conversationId: convId,
+      typing: true
+    });
+
+    // After a short delay, hide the bubble again (player & host)
+    if (typingTimeout) clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      if (playerIndicator) {
+        playerIndicator.style.display = 'none';
+      }
+      socket.emit('playerTyping', {
+        conversationId: convId,
+        typing: false
+      });
+    }, 1500); // snappy
   }
 
   if (chatSendEl) {
@@ -1358,11 +1384,17 @@
       }
     });
 
-    // local typing indicator above the player
+    // typing indicator above the player (and inform host)
     chatInputEl.addEventListener('input', () => {
       if (!playerIndicator) return;
       const hasText = !!chatInputEl.value.trim();
       playerIndicator.style.display = hasText ? 'block' : 'none';
+
+      if (!currentConversationId) return;
+      socket.emit('playerTyping', {
+        conversationId: currentConversationId,
+        typing: hasText
+      });
     });
   }
 
@@ -1566,6 +1598,7 @@
     updateActiveRoom(hostRoom);
     moveElementToRoom(hostEl, hostRoom, 'host');
     triggerHostArrivalEffect();
+    playSound(ARRIVAL_SOUND_URL);
 
     if (actionBarEl) {
       actionBarEl.style.display = 'grid';
