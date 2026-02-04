@@ -891,59 +891,6 @@
   let hasRespondedThisRound = false;
   let typingTimeout = null; // for shared typing indicator timing
 
-  // --- HOST "press 2 twice" flow ---
-  let hostWaitingArmed = false;     // true after first press on "2"
-  let pendingResponses = [];        // queue of received responses while waiting
-  let waitingLoopAudio = null;      // looping audio during waiting
-
-  // Kies hier jouw wacht-geluid (moet het liefst goed loopbaar zijn)
-  const WAITING_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav';
-
-  function startWaitingLoop() {
-    if (!isHost) return;
-    stopWaitingLoop();
-    try {
-      waitingLoopAudio = new Audio(WAITING_SOUND_URL);
-      waitingLoopAudio.loop = true;
-      waitingLoopAudio.play().catch(() => {});
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  function stopWaitingLoop() {
-    if (waitingLoopAudio) {
-      try {
-        waitingLoopAudio.pause();
-        waitingLoopAudio.currentTime = 0;
-      } catch (e) {}
-      waitingLoopAudio = null;
-    }
-  }
-
-  function revealOnePendingResponse() {
-    if (!isHost) return false;
-    if (!pendingResponses.length) return false;
-
-    // kies random 1 uit de queue
-    const idx = Math.floor(Math.random() * pendingResponses.length);
-    const msg = pendingResponses.splice(idx, 1)[0];
-
-    // stop wacht-geluid zodra we tonen
-    stopWaitingLoop();
-
-    // speel je message-sfx pas NU (niet bij ontvangst)
-    playSound(pickRandomFromPool('message'));
-
-    if (msg) showActorMessage('player', '' + msg + '', 6000);
-    else showActorMessage('player', 'no response..', 4000);
-
-    // wachtmodus uit na tonen van 1 bericht
-    hostWaitingArmed = false;
-
-    return true;
-  }
-
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
   const chatInputEl   = document.getElementById('chat-input');
@@ -1374,11 +1321,6 @@
     currentConversationId = null;
     hasRespondedThisRound = false;
 
-    // reset host waiting flow
-    hostWaitingArmed = false;
-    pendingResponses = [];
-    stopWaitingLoop();
-
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerIndicator) playerIndicator.style.display = 'none';
     if (playerChatEl) playerChatEl.style.display = 'none';
@@ -1387,23 +1329,25 @@
       popupMsgEl.style.display = 'none';
     }
   });
+
   socket.on('conversationResult', ({ conversationId, message }) => {
     console.log('conversationResult', conversationId, message);
     if (!isHost) return;
     if (!conversationId) return;
 
-    // alleen opslaan tijdens de "armed waiting" fase
-    if (hostWaitingArmed) {
-      pendingResponses.push(message || '');
-      // (optioneel) mini feedback voor host dat er iets binnen is:
-      // showHostWaitingMessage(1500);
-      return;
-    }
-
-    // fallback: als je NIET in waiting-mode bent, dan werkt het zoals vroeger
     playSound(pickRandomFromPool('message'));
-    if (message) showActorMessage('player', '' + message + '', 6000);
-    else showActorMessage('player', 'no response..', 4000);
+
+    if (message) {
+      showActorMessage('player', '' + message + '', 6000);
+      if (playerIndicator) {
+        playerIndicator.style.display = 'block';
+        setTimeout(() => {
+          if (playerIndicator) playerIndicator.style.display = 'none';
+        }, 2500);
+      }
+    } else {
+      showActorMessage('player', 'no response..', 4000);
+    }
   });
 
   // Host receives typing indicator from player
@@ -1622,9 +1566,10 @@
       triggerHostAction(action);
     });
   });
+
   document.addEventListener('keydown', (e) => {
     if (!isHost || !hostUnlocked) return;
-  
+
     const dirKeyMap = {
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -1638,9 +1583,8 @@
       if (nav && nav[dir]) {
         goToRoom(nav[dir]);
       }
-      return; // belangrijk: pijltjes niet ook door switch laten lopen
     }
-  
+
     switch (e.key) {
       case 'z':
       case 'Z':
@@ -1680,29 +1624,10 @@
       case '0':
         triggerHostAction('tvOff');
         break;
-  
-      case '2': {
-        // 1e keer: start + wachten + loopgeluid
-        if (!hostWaitingArmed) {
-          pendingResponses = []; // reset queue
-          hostWaitingArmed = true;
-  
-          socket.emit('startConversation');
-          showHostWaitingMessage(5000);
-  
-          startWaitingLoop();
-          break;
-        }
-  
-        // 2e keer: toon 1 response (als die er is)
-        const revealed = revealOnePendingResponse();
-  
-        // als er nog niks binnen is: blijf wachten
-        if (!revealed) {
-          showHostWaitingMessage(2500);
-        }
+      case '2':
+        socket.emit('startConversation');
+        showHostWaitingMessage(5000);
         break;
-      }
     }
   });
 
