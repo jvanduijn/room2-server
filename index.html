@@ -891,6 +891,24 @@
   let hasRespondedThisRound = false;
   let typingTimeout = null; // for shared typing indicator timing
 
+  // --- 2-press conversation reveal (SAFE minimal) ---
+let hostWaitingArmed = false;   // first press on '2' arms waiting
+let pendingResponses = [];      // store incoming messages until 2nd press
+
+function revealOnePendingResponse() {
+  if (!pendingResponses.length) return false;
+
+  // random pick
+  const idx = Math.floor(Math.random() * pendingResponses.length);
+  const msg = pendingResponses.splice(idx, 1)[0];
+
+  playSound(pickRandomFromPool('message'));
+  showActorMessage('player', msg ? String(msg) : 'no response..', msg ? 6000 : 4000);
+
+  hostWaitingArmed = false;
+  return true;
+}
+
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
   const chatInputEl   = document.getElementById('chat-input');
@@ -1343,9 +1361,16 @@
     console.log('conversationResult', conversationId, message);
     if (!isHost) return;
     if (!conversationId) return;
-
+  
+    // If host is waiting for 2nd press, STORE the message instead of showing it
+    if (hostWaitingArmed) {
+      pendingResponses.push(message || '');
+      return;
+    }
+  
+    // Default behavior (unchanged)
     playSound(pickRandomFromPool('message'));
-
+  
     if (message) {
       showActorMessage('player', '' + message + '', 6000);
       if (playerIndicator) {
@@ -1358,6 +1383,7 @@
       showActorMessage('player', 'no response..', 4000);
     }
   });
+  
 
   // Host receives typing indicator from player
   socket.on('playerTyping', ({ conversationId, typing }) => {
@@ -1634,22 +1660,21 @@
         triggerHostAction('tvOff');
         break;
         case '2': {
-          // first press: start conversation + arm waiting
+          // First press: start conversation and arm waiting
           if (!hostWaitingArmed) {
             pendingResponses = [];
             hostWaitingArmed = true;
         
             socket.emit('startConversation');
             showHostWaitingMessage(5000);
-            startWaitingLoop();
             break;
           }
         
-          // second press: reveal one (if it exists)
+          // Second press: reveal one stored response (if any)
           const revealed = revealOnePendingResponse();
           if (!revealed) {
-            showHostWaitingMessage(2500);
-            // keep sound running
+            // nothing received yet
+            showHostWaitingMessage(2000);
           }
           break;
         }
