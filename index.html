@@ -1317,17 +1317,26 @@
   socket.on('conversationEnd', ({ conversationId }) => {
     console.log('conversationEnd', conversationId);
     if (conversationId !== currentConversationId) return;
-
+  
     currentConversationId = null;
     hasRespondedThisRound = false;
-
+  
+    // Players always clean up UI
+    if (!isHost) {
+      if (hostIndicator) hostIndicator.style.display = 'none';
+      if (playerIndicator) playerIndicator.style.display = 'none';
+      if (playerChatEl) playerChatEl.style.display = 'none';
+      if (popupMsgEl) popupMsgEl.style.display = 'none';
+      return;
+    }
+  
+    // HOST: do NOT clear pendingResponses here.
+    // Keep waiting armed so 2nd press can reveal.
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerIndicator) playerIndicator.style.display = 'none';
-    if (playerChatEl) playerChatEl.style.display = 'none';
-
-    if (!isHost && popupMsgEl) {
-      popupMsgEl.style.display = 'none';
-    }
+  
+    // Optional: stop the waiting sound when the round ends (or keep it playing until reveal)
+    // stopWaitingLoop();
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
@@ -1624,11 +1633,26 @@
       case '0':
         triggerHostAction('tvOff');
         break;
-      case '2':
-        socket.emit('startConversation');
-        showHostWaitingMessage(5000);
-        break;
-    }
+        case '2': {
+          // first press: start conversation + arm waiting
+          if (!hostWaitingArmed) {
+            pendingResponses = [];
+            hostWaitingArmed = true;
+        
+            socket.emit('startConversation');
+            showHostWaitingMessage(5000);
+            startWaitingLoop();
+            break;
+          }
+        
+          // second press: reveal one (if it exists)
+          const revealed = revealOnePendingResponse();
+          if (!revealed) {
+            showHostWaitingMessage(2500);
+            // keep sound running
+          }
+          break;
+        }
   });
 
   function completeHostLogin() {
