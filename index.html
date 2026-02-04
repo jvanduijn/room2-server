@@ -891,51 +891,6 @@
   let hasRespondedThisRound = false;
   let typingTimeout = null; // for shared typing indicator timing
 
-  // --- minimal 2-press support (no changes to existing flows) ---
-  let hostWaitingArmed = false;
-  let pendingResponses = [];
-  let waitingAudio = null;
-  
-  function startWaitingLoop() {
-    // optional: keep silent if you don't want audio
-    // We'll just no-op safely if you don't have a sound defined.
-    // If you DO want sound later: set a URL and loop it here.
-    return;
-  }
-  
-  function stopWaitingLoop() {
-    if (waitingAudio) {
-      try { waitingAudio.pause(); waitingAudio.currentTime = 0; } catch(e) {}
-      waitingAudio = null;
-    }
-  }
-  
-  function revealOnePendingResponse() {
-    if (!pendingResponses.length) return false;
-  
-    const idx = Math.floor(Math.random() * pendingResponses.length);
-    const message = pendingResponses.splice(idx, 1)[0];
-  
-    // show exactly the same way your current conversationResult does
-    playSound(pickRandomFromPool('message'));
-  
-    if (message) {
-      showActorMessage('player', '' + message + '', 6000);
-      if (playerIndicator) {
-        playerIndicator.style.display = 'block';
-        setTimeout(() => {
-          if (playerIndicator) playerIndicator.style.display = 'none';
-        }, 2500);
-      }
-    } else {
-      showActorMessage('player', 'no response..', 4000);
-    }
-  
-    hostWaitingArmed = false;
-    stopWaitingLoop();
-    return true;
-  }
-
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
   const chatInputEl   = document.getElementById('chat-input');
@@ -1362,38 +1317,27 @@
   socket.on('conversationEnd', ({ conversationId }) => {
     console.log('conversationEnd', conversationId);
     if (conversationId !== currentConversationId) return;
-  
+
     currentConversationId = null;
     hasRespondedThisRound = false;
-  
-    // Players always clean up UI
-    if (!isHost) {
-      if (hostIndicator) hostIndicator.style.display = 'none';
-      if (playerIndicator) playerIndicator.style.display = 'none';
-      if (playerChatEl) playerChatEl.style.display = 'none';
-      if (popupMsgEl) popupMsgEl.style.display = 'none';
-      return;
-    }
-  
-    // HOST: do NOT clear pendingResponses here.
-    // Keep waiting armed so 2nd press can reveal.
+
+if (isHost) needsSecondPressFor2 = false;
+
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerIndicator) playerIndicator.style.display = 'none';
-  
-    // Optional: stop the waiting sound when the round ends (or keep it playing until reveal)
-    // stopWaitingLoop();
+    if (playerChatEl) playerChatEl.style.display = 'none';
+
+    if (!isHost && popupMsgEl) {
+      popupMsgEl.style.display = 'none';
+    }
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
     console.log('conversationResult', conversationId, message);
     if (!isHost) return;
     if (!conversationId) return;
-  
-    // NEW: if host is armed, store message and do nothing else
-    if (hostWaitingArmed) {
-      pendingResponses.push(message || '');
-      return;
-    }
+
+    playSound(pickRandomFromPool('message'));
 
     if (message) {
       showActorMessage('player', '' + message + '', 6000);
@@ -1625,6 +1569,9 @@
     });
   });
 
+  let needsSecondPressFor2 = false; // add this ONCE somewhere above the keydown listener
+
+
   document.addEventListener('keydown', (e) => {
     if (!isHost || !hostUnlocked) return;
 
@@ -1682,27 +1629,20 @@
       case '0':
         triggerHostAction('tvOff');
         break;
-        case '2': {
-          // first press: start conversation + arm waiting
-          if (!hostWaitingArmed) {
-            pendingResponses = [];
-            hostWaitingArmed = true;
-        
-            socket.emit('startConversation');
-            showHostWaitingMessage(5000);
-            startWaitingLoop();
-            break;
-          }
-        
-          // second press: reveal one (if it exists)
-          const revealed = revealOnePendingResponse();
-          if (!revealed) {
-            showHostWaitingMessage(2500);
-            // keep sound running (startWaitingLoop is safe no-op now)
-          }
-          break;
-        }
-  });
+        case '2':
+      if (!needsSecondPressFor2) {
+        // first press does nothing (or you can add a tiny hint)
+        needsSecondPressFor2 = true;
+        break;
+      }
+
+      // second press does the original behavior
+      needsSecondPressFor2 = false;
+      socket.emit('startConversation');
+      showHostWaitingMessage(5000);
+      break;
+  }
+});
 
   function completeHostLogin() {
     const val = (hostPasswordEl.value || '').trim();
