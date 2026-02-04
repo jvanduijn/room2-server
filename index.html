@@ -1622,10 +1622,9 @@
       triggerHostAction(action);
     });
   });
-
   document.addEventListener('keydown', (e) => {
     if (!isHost || !hostUnlocked) return;
-
+  
     const dirKeyMap = {
       ArrowUp: 'up',
       ArrowDown: 'down',
@@ -1639,90 +1638,73 @@
       if (nav && nav[dir]) {
         goToRoom(nav[dir]);
       }
+      return; // belangrijk: pijltjes niet ook door switch laten lopen
     }
-
-    document.addEventListener('keydown', (e) => {
-      if (!isHost || !hostUnlocked) return;
-    
-      const dirKeyMap = {
-        ArrowUp: 'up',
-        ArrowDown: 'down',
-        ArrowLeft: 'left',
-        ArrowRight: 'right'
-      };
-      const dir = dirKeyMap[e.key];
-      if (dir) {
-        e.preventDefault();
-        const nav = arrowNav[currentRoom];
-        if (nav && nav[dir]) {
-          goToRoom(nav[dir]);
-        }
-      }
-    
-      switch (e.key) {
-        case 'z':
-        case 'Z':
-          triggerHostAction('sleep');
-          break;
-        case 't':
-        case 'T':
-          triggerHostAction('table');
-          break;
-        case 'p':
-        case 'P':
-          triggerHostAction('piano');
-          break;
-        case 'w':
-        case 'W':
-          triggerHostAction('water');
-          break;
-        case 's':
-        case 'S':
-          triggerHostAction('showerOn');
-          break;
-        case 'X':
-        case 'x':
-          triggerHostAction('showerOff');
-          break;
-        case 'b':
-        case 'B':
-          triggerHostAction('brush');
-          break;
-        case 'd':
-        case 'D':
-          triggerHostAction('dinner');
-          break;
-        case '1':
-          triggerHostAction('tvOn');
-          break;
-        case '0':
-          triggerHostAction('tvOff');
-          break;
-    
-        case '2': {
-          // 1e keer: start + wachten + loopgeluid
-          if (!hostWaitingArmed) {
-            pendingResponses = []; // reset queue
-            hostWaitingArmed = true;
-    
-            socket.emit('startConversation');
-            showHostWaitingMessage(5000);
-    
-            startWaitingLoop();
-            break;
-          }
-    
-          // 2e keer: probeer 1 response te tonen
-          const revealed = revealOnePendingResponse();
-    
-          // als er nog niks binnen is: blijf wachten + geluid blijft
-          if (!revealed) {
-            showHostWaitingMessage(2500);
-          }
+  
+    switch (e.key) {
+      case 'z':
+      case 'Z':
+        triggerHostAction('sleep');
+        break;
+      case 't':
+      case 'T':
+        triggerHostAction('table');
+        break;
+      case 'p':
+      case 'P':
+        triggerHostAction('piano');
+        break;
+      case 'w':
+      case 'W':
+        triggerHostAction('water');
+        break;
+      case 's':
+      case 'S':
+        triggerHostAction('showerOn');
+        break;
+      case 'X':
+      case 'x':
+        triggerHostAction('showerOff');
+        break;
+      case 'b':
+      case 'B':
+        triggerHostAction('brush');
+        break;
+      case 'd':
+      case 'D':
+        triggerHostAction('dinner');
+        break;
+      case '1':
+        triggerHostAction('tvOn');
+        break;
+      case '0':
+        triggerHostAction('tvOff');
+        break;
+  
+      case '2': {
+        // 1e keer: start + wachten + loopgeluid
+        if (!hostWaitingArmed) {
+          pendingResponses = []; // reset queue
+          hostWaitingArmed = true;
+  
+          socket.emit('startConversation');
+          showHostWaitingMessage(5000);
+  
+          startWaitingLoop();
           break;
         }
+  
+        // 2e keer: toon 1 response (als die er is)
+        const revealed = revealOnePendingResponse();
+  
+        // als er nog niks binnen is: blijf wachten
+        if (!revealed) {
+          showHostWaitingMessage(2500);
+        }
+        break;
       }
-    });
+    }
+  });
 
   function completeHostLogin() {
     const val = (hostPasswordEl.value || '').trim();
