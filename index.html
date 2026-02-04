@@ -891,6 +891,51 @@
   let hasRespondedThisRound = false;
   let typingTimeout = null; // for shared typing indicator timing
 
+  // --- minimal 2-press support (no changes to existing flows) ---
+  let hostWaitingArmed = false;
+  let pendingResponses = [];
+  let waitingAudio = null;
+  
+  function startWaitingLoop() {
+    // optional: keep silent if you don't want audio
+    // We'll just no-op safely if you don't have a sound defined.
+    // If you DO want sound later: set a URL and loop it here.
+    return;
+  }
+  
+  function stopWaitingLoop() {
+    if (waitingAudio) {
+      try { waitingAudio.pause(); waitingAudio.currentTime = 0; } catch(e) {}
+      waitingAudio = null;
+    }
+  }
+  
+  function revealOnePendingResponse() {
+    if (!pendingResponses.length) return false;
+  
+    const idx = Math.floor(Math.random() * pendingResponses.length);
+    const message = pendingResponses.splice(idx, 1)[0];
+  
+    // show exactly the same way your current conversationResult does
+    playSound(pickRandomFromPool('message'));
+  
+    if (message) {
+      showActorMessage('player', '' + message + '', 6000);
+      if (playerIndicator) {
+        playerIndicator.style.display = 'block';
+        setTimeout(() => {
+          if (playerIndicator) playerIndicator.style.display = 'none';
+        }, 2500);
+      }
+    } else {
+      showActorMessage('player', 'no response..', 4000);
+    }
+  
+    hostWaitingArmed = false;
+    stopWaitingLoop();
+    return true;
+  }
+
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
   const chatInputEl   = document.getElementById('chat-input');
@@ -1343,8 +1388,12 @@
     console.log('conversationResult', conversationId, message);
     if (!isHost) return;
     if (!conversationId) return;
-
-    playSound(pickRandomFromPool('message'));
+  
+    // NEW: if host is armed, store message and do nothing else
+    if (hostWaitingArmed) {
+      pendingResponses.push(message || '');
+      return;
+    }
 
     if (message) {
       showActorMessage('player', '' + message + '', 6000);
@@ -1649,7 +1698,7 @@
           const revealed = revealOnePendingResponse();
           if (!revealed) {
             showHostWaitingMessage(2500);
-            // keep sound running
+            // keep sound running (startWaitingLoop is safe no-op now)
           }
           break;
         }
