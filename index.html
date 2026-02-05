@@ -1843,10 +1843,10 @@ function stopConvoLoop() {
   }
 
   function triggerHostArrivalEffect() {
-    if (!hostEl) return;
-    hostEl.classList.add('arrival-sparkle');
-    setTimeout(() => hostEl.classList.remove('arrival-sparkle'), 900);
-  }
+  if (!hostEl) return;
+  hostEl.classList.add('arrival-sparkle');
+  setTimeout(() => hostEl.classList.remove('arrival-sparkle'), 1600);
+}
 
   function goToRoom(targetRoom) {
     if (targetRoom === currentRoom) return;
