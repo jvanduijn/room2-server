@@ -831,6 +831,12 @@
     <button class="action-btn" data-action="sleep">
       <span class="label">😴</span><span class="key">Z</span>
     </button>
+    <button class="action-btn" data-action="serverAmbOn">
+        <span class="label">🖥️</span><span class="key">C</span>
+      </button>
+      <button class="action-btn" data-action="serverAmbOff">
+        <span class="label">🔇</span><span class="key">8</span>
+      </button>
     <button class="action-btn" data-action="table">
       <span class="label">🍽</span><span class="key">T</span>
     </button>
@@ -895,6 +901,7 @@
   let moveAudio    = null;
   let hostUnlocked = !isHost;
   let lightAudio   = null; // bathroom light hum loop (host only)
+  let serverAmbientEnabled = true; // host-only toggle for room2
 
 
   let convoOpen = false;       // is a conversation currently collecting?
@@ -912,7 +919,6 @@ let ambientRoom = null;
 // set your per-room ambient here
 const ROOM_AMBIENT = {
   room1: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/morningbird.mp3', // garden
-  room4: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bathroomvibe.mp3',          // hallway (example)
   room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serverspaceloud.mp3',   // server room
   room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serverspacesoft.mp3'          // hallway (example)
   // room3, room5, room7 can be added too
@@ -992,7 +998,7 @@ const ROOM_ENTER = {
 
   const roomActions = {
     room1: ['water'],
-    room2: [],
+    room2: ['serverAmbOn','serverAmbOff'],
     room3: ['table','dinner'],
     room4: ['showerOn','showerOff','brush', 'lightOn','lightOff'],
     room5: ['piano','tvOn','tvOff'],
@@ -1152,12 +1158,20 @@ function startLightLoop() {
     console.error(e);
   }
 }
-
 function setAmbientForRoom(roomId) {
+  // host only (extra safety)
+  if (!isHost) return;
+
   // don’t restart if already playing for this room
   if (ambientRoom === roomId) return;
 
   stopAmbient();
+
+  // If server room (room2) but disabled -> keep silent
+  if (roomId === 'room2' && !serverAmbientEnabled) {
+    ambientRoom = 'room2'; // remember we are "in" room2 but silent
+    return;
+  }
 
   const url = ROOM_AMBIENT[roomId];
   if (!url) return;
@@ -1173,7 +1187,6 @@ function setAmbientForRoom(roomId) {
     console.error(e);
   }
 }
-
 function pickRandomDifferent(pool, lastUrl) {
   if (!pool || !pool.length) return null;
   if (pool.length === 1) return pool[0];
@@ -1698,6 +1711,24 @@ socket.on('conversationEnd', ({ conversationId }) => {
   return;
 }
 
+if (kind === 'serverAmbOff') {
+  flashButton('serverAmbOff');
+  serverAmbientEnabled = false;
+
+  // only stop if we’re currently in room2
+  if (currentRoom === 'room2') stopAmbient();
+  return;
+}
+
+if (kind === 'serverAmbOn') {
+  flashButton('serverAmbOn');
+  serverAmbientEnabled = true;
+
+  // only start if we’re currently in room2
+  if (currentRoom === 'room2') setAmbientForRoom('room2');
+  return;
+}
+
 if (kind === 'showerOff') {
   flashButton('showerOff');
   playSound(SHOWER_OFF_ONESHOT_URL); // <-- one-shot for "X"
@@ -1814,6 +1845,15 @@ if (kind === 'lightOff') {
         case 'l':
 case 'L':
   triggerHostAction('lightOn');
+  break;
+
+  case 'c':
+case 'C':
+  triggerHostAction('serverAmbOn');
+  break;
+
+case '8':
+  triggerHostAction('serverAmbOff');
   break;
 
 case '9':
