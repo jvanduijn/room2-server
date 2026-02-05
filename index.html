@@ -892,7 +892,29 @@
   let convoLoopAudio = null;
 let lastLoginLen = 0;
 
-const CONVO_LOOP_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/waitforresponse.mp3'; // change to your loop
+
+let lastConvoLoopUrl = null;
+
+let ambientAudio = null;
+let ambientRoom = null;
+
+// set your per-room ambient here
+const ROOM_AMBIENT = {
+  room1: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3', // garden
+  room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3',   // server room
+  room4: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3',         // bathroom (replace with better loop if you have)
+  room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav'          // hallway (example)
+  // room3, room5, room7 can be added too
+};
+
+const CONVO_LOOP_POOL = [
+  'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/waitforresponse.mp3',
+  'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
+  'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3',
+  'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3'
+];
+
+
 
 
 
@@ -905,6 +927,9 @@ const CONVO_LOOP_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/wait
   let currentConversationId = null;
   let hasRespondedThisRound = false;
   let typingTimeout = null; // for shared typing indicator timing
+
+  const HOST_LOGIN_SUCCESS_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/entrance.wav';
+
 
   const actionBarEl   = document.querySelector('.action-bar');
   const playerChatEl  = document.getElementById('player-chat');
@@ -1048,13 +1073,67 @@ const CONVO_LOOP_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/wait
   } catch (e) {}
 }
 
-function startConvoLoop(url) {
+function stopAmbient() {
+  if (!ambientAudio) return;
+  try {
+    ambientAudio.pause();
+    ambientAudio.currentTime = 0;
+  } catch (e) {}
+  ambientAudio = null;
+  ambientRoom = null;
+}
+
+function setAmbientForRoom(roomId) {
+  // don’t restart if already playing for this room
+  if (ambientRoom === roomId) return;
+
+  stopAmbient();
+
+  const url = ROOM_AMBIENT[roomId];
   if (!url) return;
+
+  ambientRoom = roomId;
+
+  try {
+    ambientAudio = new Audio(url);
+    ambientAudio.loop = true;
+    ambientAudio.volume = 0.55; // tweak
+    ambientAudio.play().catch(() => {});
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function pickRandomDifferent(pool, lastUrl) {
+  if (!pool || !pool.length) return null;
+  if (pool.length === 1) return pool[0];
+
+  let url = pool[Math.floor(Math.random() * pool.length)];
+  // avoid same twice in a row
+  if (url === lastUrl) {
+    url = pool[(pool.indexOf(url) + 1) % pool.length];
+  }
+  return url;
+}
+
+function startConvoLoop() {
   stopConvoLoop();
+
+  const url = pickRandomDifferent(CONVO_LOOP_POOL, lastConvoLoopUrl);
+  if (!url) return;
+
+  lastConvoLoopUrl = url;
+
   try {
     convoLoopAudio = new Audio(url);
-    convoLoopAudio.loop = true;
+    convoLoopAudio.loop = false; // IMPORTANT: we chain tracks instead of looping one
     convoLoopAudio.play().catch(() => {});
+
+    convoLoopAudio.onended = () => {
+      // keep chaining as long as convoLoopAudio still exists
+      if (!convoLoopAudio) return;
+      startConvoLoop(); // picks a new random one
+    };
   } catch (e) {
     console.error(e);
   }
@@ -1063,11 +1142,13 @@ function startConvoLoop(url) {
 function stopConvoLoop() {
   if (!convoLoopAudio) return;
   try {
+    convoLoopAudio.onended = null;
     convoLoopAudio.pause();
     convoLoopAudio.currentTime = 0;
   } catch (e) {}
   convoLoopAudio = null;
 }
+
 
   function playSound(url) {
     if (!url) return;
@@ -1224,6 +1305,10 @@ function stopConvoLoop() {
     currentRoom = targetRoom;
     window.currentRoom = currentRoom;
     updateActiveRoom(currentRoom);
+
+    if (isHost) {
+  setAmbientForRoom(currentRoom);
+}
 
     if (isHost) {
       if (!hostUnlocked) return;
@@ -1666,29 +1751,31 @@ socket.on('conversationEnd', ({ conversationId }) => {
         triggerHostAction('tvOff');
         break;
         case '2': {
-        if (convoOpen) break;
+  if (convoOpen) break;
 
-        startConvoLoop(CONVO_LOOP_URL);   // start looping sound
-        socket.emit('startConversation');
+  startConvoLoop(); // <-- no argument now
+  socket.emit('startConversation');
+  hostWaiting = true;
+  showHostWaitingMessage(null);
+  break;
+}
 
-        hostWaiting = true;
-        showHostWaitingMessage(null);
-        break;
-      }
+case '3': {
+  if (!convoOpen) break;
 
-      case '3': {
-        if (!convoOpen) break;
-
-        stopConvoLoop();                  // stop looping sound ONLY on "3"
-        socket.emit('endConversation');
-        break;
-      }
+  stopConvoLoop();
+  socket.emit('endConversation');
+  break;
+}
     } // <-- closes switch
   }); // <-- closes addEventListener
 
   function completeHostLogin() {
     const val = (hostPasswordEl.value || '').trim();
     if (val !== 'host') return;
+
+    playSound(HOST_LOGIN_SUCCESS_URL);
+
 
     hostUnlocked = true;
     hostLoginEl.style.display = 'none';
@@ -1751,6 +1838,8 @@ if (hostPasswordEl) {
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
+      setAmbientForRoom(currentRoom); // host only
+
     } else {
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
@@ -1759,6 +1848,7 @@ if (hostPasswordEl) {
       updateActiveRoom(currentRoom);
       moveElementToRoom(playerEl, currentRoom, 'player');
       socket.emit('playerMove', { roomId: currentRoom });
+      stopAmbient(); // make sure players never run ambient
 
       if (actionBarEl) actionBarEl.style.display = 'none';
     }
