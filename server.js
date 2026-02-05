@@ -28,6 +28,37 @@ let conversationTimeout   = null;
 // shorter, more natural
 const CONVERSATION_DURATION_MS = 6000;
 
+function endConversationAndSendResult(conversationId) {
+  let chosenMessage = null;
+
+  if (conversationResponses.length > 0) {
+    const idx = Math.floor(Math.random() * conversationResponses.length);
+    chosenMessage = conversationResponses[idx].text;
+  }
+
+  // send chosen response only to host
+  if (hostSocketId && hostConnected) {
+    io.to(hostSocketId).emit('conversationResult', {
+      conversationId,
+      message: chosenMessage || null
+    });
+  }
+
+  // end for everyone
+  io.emit('conversationEnd', { conversationId });
+  clearConversationState();
+}
+
+socket.on('endConversationNow', () => {
+  if (socket.data.role !== 'host') return;
+  if (!currentConversationId) return;
+
+  const conversationId = currentConversationId;
+  console.log('Conversation ending (forced)', conversationId);
+  endConversationAndSendResult(conversationId);
+});
+
+
 function clearConversationState() {
   currentConversationId = null;
   conversationResponses = [];
@@ -95,46 +126,33 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('hostAction', { kind: data.kind });
   });
 
-  // --- CONVERSATION START (host presses "2") ---
-  socket.on('startConversation', () => {
+  socket.on('startConversation', (payload = {}) => {
     if (socket.data.role !== 'host') return;
     if (currentConversationId) return; // already running
-
+  
     const conversationId =
       Date.now().toString() + '-' + Math.random().toString(36).slice(2);
-
+  
     currentConversationId = conversationId;
     conversationResponses = [];
-
+  
     console.log('Conversation started', conversationId);
-
+  
     // notify everyone (host + players)
     io.emit('conversationStart', { conversationId });
-
-    // after timeout, pick a response for host
+  
+    // allow host to shorten the window
+    const requested = Number(payload.timeLimitMs);
+    const duration =
+      Number.isFinite(requested) && requested > 0
+        ? Math.min(Math.max(requested, 500), 60000) // clamp 0.5s..60s
+        : CONVERSATION_DURATION_MS;
+  
     conversationTimeout = setTimeout(() => {
-      console.log('Conversation ending', conversationId);
-
-      let chosenMessage = null;
-      if (conversationResponses.length > 0) {
-        const idx = Math.floor(Math.random() * conversationResponses.length);
-        chosenMessage = conversationResponses[idx].text;
-      }
-
-      // send chosen response only to host
-      if (hostSocketId && hostConnected) {
-        io.to(hostSocketId).emit('conversationResult', {
-          conversationId,
-          message: chosenMessage || null
-        });
-      }
-
-      // end for everyone
-      io.emit('conversationEnd', { conversationId });
-      clearConversationState();
-    }, CONVERSATION_DURATION_MS);
+      console.log('Conversation ending (timeout)', conversationId);
+      endConversationAndSendResult(conversationId);
+    }, duration);
   });
-
   // --- PLAYER MESSAGES DURING CONVERSATION ---
   socket.on('playerMessage', ({ conversationId, text }) => {
     if (!currentConversationId) return;
