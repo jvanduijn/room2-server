@@ -417,34 +417,59 @@ body.host-scale .action-btn .label .icon {
 
 /* ---------- OFF badge bottom-right ---------- */
 
-.action-btn .off-badge {
-  position: absolute;
-  right: 4px;
-  bottom: 3px;
+/* ---------- OFF badge bottom-right (small + controlled) ---------- */
+.action-btn .off-badge{
+  position:absolute;
+  right:4px;
+  bottom:3px;
 
-  font-size: 9px;
-  line-height: 1;
-  opacity: 0.7;
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
 
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
+  padding:2px 3px;
+  border-radius:3px;
+  background:rgba(0,0,0,0.15);
 
-  background: rgba(0,0,0,0.15);
-  padding: 2px 3px;
-  border-radius: 3px;
+  /* lock text sizing */
+  font-size:9px;
+  line-height:1;
+  opacity:0.7;
 
-  /* clickable */
-  pointer-events: auto;
+  pointer-events:auto;
 }
 
-body.host-scale .action-btn .off-badge {
-  font-size: 10px;
+/* IMPORTANT: lock the stop PNG size so it can't become huge */
+.action-btn .off-badge .off-icon{
+  width:9px !important;
+  height:9px !important;
+  max-width:9px;
+  max-height:9px;
+  object-fit:contain;
+  display:block;
+  flex:0 0 auto;
 }
 
-/* slightly dim badge when the main button isn't flashing */
-.action-btn:not(.active-flash) .off-badge {
-  opacity: 0.55;
+/* the number/letter after the icon */
+.action-btn .off-badge{
+  font-weight:700;         /* optional: makes the 0/X/8/9 readable */
+  letter-spacing:0.2px;
+}
+
+/* host-scale tweak */
+body.host-scale .action-btn .off-badge{
+  font-size:10px;
+}
+body.host-scale .action-btn .off-badge .off-icon{
+  width:10px !important;
+  height:10px !important;
+  max-width:10px;
+  max-height:10px;
+}
+
+/* slightly dim badge when main button isn't flashing */
+.action-btn:not(.active-flash) .off-badge{
+  opacity:0.55;
 }
 
 
