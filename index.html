@@ -203,13 +203,13 @@
 @keyframes hostArrivalPulse {
   0%   { outline-color: transparent; }
   10%  { outline-color: #00ff88; }
-  25%  { outline-color: transparent; }
+  20%  { outline-color: transparent; }
 
   40%  { outline-color: #00ff88; }
-  55%  { outline-color: transparent; }
+  50%  { outline-color: transparent; }
 
   70%  { outline-color: #00ff88; }
-  85%  { outline-color: transparent; }
+  80%  { outline-color: transparent; }
 
   100% { outline-color: transparent; }
 }
@@ -2156,7 +2156,7 @@ socket.on('conversationEnd', ({ conversationId }) => {
     });
   });
 
-  function flashButton(actionName, pulses = 3, interval = 160) {
+  function flashButton(actionName, pulses = 2, interval = 140) {
   let btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
 
   // if this is an OFF action, flash the parent ON button
