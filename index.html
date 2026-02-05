@@ -611,20 +611,28 @@
 
 .action-btn .off-badge {
   position: absolute;
-  right: 4px;
-  bottom: 3px;
+  right: 3px;
+  bottom: 2px;
 
-  font-size: 9px;
+  font-size: 8px;        /* smaller text */
   line-height: 1;
-  padding: 1px 3px;
+  padding: 1px 2px;
 
-  background: #222;
-  color: #ff6666;
-  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #ff7777;
 
-  opacity: 0.85;
+  border: 1px solid #2a2a2a;
+  border-radius: 0;
+
+  opacity: 0.7;
   cursor: pointer;
   user-select: none;
+  font-weight: normal;
+}
+
+.action-btn .off-badge span,
+.action-btn .off-badge svg {
+  font-size: 8px;
 }
 
 .action-btn .off-badge:active {
@@ -1010,10 +1018,10 @@ const CONVO_LOOP_POOL = [
   // one-shot "enter room" sounds (host only)
 const ROOM_ENTER = {
   room1: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/effectmessage.mp3',
-  room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/effectmessage.mp3',
+  room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom.mp3',
   room3: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_kitchen.mp3',
   room4: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bathroom.mp3',
-  room5: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_living.mp3',
+  room5: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_kitchen.mp3',
   room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_hallway.mp3',
   room7: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bedroom.mp3'
 };
