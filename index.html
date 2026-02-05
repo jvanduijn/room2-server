@@ -889,8 +889,7 @@
 
   let needsSecondPressFor2 = false; // add this ONCE somewhere above the keydown listener
 
-// pending result storage (host-only) - queue so you can reveal one-by-one
-let pendingResults = []; // array of { conversationId, message }
+
 
 
   let currentConversationId = null;
@@ -1327,7 +1326,7 @@ let pendingResults = []; // array of { conversationId, message }
     currentConversationId = null;
     hasRespondedThisRound = false;
 
-// if (isHost) needsSecondPressFor2 = false; // REMOVE THIS
+if (isHost) needsSecondPressFor2 = false;
 
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerIndicator) playerIndicator.style.display = 'none';
@@ -1343,14 +1342,15 @@ let pendingResults = []; // array of { conversationId, message }
   if (!isHost) return;
   if (!conversationId) return;
 
-  // store for later reveal (do NOT show yet)
-  pendingResults.push({
-    conversationId,
-    message: (message || '').trim()
-  });
+  // store for later reveal
+  pendingConvId = conversationId;
+  pendingMessage = message || '';
+  pendingHasResult = true;
 
-  // optional: sound to notify host a message arrived
+  // optional: still play a sound to let host know something arrived
   playSound(pickRandomFromPool('message'));
+
+  // DO NOT showActorMessage here anymore
 });
   // Host receives typing indicator from player
   socket.on('playerTyping', ({ conversationId, typing }) => {
@@ -1629,28 +1629,17 @@ let pendingResults = []; // array of { conversationId, message }
         triggerHostAction('tvOff');
         break;
         case '2':
-  // FIRST press: start conversation + show waiting message
-  if (!needsSecondPressFor2) {
-    needsSecondPressFor2 = true;
+      if (!needsSecondPressFor2) {
+        // first press does nothing (or you can add a tiny hint)
+        needsSecondPressFor2 = true;
+        break;
+      }
 
-    // start a new round (slots stay open until you reveal)
-    socket.emit('startConversation', { timeLimitMs: 5000 }); // e.g. 3 seconds
-    showHostWaitingMessage(10000); // you can keep this long; reveal is manual anyway
-    break;
-  }
-
-  // SECOND press: reveal ONE result (if any)
-  if (pendingResults.length > 0) {
-    needsSecondPressFor2 = false;
-
-    const next = pendingResults.shift(); // take one
-    const msg = next.message ? next.message : 'no response..';
-    showActorMessage('player', msg, 6000);
-  } else {
-    // still nothing received -> keep waiting
-    showHostWaitingMessage(2500);
-  }
-  break;
+      // second press does the original behavior
+      needsSecondPressFor2 = false;
+      socket.emit('startConversation');
+      showHostWaitingMessage(5000);
+      break;
   }
 });
 
