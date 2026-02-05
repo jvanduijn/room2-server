@@ -1284,8 +1284,7 @@ const CONVO_LOOP_POOL = [
 
   const HOST_LOGIN_SUCCESS_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter2.mp3';
   const CREDITS_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3';
-  const LOGIN_MOMENT = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/welcome1.mp3';
-  const CONVERSATION_STARTING = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/start_conversation.mp3';
+  const LOGIN_MOMENT = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/welcome2.mp3';
 
 
   const actionBarEl   = document.querySelector('.action-bar');
@@ -1394,9 +1393,9 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3'
     ],
     piano: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie2.mp3'
     ],
-    // gardening
+    //gardening
     water: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/throughleaves1.mp3',
@@ -1640,7 +1639,6 @@ function pickRandomDifferent(pool, lastUrl) {
 function startConvoLoop() {
   stopConvoLoop();
 
-
   const url = pickRandomDifferent(CONVO_LOOP_POOL, lastConvoLoopUrl);
   if (!url) return;
 
@@ -1650,7 +1648,6 @@ function startConvoLoop() {
     convoLoopAudio = new Audio(url);
     convoLoopAudio.loop = false; // IMPORTANT: we chain tracks instead of looping one
     convoLoopAudio.play().catch(() => {});
-
 
     convoLoopAudio.onended = () => {
       // keep chaining as long as convoLoopAudio still exists
@@ -1926,9 +1923,6 @@ function stopConvoLoop() {
   socket.on('conversationStart', ({ conversationId }) => {
   currentConversationId = conversationId;
   hasRespondedThisRound = false;
-
-  playSound(CONVERSTATION_STARTING);
-
 
   if (isHost) {
     convoOpen = true;
