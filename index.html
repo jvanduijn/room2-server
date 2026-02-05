@@ -190,18 +190,26 @@
       display: none;
       pointer-events: none;
     }
-
     .random-object.arrival-sparkle {
-      outline: 2px solid #00ff88;
-      outline-offset: 1px;
-      animation: hostArrival 0.8s ease-out;
-    }
+  outline: 2px solid #00ff88;
+  outline-offset: 1px;
+  animation: hostArrivalPulse 1.4s ease-in-out;
+}
 
-    @keyframes hostArrival {
-      0%   { opacity: 0; }
-      25%  { opacity: 1; }
-      100% { opacity: 1; outline-color: transparent; }
-    }
+/* 3 slow pulses */
+@keyframes hostArrivalPulse {
+  0%   { outline-color: transparent; }
+  10%  { outline-color: #00ff88; }
+  25%  { outline-color: transparent; }
+
+  40%  { outline-color: #00ff88; }
+  55%  { outline-color: transparent; }
+
+  70%  { outline-color: #00ff88; }
+  85%  { outline-color: transparent; }
+
+  100% { outline-color: transparent; }
+}
 
     .door {
       position: absolute;
@@ -2137,7 +2145,7 @@ socket.on('conversationEnd', ({ conversationId }) => {
     });
   });
 
-  function flashButton(actionName, pulses = 4, interval = 140) {
+  function flashButton(actionName, pulses = 3, interval = 160) {
   let btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
 
   // if this is an OFF action, flash the parent ON button
