@@ -429,7 +429,7 @@ body.host-scale .action-btn .label .icon {
 
   padding:2px 3px;
   border-radius:3px;
-  background: #ababab;
+  background:rgba(0,0,0,0.15);
 
   /* lock text sizing */
   font-size:9px;
@@ -563,12 +563,11 @@ body.host-scale .action-btn .off-badge .off-icon{
   mix-blend-mode: multiply;
   user-select: none;
 }
-
-/* ===== CREDITS OVERLAY ===== */
+/* ===== CREDITS OVERLAY (stable) ===== */
 .credits-overlay{
   position: fixed;
   inset: 0;
-  background: rgba(70,70,70,0.0);
+  background: rgba(0,0,0,0.0);
   display: none;
   z-index: 4000;
   pointer-events: none;
@@ -577,32 +576,51 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
 .credits-overlay.show{
-  display: block;
+  display: flex;
   pointer-events: auto; /* blocks clicks */
   opacity: 1;
-  background: rgba(70,70,70,0.92);
+  background: rgba(0,0,0,0.96); /* almost black */
+  align-items: center;
+  justify-content: center;
 }
 
 .credits-frame{
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  width: min(560px, 88vw);
+  padding: 22px 18px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.25);
 }
 
 .credits-roll{
-  width: min(520px, 88vw);
   color: #ffffff;
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
-  transform: translateY(110%);
-  will-change: transform;
 }
 
-.credits-overlay.show .credits-roll{
-  animation: creditsScroll 28s linear forwards;
+.credits-title{
+  font-size: 22px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.credits-heading{
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 14px;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+}
+
+.credits-line{
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.credits-gap{
+  height: 10px;
 }
 
 @keyframes creditsScroll{
@@ -1211,7 +1229,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 
 // ===== TIMELINE / CREDITS =====
-const TIMELINE_TOTAL_MS = 1 * 60 * 1000; // 10 minutes
+const TIMELINE_TOTAL_MS = 10 * 60 * 1000; // 10 minutes
 let timelineRunning = false;
 let timelineElapsed = 0;     // ms
 let timelineLastTick = null; // performance.now()
@@ -1258,6 +1276,7 @@ const CONVO_LOOP_POOL = [
   let typingTimeout = null; // for shared typing indicator timing
 
   const HOST_LOGIN_SUCCESS_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter2.mp3';
+  const CREDITS_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3';
 
 
   const actionBarEl   = document.querySelector('.action-bar');
@@ -1484,6 +1503,9 @@ function showCredits(){
   timelineRAF = null;
 
   setTimelineUI(100);
+
+  // credits sound (one-shot)
+  playSound(CREDITS_SOUND_URL);
 
   // fade overlay in
   creditsOverlayEl.classList.add('show');
