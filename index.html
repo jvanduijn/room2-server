@@ -19,6 +19,34 @@
       height: 100%;
     }
 
+    * ===== Bathroom darkness overlay ===== */
+#room4{
+  position: absolute; /* already is via .room, but keep safe */
+}
+
+/* dark layer (default = dark) */
+#room4::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,0.32); /* <- darkness amount */
+  pointer-events:none;
+  z-index: 0;                   /* sits inside room */
+  transition: opacity 0.25s ease;
+}
+
+/* make sure room contents sit above the overlay */
+#room4 > *{
+  position: relative;
+  z-index: 1;
+}
+
+/* when light is ON, fade the darkness away */
+#room4.lights-on::before{
+  opacity: 0;
+}
+
+
     body {
       font-family: Arial, Helvetica, sans-serif;
       display: flex;
@@ -1270,6 +1298,13 @@ const CONVO_LOOP_POOL = [
 
 
 
+function setBathroomDarkness(lightOn){
+  const r4 = document.getElementById('room4');
+  if (!r4) return;
+  r4.classList.toggle('lights-on', !!lightOn);
+}
+
+
 
 
   window.currentRoom = currentRoom;
@@ -1887,6 +1922,10 @@ function stopConvoLoop() {
     if (!data || !data.kind) return;
     const kind = data.kind;
 
+
+  if (kind === 'lightOn')  setBathroomDarkness(true);   // ✅ add
+  if (kind === 'lightOff') setBathroomDarkness(false);  // ✅ add
+
     if (kind === 'tvOn') setTvVisualState(true);
     else if (kind === 'tvOff') setTvVisualState(false);
     if (kind === 'showerOn') setShowerVisualState(true);
@@ -2193,6 +2232,8 @@ if (kind === 'showerOff') {
 
 if (kind === 'lightOff') {
   flashButton('lightOff');
+  setBathroomDarkness(false);          // ✅ add
+
   bathroomLightEnabled = false;
   playSound(LIGHT_OFF_SWITCH_URL); // one-shot
   syncBathroomLightForRoom(currentRoom);   // ✅ stops hum if in room4
@@ -2210,6 +2251,8 @@ if (kind === 'lightOff') {
         break;
         case 'lightOn': {
   bathroomLightEnabled = true;
+  setBathroomDarkness(true);           // ✅ add
+
   playSound(LIGHT_ON_SWITCH_URL);          // one-shot
   syncBathroomLightForRoom(currentRoom);   // ✅ starts hum only if in room4
   break;
@@ -2452,6 +2495,8 @@ if (hostPasswordEl) {
       setAmbientForRoom(currentRoom); // host only
       syncBathroomLightForRoom(currentRoom);     // ✅ add this
 
+
+
 // don't play enter sound on initial load (only after first actual move)
 didInitialEnterSound = true;
     } else {
@@ -2466,6 +2511,8 @@ didInitialEnterSound = true;
 
       if (actionBarEl) actionBarEl.style.display = 'none';
     }
+    setBathroomDarkness(bathroomLightEnabled);
+
   });
 </script>
 </body>
