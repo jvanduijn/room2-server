@@ -605,6 +605,32 @@
         line-height: 1.25;
       }
 
+      .action-btn.has-off {
+  position: relative;
+}
+
+.action-btn .off-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+
+  font-size: 9px;
+  line-height: 1;
+  padding: 1px 3px;
+
+  background: #222;
+  color: #ff6666;
+  border: 1px solid #333;
+
+  opacity: 0.85;
+  cursor: pointer;
+  user-select: none;
+}
+
+.action-btn .off-badge:active {
+  transform: scale(0.9);
+}
+
       /* Popup message shrink-to-content (not full width) */
       .popup-message {
         top: 8px !important;
@@ -831,11 +857,12 @@
     <button class="action-btn" data-action="sleep">
       <span class="label">😴</span><span class="key">Z</span>
     </button>
-    <button class="action-btn" data-action="serverAmbOn">
-        <span class="label">🖥️</span><span class="key">C</span>
-      </button>
-      <button class="action-btn" data-action="serverAmbOff">
-        <span class="label">🔇</span><span class="key">8</span>
+    <button class="action-btn has-off" data-action="serverAmbOn">
+        <span class="label">🖥️</span>
+        <span class="key">C</span>
+        <span class="off-badge" data-action="serverAmbOff">
+          ⏹ 8
+        </span>
       </button>
     <button class="action-btn" data-action="table">
       <span class="label">🍽</span><span class="key">T</span>
@@ -843,33 +870,38 @@
     <button class="action-btn" data-action="piano">
       <span class="label">🎹</span><span class="key">P</span>
     </button>
-    <button class="action-btn" data-action="lightOn">
-        <span class="label">💡</span><span class="key">L</span>
-      </button>
-      <button class="action-btn" data-action="lightOff">
-        <span class="label">💡🚫</span><span class="key">9</span>
+    <button class="action-btn has-off" data-action="lightOn">
+        <span class="label">💡</span>
+        <span class="key">L</span>
+        <span class="off-badge" data-action="lightOff">
+          ⏹ 9
+        </span>
       </button>
     <button class="action-btn" data-action="water">
       <span class="label">🌳</span><span class="key">W</span>
     </button>
-    <button class="action-btn" data-action="showerOn">
-      <span class="label">🚿</span><span class="key">S</span>
-    </button>
-    <button class="action-btn" data-action="showerOff">
-      <span class="label">🚫</span><span class="key">X</span>
-    </button>
+    <button class="action-btn has-off" data-action="showerOn">
+        <span class="label">🚿</span>
+        <span class="key">S</span>
+        <span class="off-badge" data-action="showerOff">
+          ⏹ X
+        </span>
+      </button>
     <button class="action-btn" data-action="brush">
       <span class="label">🦷</span><span class="key">B</span>
     </button>
     <button class="action-btn" data-action="dinner">
       <span class="label">👩‍🍳</span><span class="key">D</span>
     </button>
-    <button class="action-btn" data-action="tvOn">
-      <span class="label">📺</span><span class="key">1</span>
-    </button>
-    <button class="action-btn" data-action="tvOff">
-      <span class="label">🚫</span><span class="key">0</span>
-    </button>
+    <button class="action-btn has-off" data-action="tvOn">
+        <span class="label">📺</span>
+        <span class="key">1</span>
+      
+        <!-- small OFF badge -->
+        <span class="off-badge" data-action="tvOff">
+          ⏹ 0
+        </span>
+      </button>
   </div>
 
   <!-- Player chat bar -->
@@ -1119,6 +1151,14 @@ function stopAmbient() {
   ambientAudio = null;
   ambientRoom = null;
 }
+
+document.querySelectorAll('.off-badge').forEach(badge => {
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation(); // don’t trigger the main button
+    const action = badge.dataset.action;
+    if (action) triggerHostAction(action);
+  });
+});
 
 let didInitialEnterSound = false;
 
