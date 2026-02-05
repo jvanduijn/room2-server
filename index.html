@@ -886,7 +886,8 @@
   let moveAudio    = null;
   let hostUnlocked = !isHost;
 
-  let convoOpen = false;
+  let convoOpen = false;       // is a conversation currently collecting?
+  let hostWaiting = false;     // are we showing the "waiting..." popup?
 
 
 
@@ -1299,23 +1300,19 @@
   });
 
   socket.on('conversationStart', ({ conversationId }) => {
-  console.log('conversationStart', conversationId);
   currentConversationId = conversationId;
   hasRespondedThisRound = false;
 
-  if (hostIndicator) hostIndicator.style.display = 'block';
-  if (playerIndicator) playerIndicator.style.display = 'none';
-
   if (isHost) {
     convoOpen = true;
-    // host already showed waiting on key "2"
+    // hostWaiting is shown by key "2"
   } else {
+    // players can chat until host presses 3
     if (playerChatEl) playerChatEl.style.display = 'grid';
     if (chatInputEl) {
       chatInputEl.value = '';
       setTimeout(() => {
         try { chatInputEl.focus({ preventScroll: true }); } catch(e) { chatInputEl.focus(); }
-        chatInputEl.click();
       }, 50);
     }
     if (popupMsgEl) {
@@ -1327,8 +1324,25 @@
   }
 });
 
+
+
+
+socket.on('conversationResult', ({ message }) => {
+  if (!isHost) return;
+
+  const text = (message && String(message).trim()) ? String(message) : 'no response..';
+
+  // stop waiting UI
+  hostWaiting = false;
+  if (popupMsgEl) popupMsgEl.style.display = 'none';
+
+  // show result
+  playSound(pickRandomFromPool('message'));
+  showActorMessage('player', text, 6000);
+});
+
+
 socket.on('conversationEnd', ({ conversationId }) => {
-  console.log('conversationEnd', conversationId);
   if (conversationId !== currentConversationId) return;
 
   currentConversationId = null;
@@ -1336,35 +1350,17 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
   if (isHost) {
     convoOpen = false;
-    // hide the waiting popup when the convo ends
-    if (popupMsgEl) popupMsgEl.style.display = 'none';
+
+    // only hide waiting (don't kill the result bubble if it’s showing)
+    if (hostWaiting) {
+      hostWaiting = false;
+      if (popupMsgEl) popupMsgEl.style.display = 'none';
+    }
   }
 
-  if (hostIndicator) hostIndicator.style.display = 'none';
-  if (playerIndicator) playerIndicator.style.display = 'none';
   if (playerChatEl) playerChatEl.style.display = 'none';
-
-  if (!isHost && popupMsgEl) {
-    popupMsgEl.style.display = 'none';
-  }
+  if (!isHost && popupMsgEl) popupMsgEl.style.display = 'none';
 });
-
-
-socket.on('conversationResult', ({ conversationId, message }) => {
-  if (!isHost) return;
-
-  const text = (message && String(message).trim()) ? String(message) : 'no response..';
-
-  // play a sound if you like
-  playSound(pickRandomFromPool('message'));
-
-  // show as "player" response bubble
-  showActorMessage('player', text, 6000);
-});
-
-
-
-
 
   // Host receives typing indicator from player
   socket.on('playerTyping', ({ conversationId, typing }) => {
@@ -1643,17 +1639,21 @@ socket.on('conversationResult', ({ conversationId, message }) => {
         triggerHostAction('tvOff');
         break;
         case '2': {
-        if (convoOpen) break;
-        socket.emit('startConversation');
-        showHostWaitingMessage(null);
-        break;
-      }
+      if (convoOpen) break;
 
-      case '3': {
-        if (!convoOpen) break;
-        socket.emit('endConversation');
-        break;
-      }
+      socket.emit('startConversation');
+      hostWaiting = true;
+      showHostWaitingMessage(null); // stays until result/end
+      break;
+    }
+
+    case '3': {
+      if (!convoOpen) break;
+
+      socket.emit('endConversation'); // server will emit result (even if null)
+      // don't hide popup here; wait for conversationResult / conversationEnd
+      break;
+    }
     } // <-- closes switch
   }); // <-- closes addEventListener
 
