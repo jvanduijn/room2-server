@@ -1680,20 +1680,6 @@ function stopConvoLoop() {
     }
   }
 
-  function playMoveSound() {
-    const url = pickRandomFromPool('move');
-    if (!url) return;
-    try {
-      if (moveAudio) {
-        moveAudio.pause();
-        moveAudio.currentTime = 0;
-      }
-      moveAudio = new Audio(url);
-      moveAudio.play().catch(() => {});
-    } catch (e) {
-      console.error(e);
-    }
-  }
 
   function playClickSound() {
     playSound(CLICK_SOUND_URL);
@@ -1841,7 +1827,6 @@ function stopConvoLoop() {
     }
 
     if (isHost || !isMobile) {
-      setTimeout(playMoveSound, 100);
     }
   }
 
