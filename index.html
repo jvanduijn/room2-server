@@ -959,6 +959,18 @@ const CONVO_LOOP_POOL = [
     room7: ['room6']
   };
 
+
+  // one-shot "enter room" sounds (host only)
+const ROOM_ENTER = {
+  room1: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/effectmessage.mp3',
+  room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_server.mp3',
+  room3: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_kitchen.mp3',
+  room4: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bathroom.mp3',
+  room5: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_living.mp3',
+  room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_hallway.mp3',
+  room7: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bedroom.mp3'
+};
+
   const arrowNav = {
     room1: { up: null,    down: 'room4', left: null,    right: 'room2' },
     room2: { up: null,    down: 'room5', left: 'room1', right: 'room6' },
@@ -1080,6 +1092,23 @@ function stopAmbient() {
   } catch (e) {}
   ambientAudio = null;
   ambientRoom = null;
+}
+
+let didInitialEnterSound = false;
+
+function playEnterForRoom(roomId) {
+  if (!didInitialEnterSound) {
+    didInitialEnterSound = true;
+    return; // skip first time (page load)
+  }
+
+  const url = ROOM_ENTER[roomId];
+  if (!url) return;
+
+  try {
+    const a = new Audio(url);
+    a.play().catch(() => {});
+  } catch (e) {}
 }
 
 function setAmbientForRoom(roomId) {
@@ -1307,6 +1336,8 @@ function stopConvoLoop() {
 
     if (isHost) {
   setAmbientForRoom(currentRoom);
+  playEnterForRoom(currentRoom);
+
 }
 
     if (isHost) {
@@ -1838,7 +1869,8 @@ if (hostPasswordEl) {
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
       setAmbientForRoom(currentRoom); // host only
-
+// don't play enter sound on initial load (only after first actual move)
+didInitialEnterSound = true;
     } else {
       if (hostLoginEl) hostLoginEl.style.display = 'none';
 
