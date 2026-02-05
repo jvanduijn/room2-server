@@ -887,6 +887,12 @@
   let hostUnlocked = !isHost;
   window.currentRoom = currentRoom;
 
+  let needsSecondPressFor2 = false; // add this ONCE somewhere above the keydown listener
+
+// pending result storage (host-only) - queue so you can reveal one-by-one
+let pendingResults = []; // array of { conversationId, message }
+
+
   let currentConversationId = null;
   let hasRespondedThisRound = false;
   let typingTimeout = null; // for shared typing indicator timing
@@ -1293,7 +1299,7 @@
     if (playerIndicator) playerIndicator.style.display = 'none';
 
     if (isHost) {
-      showHostWaitingMessage(5000);
+      showHostWaitingMessage(10000);
     } else {
       if (playerChatEl) playerChatEl.style.display = 'grid';
       if (chatInputEl) {
@@ -1321,7 +1327,7 @@
     currentConversationId = null;
     hasRespondedThisRound = false;
 
-if (isHost) needsSecondPressFor2 = false;
+// if (isHost) needsSecondPressFor2 = false; // REMOVE THIS
 
     if (hostIndicator) hostIndicator.style.display = 'none';
     if (playerIndicator) playerIndicator.style.display = 'none';
@@ -1333,25 +1339,19 @@ if (isHost) needsSecondPressFor2 = false;
   });
 
   socket.on('conversationResult', ({ conversationId, message }) => {
-    console.log('conversationResult', conversationId, message);
-    if (!isHost) return;
-    if (!conversationId) return;
+  console.log('conversationResult', conversationId, message);
+  if (!isHost) return;
+  if (!conversationId) return;
 
-    playSound(pickRandomFromPool('message'));
-
-    if (message) {
-      showActorMessage('player', '' + message + '', 6000);
-      if (playerIndicator) {
-        playerIndicator.style.display = 'block';
-        setTimeout(() => {
-          if (playerIndicator) playerIndicator.style.display = 'none';
-        }, 2500);
-      }
-    } else {
-      showActorMessage('player', 'no response..', 4000);
-    }
+  // store for later reveal (do NOT show yet)
+  pendingResults.push({
+    conversationId,
+    message: (message || '').trim()
   });
 
+  // optional: sound to notify host a message arrived
+  playSound(pickRandomFromPool('message'));
+});
   // Host receives typing indicator from player
   socket.on('playerTyping', ({ conversationId, typing }) => {
     if (!isHost) return;
@@ -1569,7 +1569,6 @@ if (isHost) needsSecondPressFor2 = false;
     });
   });
 
-  let needsSecondPressFor2 = false; // add this ONCE somewhere above the keydown listener
 
 
   document.addEventListener('keydown', (e) => {
@@ -1630,17 +1629,28 @@ if (isHost) needsSecondPressFor2 = false;
         triggerHostAction('tvOff');
         break;
         case '2':
-      if (!needsSecondPressFor2) {
-        // first press does nothing (or you can add a tiny hint)
-        needsSecondPressFor2 = true;
-        break;
-      }
+  // FIRST press: start conversation + show waiting message
+  if (!needsSecondPressFor2) {
+    needsSecondPressFor2 = true;
 
-      // second press does the original behavior
-      needsSecondPressFor2 = false;
-      socket.emit('startConversation');
-      showHostWaitingMessage(5000);
-      break;
+    // start a new round (slots stay open until you reveal)
+    socket.emit('startConversation', { timeLimitMs: 5000 }); // e.g. 3 seconds
+    showHostWaitingMessage(10000); // you can keep this long; reveal is manual anyway
+    break;
+  }
+
+  // SECOND press: reveal ONE result (if any)
+  if (pendingResults.length > 0) {
+    needsSecondPressFor2 = false;
+
+    const next = pendingResults.shift(); // take one
+    const msg = next.message ? next.message : 'no response..';
+    showActorMessage('player', msg, 6000);
+  } else {
+    // still nothing received -> keep waiting
+    showHostWaitingMessage(2500);
+  }
+  break;
   }
 });
 
