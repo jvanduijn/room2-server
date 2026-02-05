@@ -861,7 +861,7 @@
         <span class="label">🖥️</span>
         <span class="key">C</span>
         <span class="off-badge" data-action="serverAmbOff">
-          ⏹ 8
+        🚫8
         </span>
       </button>
     <button class="action-btn" data-action="table">
@@ -874,7 +874,7 @@
         <span class="label">💡</span>
         <span class="key">L</span>
         <span class="off-badge" data-action="lightOff">
-          ⏹ 9
+        🚫9
         </span>
       </button>
     <button class="action-btn" data-action="water">
@@ -884,7 +884,7 @@
         <span class="label">🚿</span>
         <span class="key">S</span>
         <span class="off-badge" data-action="showerOff">
-          ⏹ X
+        🚫X
         </span>
       </button>
     <button class="action-btn" data-action="brush">
@@ -899,7 +899,7 @@
       
         <!-- small OFF badge -->
         <span class="off-badge" data-action="tvOff">
-          ⏹ 0
+        🚫0
         </span>
       </button>
   </div>
@@ -1706,11 +1706,21 @@ socket.on('conversationEnd', ({ conversationId }) => {
   });
 
   function flashButton(actionName) {
-    const btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
-    if (!btn) return;
-    btn.classList.add('active-flash');
-    setTimeout(() => btn.classList.remove('active-flash'), 250);
+  let btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
+
+  // if this is an OFF action, flash the parent ON button
+  if (!btn) {
+    const offBadge = document.querySelector('.off-badge[data-action="' + actionName + '"]');
+    if (offBadge) {
+      btn = offBadge.closest('.action-btn');
+    }
   }
+
+  if (!btn) return;
+
+  btn.classList.add('active-flash');
+  setTimeout(() => btn.classList.remove('active-flash'), 250);
+}
 
   function stopTvLoop() {
     if (tvAudio) {
