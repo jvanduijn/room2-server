@@ -1078,6 +1078,10 @@ const LIGHT_ON_SWITCH_URL  = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.de
 const LIGHT_OFF_SWITCH_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/lightswitch_off.mp3';
 const LIGHT_HUM_LOOP_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bathroomfan.mp3';
 
+const SERVERS_OFF_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/largemachineoff.mp3';
+const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/largemachine.mp3';
+
+
 
   const soundPools = {
     sleep: [
@@ -1772,6 +1776,7 @@ socket.on('conversationEnd', ({ conversationId }) => {
 if (kind === 'serverAmbOff') {
   flashButton('serverAmbOff');
   serverAmbientEnabled = false;
+  playSound(SERVERS_OFF_URL); // <-- one-shot for "X"
 
   // only stop if we’re currently in room2
   if (currentRoom === 'room2') stopAmbient();
@@ -1781,6 +1786,7 @@ if (kind === 'serverAmbOff') {
 if (kind === 'serverAmbOn') {
   flashButton('serverAmbOn');
   serverAmbientEnabled = true;
+  playSound(SERVERS_ON_URL); // <-- one-shot for "X"
 
   // only start if we’re currently in room2
   if (currentRoom === 'room2') setAmbientForRoom('room2');
