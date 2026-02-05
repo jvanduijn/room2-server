@@ -19,33 +19,34 @@
       height: 100%;
     }
 
-    * ===== Bathroom darkness overlay ===== */
+   /* --- Bathroom darkness overlay that DOES NOT affect doors/clicks --- */
 #room4{
-  position: absolute; /* already is via .room, but keep safe */
+  isolation: isolate; /* keeps overlay stacking contained */
 }
 
-/* dark layer (default = dark) */
-#room4::before{
+#room4::after{
   content:"";
   position:absolute;
   inset:0;
-  background: rgba(0,0,0,0.32); /* <- darkness amount */
-  pointer-events:none;
-  z-index: 0;                   /* sits inside room */
-  transition: opacity 0.25s ease;
+  background: rgba(0,0,0,0.38); /* darkness amount */
+  opacity: 1;                  /* default = dark */
+  transition: opacity 220ms ease;
+  pointer-events: none;        /* ✅ critical: doors stay clickable */
+  z-index: 0;                  /* behind everything inside room4 */
 }
 
-/* make sure room contents sit above the overlay */
-#room4 > *{
-  position: relative;
-  z-index: 1;
-}
-
-/* when light is ON, fade the darkness away */
-#room4.lights-on::before{
+/* when light is on, remove darkness */
+#room4.light-on::after{
   opacity: 0;
 }
 
+/* ensure doors + clickable regions render above overlay */
+#room4 .door,
+#room4 .clickable-region,
+#room4 .room-label{
+  position: absolute; /* keep your existing absolute behavior */
+  z-index: 2;
+}
 
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -1298,11 +1299,6 @@ const CONVO_LOOP_POOL = [
 
 
 
-function setBathroomDarkness(lightOn){
-  const r4 = document.getElementById('room4');
-  if (!r4) return;
-  r4.classList.toggle('lights-on', !!lightOn);
-}
 
 
 
@@ -1528,6 +1524,13 @@ function playEnterForRoom(roomId) {
     a.play().catch(() => {});
   } catch (e) {}
 }
+
+function setBathroomDarkness(lightOn){
+  const r4 = document.getElementById('room4');
+  if (!r4) return;
+  r4.classList.toggle('light-on', !!lightOn);
+}
+
 
 
 const timelineWrapEl = document.getElementById('timelineWrap');
