@@ -538,7 +538,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   top: 0;
   left: 0;
   width: 100vw;
-  height: 17px;
+  height: 16px;
   background: transparent;
   z-index: 3000;
   overflow: hidden;
@@ -548,7 +548,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 .timeline-bar{
   height: 100%;
   width: 0%;
-  background: #464646;
+  background: rgba(0,0,0,0.15);
   transition: width 0.12s linear;
 }
 
@@ -557,9 +557,9 @@ body.host-scale .action-btn .off-badge .off-icon{
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 11px;
-  font-weight: 700;
-  color: #bebebe;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.298);
   mix-blend-mode: multiply;
   user-select: none;
 }
@@ -585,18 +585,11 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
 .credits-frame{
-  width: 400px;
-  height: 400px;
-
+  width: min(560px, 88vw);
+  padding: 22px 18px;
   box-sizing: border-box;
-  padding: 24px 18px;
-
-  border: 2px solid #333;   /* same visual weight as map */
-  background: rgba(0,0,0,0.35);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.25);
 }
 
 .credits-roll{
@@ -933,8 +926,8 @@ body.host-scale .action-btn .off-badge .off-icon{
   <div id="creditsOverlay" class="credits-overlay" aria-hidden="true">
     <div class="credits-frame">
       <div id="creditsRoll" class="credits-roll">
-        <div class="credits-title">room2.net</div>
-        <div class="credits-line">the team</div>
+        <div class="credits-title">CREDITS</div>
+        <div class="credits-line">room2.net</div>
         <div class="credits-gap"></div>
   
         <div class="credits-heading">host by</div>
