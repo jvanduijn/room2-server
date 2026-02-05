@@ -1341,21 +1341,19 @@ if (isHost) needsSecondPressFor2 = false;
       popupMsgEl.style.display = 'none';
     }
   });
-
   socket.on('conversationResult', ({ conversationId, message }) => {
-  console.log('conversationResult', conversationId, message);
   if (!isHost) return;
-  if (!conversationId) return;
 
-  // store for later reveal
-  pendingConvId = conversationId;
-  pendingMessage = message || '';
-  pendingHasResult = true;
+  if (!revealRequested) {
+    // ignore if result arrives before 2nd press (shouldn't happen with endConversationNow)
+    return;
+  }
 
-  // optional: still play a sound to let host know something arrived
-  playSound(pickRandomFromPool('message'));
+  revealRequested = false;
+  convoArmed = false;
 
-  // DO NOT showActorMessage here anymore
+  const text = message ? String(message) : 'no response..';
+  showActorMessage('player', text, 6000);
 });
   // Host receives typing indicator from player
   socket.on('playerTyping', ({ conversationId, typing }) => {
