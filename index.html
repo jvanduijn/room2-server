@@ -2095,21 +2095,32 @@ socket.on('conversationEnd', ({ conversationId }) => {
     });
   });
 
-  function flashButton(actionName) {
+  function flashButton(actionName, pulses = 4, interval = 140) {
   let btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
 
   // if this is an OFF action, flash the parent ON button
   if (!btn) {
     const offBadge = document.querySelector('.off-badge[data-action="' + actionName + '"]');
-    if (offBadge) {
-      btn = offBadge.closest('.action-btn');
-    }
+    if (offBadge) btn = offBadge.closest('.action-btn');
   }
-
   if (!btn) return;
 
-  btn.classList.add('active-flash');
-  setTimeout(() => btn.classList.remove('active-flash'), 250);
+  // cancel any existing pulse on this button
+  if (btn._flashTimer) clearInterval(btn._flashTimer);
+  btn.classList.remove('active-flash');
+
+  let count = 0;
+  btn._flashTimer = setInterval(() => {
+    btn.classList.toggle('active-flash');
+    count++;
+
+    // each pulse is ON+OFF => 2 toggles
+    if (count >= pulses * 2) {
+      clearInterval(btn._flashTimer);
+      btn._flashTimer = null;
+      btn.classList.remove('active-flash');
+    }
+  }, interval);
 }
 
   function stopTvLoop() {
