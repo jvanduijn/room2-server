@@ -323,36 +323,69 @@
       font-size: 13px;
     }
 
-   /* ICON FIX */
+/* center main icon cleanly */
 .action-btn .label {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100%;
+}
+
+/* OFF badge bottom-right */
+.action-btn .off-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+
+  font-size: 9px;
   line-height: 1;
+  opacity: 0.7;
+
+  display: flex;
+  align-items: center;
+  gap: 1px;
+
+  pointer-events: auto; /* clickable */
 }
 
-/* force image size */
-.action-btn .icon {
-  display: block;
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  pointer-events: none;
+/* optional: make badge slightly smaller than key */
+body.host-scale .action-btn .off-badge {
+  font-size: 10px;
 }
 
-/* host-scale slightly bigger */
-body.host-scale .action-btn .icon {
-  width: 20px;
-  height: 20px;
+/* SUBTLE FABRIC / PAPER TEXTURE */
+.action-btn {
+  background:
+    /* ultra-soft lighting */
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.12),
+      rgba(0,0,0,0.08)
+    ),
+    /* very faint fabric noise */
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.015) 0px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(0,0,0,0.015) 4px,
+      rgba(0,0,0,0.015) 6px
+    ),
+    #ababab; /* base grey */
+
+  background-blend-mode: overlay, overlay, normal;
 }
-.off-badge .off-icon{
-  width: 8px;
-  height: 8px;
-  object-fit: contain;
-  vertical-align: middle;
-  margin-right: 2px;
-  pointer-events: none;
+
+.action-btn .off-badge {
+  background: rgba(0,0,0,0.15);
+  padding: 2px 3px;
+  border-radius: 3px;
 }
+
+.action-btn:not(.active) .off-badge {
+  opacity: 0.5;
+}
+
+
 
     .action-btn {
       position: relative;
@@ -901,8 +934,13 @@ body.host-scale .action-btn .icon {
     <button class="action-btn has-off" data-action="serverAmbOn">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_servers.png" alt="server ambience"></span>
       <span class="key">C</span>
-      <span class="off-badge" data-action="serverAmbOff">🚫8</span>
-    </button>
+      <span class="off-badge" data-action="serverAmbOff">
+        <img class="off-icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_cancel.png" alt="off">0
+      </span>
+        </button>
+
+ 
+
   
     <button class="action-btn" data-action="table">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_table.png" alt="table"></span>
@@ -917,8 +955,12 @@ body.host-scale .action-btn .icon {
     <button class="action-btn has-off" data-action="lightOn">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_light.png" alt="light"></span>
       <span class="key">L</span>
-      <span class="off-badge" data-action="lightOff">🚫9</span>
-    </button>
+      <span class="off-badge" data-action="lightOff">
+        <img class="off-icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_cancel.png" alt="off">0
+      </span>    </button>
+
+
+
   
     <button class="action-btn" data-action="water">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_gardening.png" alt="garden"></span>
@@ -928,8 +970,12 @@ body.host-scale .action-btn .icon {
     <button class="action-btn has-off" data-action="showerOn">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_shower.png" alt="shower"></span>
       <span class="key">S</span>
-      <span class="off-badge" data-action="showerOff">🚫X</span>
-    </button>
+      <span class="off-badge" data-action="showerOff">
+        <img class="off-icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_cancel.png" alt="off">0
+      </span>
+        </button>
+
+
   
     <button class="action-btn" data-action="brush">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_toothbrush.png" alt="brush"></span>
@@ -944,8 +990,12 @@ body.host-scale .action-btn .icon {
     <button class="action-btn has-off" data-action="tvOn">
       <span class="label"><img class="icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_tv.png" alt="tv"></span>
       <span class="key">1</span>
-      <span class="off-badge" data-action="tvOff">🚫0</span>
-    </button>
+      <span class="off-badge" data-action="tvOff">
+        <img class="off-icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_cancel.png" alt="off">0
+      </span>
+        </button>
+
+  
   </div>
   <!-- Player chat bar -->
   <div id="player-chat" class="player-chat">
