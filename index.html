@@ -548,7 +548,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 .timeline-bar{
   height: 100%;
   width: 0%;
-  background: rgba(0, 0, 0, 0.424);
+  background: rgba(0,0,0,0.15);
   transition: width 0.12s linear;
 }
 
@@ -563,38 +563,33 @@ body.host-scale .action-btn .off-badge .off-icon{
   mix-blend-mode: multiply;
   user-select: none;
 }
-/* overlay: slower + softer */
+/* ===== CREDITS OVERLAY (stable) ===== */
 .credits-overlay{
-  opacity: 0;
+  position: fixed;
+  inset: 0;
+  background: rgba(50, 50, 50, 0);
+  display: none;
+  z-index: 4000;
   pointer-events: none;
-  transition: opacity 2.8s ease;   /* was likely ~0.6s */
+  opacity: 0;
+  transition: opacity 1.2s ease, background 1.2s ease;
 }
 
 .credits-overlay.show{
   display: flex;
-  pointer-events: auto;
+  pointer-events: auto; /* blocks clicks */
   opacity: 1;
-  background: rgba(0,0,0,0.96);
+  background: rgba(0,0,0,0.96); /* almost black */
   align-items: center;
   justify-content: center;
 }
 
-/* credits frame: gentle drift-in instead of snapping */
 .credits-frame{
-  transform: translateY(18px);
-  opacity: 0;
-
-  transition:
-    transform 2.8s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 2.8s ease;
-
-  will-change: transform, opacity;
-}
-
-/* when overlay is shown, bring frame in smoothly */
-.credits-overlay.show .credits-frame{
-  transform: translateY(0px);
-  opacity: 1;
+  width: min(560px, 88vw);
+  padding: 22px 18px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.25);
 }
 
 .credits-roll{
@@ -1238,7 +1233,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 
 // ===== TIMELINE / CREDITS =====
-const TIMELINE_TOTAL_MS = 11 * 60 * 1000; // 10 minutes
+const TIMELINE_TOTAL_MS = 10 * 60 * 1000; // 10 minutes
 let timelineRunning = false;
 let timelineElapsed = 0;     // ms
 let timelineLastTick = null; // performance.now()
