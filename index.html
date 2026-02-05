@@ -528,6 +528,124 @@ body.host-scale .action-btn .off-badge .off-icon{
       text-transform: lowercase;
     }
 
+
+
+
+
+/* ===== TIMELINE BAR ===== */
+.timeline-wrap{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 16px;
+  background: #ffffff;
+  border-bottom: 2px solid #000;
+  z-index: 3000;
+  overflow: hidden;
+  display: none; /* only show for host after login */
+}
+
+.timeline-bar{
+  height: 100%;
+  width: 0%;
+  background: #000;
+  transition: width 0.12s linear;
+}
+
+.timeline-text{
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
+  mix-blend-mode: multiply;
+  user-select: none;
+}
+
+/* ===== CREDITS OVERLAY ===== */
+.credits-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(70,70,70,0.0);
+  display: none;
+  z-index: 4000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.2s ease, background 1.2s ease;
+}
+
+.credits-overlay.show{
+  display: block;
+  pointer-events: auto; /* blocks clicks */
+  opacity: 1;
+  background: rgba(70,70,70,0.92);
+}
+
+.credits-frame{
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.credits-roll{
+  width: min(520px, 88vw);
+  color: #ffffff;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  transform: translateY(110%);
+  will-change: transform;
+}
+
+.credits-overlay.show .credits-roll{
+  animation: creditsScroll 28s linear forwards;
+}
+
+@keyframes creditsScroll{
+  0%   { transform: translateY(110%); }
+  100% { transform: translateY(-140%); }
+}
+
+.credits-title{
+  font-size: 22px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.credits-heading{
+  font-size: 14px;
+  opacity: 0.8;
+  margin-top: 16px;
+  letter-spacing: 1px;
+  text-transform: lowercase;
+}
+
+.credits-line{
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.credits-gap{
+  height: 18px;
+}
+
+
+
+
+
+
+
+
+
+
+
     .player-chat button:active {
       transform: scale(0.97);
     }
@@ -779,6 +897,41 @@ body.host-scale .action-btn .off-badge .off-icon{
   </style>
 </head>
 <body>
+
+
+<!-- TIMELINE BAR (host-controlled) -->
+<div id="timelineWrap" class="timeline-wrap" aria-hidden="true">
+    <div id="timelineBar" class="timeline-bar"></div>
+    <div id="timelineText" class="timeline-text">0%</div>
+  </div>
+  
+  <!-- END CREDITS OVERLAY -->
+  <div id="creditsOverlay" class="credits-overlay" aria-hidden="true">
+    <div class="credits-frame">
+      <div id="creditsRoll" class="credits-roll">
+        <div class="credits-title">CREDITS</div>
+        <div class="credits-line">room_2</div>
+        <div class="credits-gap"></div>
+  
+        <div class="credits-heading">host</div>
+        <div class="credits-line">you</div>
+        <div class="credits-gap"></div>
+  
+        <div class="credits-heading">player</div>
+        <div class="credits-line">visitor</div>
+        <div class="credits-gap"></div>
+  
+        <div class="credits-heading">sound</div>
+        <div class="credits-line">assorted noises</div>
+        <div class="credits-gap"></div>
+  
+        <div class="credits-line">thank you for being here</div>
+      </div>
+    </div>
+  </div>
+  
+
+
 <div class="background"></div>
 
 <!-- host login overlay -->
@@ -1058,6 +1211,15 @@ body.host-scale .action-btn .off-badge .off-icon{
   let bathroomLightEnabled = false; // light can be enabled, but only plays in room4
 
 
+// ===== TIMELINE / CREDITS =====
+const TIMELINE_TOTAL_MS = 10 * 60 * 1000; // 10 minutes
+let timelineRunning = false;
+let timelineElapsed = 0;     // ms
+let timelineLastTick = null; // performance.now()
+let timelineRAF = null;
+let timelineFinished = false;
+
+
   let convoOpen = false;       // is a conversation currently collecting?
   let hostWaiting = false;     // are we showing the "waiting..." popup?
 
@@ -1301,6 +1463,68 @@ function playEnterForRoom(roomId) {
     const a = new Audio(url);
     a.play().catch(() => {});
   } catch (e) {}
+}
+
+
+const timelineWrapEl = document.getElementById('timelineWrap');
+const timelineBarEl  = document.getElementById('timelineBar');
+const timelineTextEl = document.getElementById('timelineText');
+const creditsOverlayEl = document.getElementById('creditsOverlay');
+
+function setTimelineUI(pct){
+  const clamped = Math.max(0, Math.min(100, pct));
+  timelineBarEl.style.width = clamped + '%';
+  timelineTextEl.textContent = Math.round(clamped) + '%';
+}
+
+function showCredits(){
+  if (timelineFinished) return;
+  timelineFinished = true;
+  timelineRunning = false;
+  if (timelineRAF) cancelAnimationFrame(timelineRAF);
+  timelineRAF = null;
+
+  setTimelineUI(100);
+
+  // fade overlay in
+  creditsOverlayEl.classList.add('show');
+}
+
+function timelineTick(now){
+  if (!timelineRunning) return;
+
+  if (timelineLastTick == null) timelineLastTick = now;
+  const dt = now - timelineLastTick;
+  timelineLastTick = now;
+
+  timelineElapsed += dt;
+
+  const pct = (timelineElapsed / TIMELINE_TOTAL_MS) * 100;
+  setTimelineUI(pct);
+
+  if (timelineElapsed >= TIMELINE_TOTAL_MS){
+    showCredits();
+    return;
+  }
+
+  timelineRAF = requestAnimationFrame(timelineTick);
+}
+
+function toggleTimeline(){
+  if (!isHost || !hostUnlocked) return;
+  if (timelineFinished) return;
+
+  timelineRunning = !timelineRunning;
+
+  if (timelineRunning){
+    timelineLastTick = null;
+    timelineRAF = requestAnimationFrame(timelineTick);
+  } else {
+    // pause
+    if (timelineRAF) cancelAnimationFrame(timelineRAF);
+    timelineRAF = null;
+    timelineLastTick = null;
+  }
 }
 
 function stopLightLoop() {
@@ -2009,6 +2233,8 @@ if (kind === 'lightOff') {
 
 
   document.addEventListener('keydown', (e) => {
+
+    
     if (!isHost || !hostUnlocked) return;
 
     const dirKeyMap = {
@@ -2025,6 +2251,17 @@ if (kind === 'lightOff') {
         goToRoom(nav[dir]);
       }
     }
+
+    // ENTER toggles the 10-minute timeline (host only)
+// (avoid triggering while typing in inputs)
+if (e.key === 'Enter') {
+  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+  if (tag !== 'input' && tag !== 'textarea') {
+    e.preventDefault();
+    toggleTimeline();
+    return;
+  }
+}
 
     switch (e.key) {
       case 'z':
@@ -2119,10 +2356,15 @@ case '3': {
     triggerHostArrivalEffect();
     playSound(ARRIVAL_SOUND_URL);
 
+    if (timelineWrapEl) timelineWrapEl.style.display = 'block';
+setTimelineUI(0);
+
     if (actionBarEl) {
       actionBarEl.style.display = 'grid';
       updateActionBarForRoom(hostRoom);
     }
+
+
 
     socket.emit('hostReady');
   }
