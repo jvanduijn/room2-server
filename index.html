@@ -1099,21 +1099,25 @@
       popupMsgEl.style.display = 'none';
     }, duration);
   }
+  function showHostWaitingMessage(duration = 0) {
+  if (!popupMsgEl) return;
 
-  function showHostWaitingMessage(duration = 4000) {
-    if (!popupMsgEl) return;
-    popupMsgEl.classList.remove('host-msg','player-msg');
-    popupMsgEl.classList.add('host-msg');
-    popupMsgEl.innerHTML =
-      '<span class="actor-text">waiting for </span>' +
-      '<span class="actor-icon actor-player"></span>' +
-      '<span class="actor-text tight-after-icon">\'s response</span>';
-    popupMsgEl.style.display = 'flex';
-    clearTimeout(showHostWaitingMessage._timeout);
+  popupMsgEl.classList.remove('host-msg','player-msg');
+  popupMsgEl.classList.add('host-msg');
+  popupMsgEl.innerHTML =
+    '<span class="actor-text">waiting for </span>' +
+    '<span class="actor-icon actor-player"></span>' +
+    '<span class="actor-text tight-after-icon">\'s response</span>';
+  popupMsgEl.style.display = 'flex';
+
+  // Only auto-hide if duration > 0
+  clearTimeout(showHostWaitingMessage._timeout);
+  if (duration > 0) {
     showHostWaitingMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
     }, duration);
   }
+}
 
   function showObjectPopup(text) {
     if (isHost) return;
@@ -1298,7 +1302,8 @@
     if (playerIndicator) playerIndicator.style.display = 'none';
 
     if (isHost) {
-      showHostWaitingMessage(10000);
+          // do NOT auto-show a timed waiting popup for host
+  // host controls the popup with key "2"
     } else {
       if (playerChatEl) playerChatEl.style.display = 'grid';
       if (chatInputEl) {
@@ -1629,17 +1634,24 @@ if (isHost) needsSecondPressFor2 = false;
         triggerHostAction('tvOff');
         break;
         case '2':
-      if (!needsSecondPressFor2) {
-        // first press does nothing (or you can add a tiny hint)
-        needsSecondPressFor2 = true;
-        break;
-      }
+  // FIRST PRESS: start conversation + show waiting (no timer)
+  if (!needsSecondPressFor2) {
+    needsSecondPressFor2 = true;
 
-      // second press does the original behavior
-      needsSecondPressFor2 = false;
-      socket.emit('startConversation');
-      showHostWaitingMessage(5000);
-      break;
+    socket.emit('startConversation');     // open the slot
+    showHostWaitingMessage();             // stays until you press 2 again
+    break;
+  }
+
+  // SECOND PRESS: hide waiting + force end (faster)
+  needsSecondPressFor2 = false;
+
+  // this requires server.js to listen for 'endConversationNow'
+  socket.emit('endConversationNow');
+
+  // optional: hide waiting immediately on second press
+  if (popupMsgEl) popupMsgEl.style.display = 'none';
+  break;
   }
 });
 
