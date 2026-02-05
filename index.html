@@ -1055,6 +1055,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   let hostUnlocked = !isHost;
   let lightAudio   = null; // bathroom light hum loop (host only)
   let serverAmbientEnabled = true; // host-only toggle for room2
+  let bathroomLightEnabled = false; // light can be enabled, but only plays in room4
 
 
   let convoOpen = false;       // is a conversation currently collecting?
@@ -1303,40 +1304,55 @@ function playEnterForRoom(roomId) {
 }
 
 function stopLightLoop() {
-  if (lightAudio) {
-    try {
-      lightAudio.pause();
-      lightAudio.currentTime = 0;
-    } catch (e) {}
-    lightAudio = null;
-  }
+  if (!lightAudio) return;
+  try {
+    lightAudio.pause();
+    lightAudio.currentTime = 0;
+  } catch (e) {}
+  lightAudio = null;
 }
 
 function startLightLoop() {
+  // already playing? don't restart
+  if (lightAudio && !lightAudio.paused) return;
+
   stopLightLoop();
   try {
     lightAudio = new Audio(LIGHT_HUM_LOOP_URL);
     lightAudio.loop = true;
-    lightAudio.volume = 0.6; // tweak
+    lightAudio.volume = 0.6;
     lightAudio.play().catch(() => {});
   } catch (e) {
     console.error(e);
   }
 }
+
+// bathroom light behaves like ambience: only audible in room4
+function syncBathroomLightForRoom(roomId) {
+  if (!isHost) return;
+
+  if (roomId !== 'room4') {
+    stopLightLoop();
+    return;
+  }
+
+  if (bathroomLightEnabled) startLightLoop();
+  else stopLightLoop();
+}
 function setAmbientForRoom(roomId) {
   // host only (extra safety)
   if (!isHost) return;
 
-  // don’t restart if already playing for this room
-  if (ambientRoom === roomId) return;
-
-  stopAmbient();
-
-  // If server room (room2) but disabled -> keep silent
+  // If server room (room2) but disabled -> ensure silent and exit
   if (roomId === 'room2' && !serverAmbientEnabled) {
-    ambientRoom = 'room2'; // remember we are "in" room2 but silent
+    stopAmbient();          // this also sets ambientRoom = null
     return;
   }
+
+  // don’t restart if already playing for this room
+  if (ambientRoom === roomId && ambientAudio) return;
+
+  stopAmbient();
 
   const url = ROOM_AMBIENT[roomId];
   if (!url) return;
@@ -1346,7 +1362,7 @@ function setAmbientForRoom(roomId) {
   try {
     ambientAudio = new Audio(url);
     ambientAudio.loop = true;
-    ambientAudio.volume = 0.55; // tweak
+    ambientAudio.volume = 0.55;
     ambientAudio.play().catch(() => {});
   } catch (e) {
     console.error(e);
@@ -1556,6 +1572,8 @@ function stopConvoLoop() {
 
     if (isHost) {
   setAmbientForRoom(currentRoom);
+  syncBathroomLightForRoom(currentRoom);   // ✅ add this
+
   playEnterForRoom(currentRoom);
 
 }
@@ -1917,8 +1935,9 @@ if (kind === 'showerOff') {
 
 if (kind === 'lightOff') {
   flashButton('lightOff');
-  playSound(LIGHT_OFF_SWITCH_URL); // <-- one-shot
-  stopLightLoop();                  // <-- stop hum loop
+  bathroomLightEnabled = false;
+  playSound(LIGHT_OFF_SWITCH_URL); // one-shot
+  syncBathroomLightForRoom(currentRoom);   // ✅ stops hum if in room4
   return;
 }
 
@@ -1932,9 +1951,9 @@ if (kind === 'lightOff') {
         playSound(pickRandomFromPool('table'));
         break;
         case 'lightOn': {
-  // one-shot switch + start hum loop
-  playSound(LIGHT_ON_SWITCH_URL);
-  startLightLoop();
+  bathroomLightEnabled = true;
+  playSound(LIGHT_ON_SWITCH_URL);          // one-shot
+  syncBathroomLightForRoom(currentRoom);   // ✅ starts hum only if in room4
   break;
 }
       case 'piano':
@@ -2153,6 +2172,8 @@ if (hostPasswordEl) {
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
       setAmbientForRoom(currentRoom); // host only
+      syncBathroomLightForRoom(currentRoom);     // ✅ add this
+
 // don't play enter sound on initial load (only after first actual move)
 didInitialEnterSound = true;
     } else {
