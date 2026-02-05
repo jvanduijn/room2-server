@@ -111,38 +111,25 @@ io.on('connection', (socket) => {
   });
 
   // --- CONVERSATION END (host presses "3") ---
-  socket.on('endConversation', () => {
-    if (socket.data.role !== 'host') return;
-    if (!currentConversationId) return;
+// --- CONVERSATION END (host presses "3") ---
+socket.on('endConversation', () => {
+  if (socket.data.role !== 'host') return;
+  if (!currentConversationId) return;
 
-    const conversationId = currentConversationId;
-    console.log('Conversation ending (host pressed 3)', conversationId);
+  const conversationId = currentConversationId;
+  console.log('Conversation ending (host pressed 3)', conversationId);
 
-    const chosen = pickRandomResponseOrNull();
-    const message = (chosen && String(chosen).trim()) ? String(chosen) : 'no response..';
+  const chosen = pickRandomResponseOrNull();
+  const message = (chosen && String(chosen).trim()) ? String(chosen) : 'no response..';
 
-    // ALWAYS send chosen response to the host who pressed "3"
-    socket.emit('conversationResult', { conversationId, message });
+  // ✅ send to everyone (host + players)
+  io.emit('conversationResult', { conversationId, message });
 
-    // Optional redundancy: also send to hostSocketId if different
-    if (hostSocketId && hostSocketId !== socket.id) {
-      io.to(hostSocketId).emit('conversationResult', { conversationId, message });
-    }
+  // end for everyone (closes player input, etc.)
+  io.emit('conversationEnd', { conversationId });
 
-    // Optional redundancy: also send to the host who started it (if different)
-    if (
-      conversationHostId &&
-      conversationHostId !== socket.id &&
-      conversationHostId !== hostSocketId
-    ) {
-      io.to(conversationHostId).emit('conversationResult', { conversationId, message });
-    }
-
-    // end for everyone (closes player input)
-    io.emit('conversationEnd', { conversationId });
-
-    clearConversationState();
-  });
+  clearConversationState();
+});
 
   // --- PLAYER MESSAGES DURING CONVERSATION ---
   socket.on('playerMessage', ({ conversationId, text }) => {
