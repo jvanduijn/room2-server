@@ -885,6 +885,11 @@
   let showerAudio  = null;
   let moveAudio    = null;
   let hostUnlocked = !isHost;
+
+  let convoOpen = false;
+
+
+
   window.currentRoom = currentRoom;
 
 
@@ -1638,23 +1643,19 @@ socket.on('conversationResult', ({ conversationId, message }) => {
         triggerHostAction('tvOff');
         break;
         case '2': {
-  // start conversation (if not already open)
-  if (convoOpen) break;
+        if (convoOpen) break;
+        socket.emit('startConversation');
+        showHostWaitingMessage(null);
+        break;
+      }
 
-  socket.emit('startConversation');
-  showHostWaitingMessage(0); // stays until endConversation triggers conversationEnd
-  break;
-}
-
-case '3': {
-  // end conversation (only if one is open)
-  if (!convoOpen) break;
-
-  socket.emit('endConversation');
-  // (waiting will be hidden when conversationEnd arrives)
-  break;
-  }
-});
+      case '3': {
+        if (!convoOpen) break;
+        socket.emit('endConversation');
+        break;
+      }
+    } // <-- closes switch
+  }); // <-- closes addEventListener
 
   function completeHostLogin() {
     const val = (hostPasswordEl.value || '').trim();
