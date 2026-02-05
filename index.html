@@ -27,14 +27,17 @@
 #room4::after{
   content:"";
   position:absolute;
-  inset:0;
-  background: rgba(0,0,0,0.38); /* darkness amount */
-  opacity: 1;                  /* default = dark */
-  transition: opacity 220ms ease;
-  pointer-events: none;        /* ✅ critical: doors stay clickable */
-  z-index: 0;                  /* behind everything inside room4 */
-}
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
 
+  background: rgba(0, 0, 0, 0.317);
+  opacity: 1;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+  z-index: 0;
+}
 /* when light is on, remove darkness */
 #room4.light-on::after{
   opacity: 0;
@@ -193,7 +196,7 @@
     .random-object.arrival-sparkle {
   outline: 2px solid #00ff88;
   outline-offset: 1px;
-  animation: hostArrivalPulse 1.4s ease-in-out;
+  animation: hostArrivalPulse 3.4s ease-in-out;
 }
 
 /* 3 slow pulses */
@@ -1845,7 +1848,7 @@ function stopConvoLoop() {
   function triggerHostArrivalEffect() {
   if (!hostEl) return;
   hostEl.classList.add('arrival-sparkle');
-  setTimeout(() => hostEl.classList.remove('arrival-sparkle'), 1600);
+  setTimeout(() => hostEl.classList.remove('arrival-sparkle'), 3000);
 }
 
   function goToRoom(targetRoom) {
