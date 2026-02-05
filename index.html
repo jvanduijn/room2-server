@@ -323,15 +323,100 @@
       font-size: 13px;
     }
 
+
+/* =========================
+   HOST ACTION BAR BUTTONS
+   ========================= */
+
+/* main button */
+.action-btn {
+  position: relative;
+  margin: 0;
+  padding: 2px 0 3px;
+  border-radius: 0;
+  background-color: #ababab;
+  color: #000000;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+
+  user-select: none;
+  font-family: Arial, Helvetica, sans-serif;
+  text-transform: none;
+  box-sizing: border-box;
+  min-height: 10px;
+
+  border: none;
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+
+  /* subtle “paper” feel (safe, not a texture) */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    inset 0 -1px 0 rgba(0,0,0,0.12);
+}
+
+/* press */
+.action-btn:active {
+  transform: scale(0.97);
+}
+
+/* active flash */
+.action-btn.active-flash {
+  background-color: #00ff88;
+  color: #111111;
+}
+
+/* ---------- icon/label ---------- */
+
 /* center main icon cleanly */
 .action-btn .label {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  line-height: 1;
 }
 
-/* OFF badge bottom-right */
+/* if you're using <img class="icon">, lock sizing so it never blows up */
+.action-btn .label .icon {
+  width: 18px !important;
+  height: 18px !important;
+  max-width: 18px;
+  max-height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
+/* (optional) if you still have emoji text labels anywhere */
+.action-btn span.label {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/* key label */
+.action-btn .key {
+  display: inline-block;
+  font-size: 10px;
+  opacity: 0.7;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* host-scale tweak */
+body.host-scale .action-btn .label .icon {
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px;
+  max-height: 20px;
+}
+
+/* ---------- OFF badge bottom-right ---------- */
+
 .action-btn .off-badge {
   position: absolute;
   right: 4px;
@@ -341,88 +426,28 @@
   line-height: 1;
   opacity: 0.7;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 1px;
 
-  pointer-events: auto; /* clickable */
+  background: rgba(0,0,0,0.15);
+  padding: 2px 3px;
+  border-radius: 3px;
+
+  /* clickable */
+  pointer-events: auto;
 }
 
-/* optional: make badge slightly smaller than key */
 body.host-scale .action-btn .off-badge {
   font-size: 10px;
 }
 
-.action-btn .off-badge {
-  background: rgba(0,0,0,0.15);
-  padding: 2px 3px;
-  border-radius: 3px;
-}
-
-.action-btn:not(.active) .off-badge {
-  opacity: 0.5;
+/* slightly dim badge when the main button isn't flashing */
+.action-btn:not(.active-flash) .off-badge {
+  opacity: 0.55;
 }
 
 
-
-    .action-btn {
-      position: relative;
-      margin: 0;
-      padding: 2px 0 3px;
-      border-radius: 0;
-      background: #ababab;
-      color: #000000;
-      cursor: pointer;
-      font-size: 13px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1px;
-      user-select: none;
-      font-family: Arial, Helvetica, sans-serif;
-      text-transform: none;
-      box-sizing: border-box;
-      min-height: 10px;
-      border: none;
-      outline: none;
-      box-shadow: none;
-      appearance: none;
-    }
-
-    .action-btn span.label {
-      display: inline-block;
-      font-size: 15px;
-      line-height: 1;
-      font-weight: bold;
-    }
-
-    .action-btn span.key {
-      display: inline-block;
-      font-size: 10px;
-      opacity: 0.7;
-      font-weight: bold;
-    }
-
-    .action-btn:active {
-      transform: scale(0.97);
-    }
-
-    .action-btn.active-flash {
-      background: #00ff88;
-      color: #111111;
-    }
-
-    body.host-scale .action-btn {
-      min-height: 36px;
-      font-size: 14px;
-    }
-    body.host-scale .action-btn span.label {
-      font-size: 17px;
-    }
-    body.host-scale .action-btn span.key {
-      font-size: 11px;
-    }
 
     /* Player chat bar styled like host login */
     .player-chat {
@@ -1004,7 +1029,7 @@ body.host-scale .action-btn .off-badge {
   let moveAudio    = null;
   let hostUnlocked = !isHost;
   let lightAudio   = null; // bathroom light hum loop (host only)
-  let serverAmbientEnabled = false; // host-only toggle for room2
+  let serverAmbientEnabled = true; // host-only toggle for room2
 
 
   let convoOpen = false;       // is a conversation currently collecting?
@@ -1851,6 +1876,7 @@ if (kind === 'serverAmbOn') {
   serverAmbientEnabled = true;
   playSound(SERVERS_ON_URL); // <-- one-shot for "X"
 
+
   // only start if we’re currently in room2
   if (currentRoom === 'room2') setAmbientForRoom('room2');
   return;
@@ -1977,6 +2003,7 @@ case 'L':
   case 'c':
 case 'C':
   triggerHostAction('serverAmbOn');
+
   break;
 
 case '8':
