@@ -567,7 +567,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 .credits-overlay{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.0);
+  background: rgba(50, 50, 50, 0);
   display: none;
   z-index: 4000;
   pointer-events: none;
@@ -927,22 +927,26 @@ body.host-scale .action-btn .off-badge .off-icon{
     <div class="credits-frame">
       <div id="creditsRoll" class="credits-roll">
         <div class="credits-title">CREDITS</div>
-        <div class="credits-line">room_2</div>
+        <div class="credits-line">room2.net</div>
         <div class="credits-gap"></div>
   
-        <div class="credits-heading">host</div>
-        <div class="credits-line">you</div>
+        <div class="credits-heading">host by</div>
+        <div class="credits-line">Isabel Marin Rayo</div>
         <div class="credits-gap"></div>
   
-        <div class="credits-heading">player</div>
-        <div class="credits-line">visitor</div>
+        <div class="credits-heading">created by</div>
+        <div class="credits-line">Joram van Duijn</div>
+        <div class="credits-gap"></div>
+
+        <div class="credits-heading">script by</div>
+        <div class="credits-line">Anniek de Vetten</div>
         <div class="credits-gap"></div>
   
-        <div class="credits-heading">sound</div>
-        <div class="credits-line">assorted noises</div>
+        <div class="credits-heading">map design by</div>
+        <div class="credits-line">Marit Reezigt</div>
         <div class="credits-gap"></div>
   
-        <div class="credits-line">thank you for being here</div>
+        <div class="credits-line">thank you for participating!</div>
       </div>
     </div>
   </div>
@@ -1229,7 +1233,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 
 // ===== TIMELINE / CREDITS =====
-const TIMELINE_TOTAL_MS = 10 * 60 * 1000; // 10 minutes
+const TIMELINE_TOTAL_MS = 1 * 60 * 1000; // 10 minutes
 let timelineRunning = false;
 let timelineElapsed = 0;     // ms
 let timelineLastTick = null; // performance.now()
