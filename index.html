@@ -1424,11 +1424,13 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
 
   const actionMessages = {
     lightOn:  'turned the light on',
-lightOff: 'turned the light off',
+    lightOff: 'turned the light off',
     sleep:     'is going to sleep',
     table:     'dressing the table…',
     piano:     'is playing piano',
     water:     'gardening',
+    serverAmbOff: 'turned off the servers',
+    serverAmbOn: 'turned on the servers',
     showerOn:  'is taking a shower',
     showerOff: 'stepped out of the shower',
     brush:     'is brushing her teeth',
@@ -1958,19 +1960,28 @@ function stopConvoLoop() {
 
 
 socket.on('conversationResult', ({ message }) => {
-  if (!isHost) return;
-
   const text = (message && String(message).trim()) ? String(message) : 'no response..';
 
-  // stop waiting UI
-  hostWaiting = false;
+  // HOST: stop waiting + show result
+  if (isHost) {
+    hostWaiting = false;
+    if (popupMsgEl) popupMsgEl.style.display = 'none';
+
+    playSound(pickRandomFromPool('message'));
+    showActorMessage('player', text, 6000);
+    return;
+  }
+
+  // PLAYER: hide chat + show the same result
+  if (playerChatEl) playerChatEl.style.display = 'none';
+  if (playerIndicator) playerIndicator.style.display = 'none';
+
+  // (optional) stop any "react to host…" prompt before showing result
   if (popupMsgEl) popupMsgEl.style.display = 'none';
 
-  // show result
   playSound(pickRandomFromPool('message'));
   showActorMessage('player', text, 6000);
 });
-
 
 socket.on('conversationEnd', ({ conversationId }) => {
   if (conversationId !== currentConversationId) return;
