@@ -1232,6 +1232,9 @@ body.host-scale .action-btn .off-badge .off-icon{
   let bathroomLightEnabled = false; // light can be enabled, but only plays in room4
 
 
+  let resultShowing = false;
+
+
 // ===== TIMELINE / CREDITS =====
 const TIMELINE_TOTAL_MS = 10 * 60 * 1000; // 10 minutes
 let timelineRunning = false;
@@ -1318,10 +1321,10 @@ const CONVO_LOOP_POOL = [
 const ROOM_ENTER = {
   room1: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom.mp3',
   room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3',
-  room3: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_kitchen.mp3',
+  room3: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_hallway.mp3',
   room4: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bathroom.mp3',
   room5: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_livingroom.mp3',
-  room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_hallway.mp3',
+  room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_kitchen.mp3',
   room7: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bedroom.mp3'
 };
 
@@ -1947,22 +1950,19 @@ function stopConvoLoop() {
 socket.on('conversationResult', ({ message }) => {
   const text = (message && String(message).trim()) ? String(message) : 'no response..';
 
-  // HOST: stop waiting + show result
+  resultShowing = true;
+  setTimeout(() => { resultShowing = false; }, 6500); // slightly > 6000
+
   if (isHost) {
     hostWaiting = false;
     if (popupMsgEl) popupMsgEl.style.display = 'none';
-
     playSound(pickRandomFromPool('message'));
     showActorMessage('player', text, 6000);
     return;
   }
 
-  // PLAYER: hide chat + show the same result
   if (playerChatEl) playerChatEl.style.display = 'none';
   if (playerIndicator) playerIndicator.style.display = 'none';
-
-  // (optional) stop any "react to host…" prompt before showing result
-  if (popupMsgEl) popupMsgEl.style.display = 'none';
 
   playSound(pickRandomFromPool('message'));
   showActorMessage('player', text, 6000);
@@ -1985,7 +1985,7 @@ socket.on('conversationEnd', ({ conversationId }) => {
   }
 
   if (playerChatEl) playerChatEl.style.display = 'none';
-  if (!isHost && popupMsgEl) popupMsgEl.style.display = 'none';
+  if (!isHost && popupMsgEl && !resultShowing) popupMsgEl.style.display = 'none';
 });
 
   // Host receives typing indicator from player
