@@ -25,6 +25,10 @@ let currentConversationId = null;
 let conversationResponses = [];
 let conversationTimeout   = null;
 
+let convoStage = 'idle'; // 'idle' | 'collecting' | 'revealRequested'
+let pendingResultMsg = null; // string | null
+let pendingResultReady = false;
+
 // shorter, more natural
 const CONVERSATION_DURATION_MS = 6000;
 
@@ -37,34 +41,6 @@ function clearConversationState() {
   }
 }
 
-function endConversationAndSendResult(conversationId, reason = 'unknown') {
-  // stop the timer (if any)
-  if (conversationTimeout) {
-    clearTimeout(conversationTimeout);
-    conversationTimeout = null;
-  }
-
-  console.log('Conversation ending', reason, conversationId);
-
-  let chosenMessage = null;
-  if (conversationResponses.length > 0) {
-    const idx = Math.floor(Math.random() * conversationResponses.length);
-    chosenMessage = conversationResponses[idx].text;
-  }
-
-  // send chosen response only to host
-  if (hostSocketId && hostConnected) {
-    io.to(hostSocketId).emit('conversationResult', {
-      conversationId,
-      message: chosenMessage || null
-    });
-  }
-
-  // end for everyone
-  io.emit('conversationEnd', { conversationId });
-  clearConversationState();
-}
-
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 
@@ -74,13 +50,24 @@ io.on('connection', (socket) => {
     console.log(`Client ${socket.id} joined as ${role}`);
 
     if (role === 'host') {
+      // host is not "online" for players yet until hostReady
       hostSocketId = socket.id;
       socket.emit('initialHostPosition', { roomId: hostRoom });
     } else {
+      // player: only show host if host is actually online
       if (hostConnected) {
         socket.emit('hostPosition', { roomId: hostRoom });
       }
     }
+  });
+
+  socket.on('endConversationNow', () => {
+    if (socket.data.role !== 'host') return;
+    if (!currentConversationId) return;
+  
+    const conversationId = currentConversationId;
+    // (your endConversationAndSendResult function)
+    endConversationAndSendResult(conversationId, 'forced');
   });
 
   // host confirms login success
@@ -89,6 +76,7 @@ io.on('connection', (socket) => {
     hostConnected = true;
     console.log('Host is now ready/online');
 
+    // tell all players host just appeared
     socket.broadcast.emit('hostOnline', { roomId: hostRoom });
   });
 
@@ -100,6 +88,7 @@ io.on('connection', (socket) => {
     hostRoom = roomId;
     console.log('Host moved to room:', hostRoom);
 
+    // notify players
     socket.broadcast.emit('hostPosition', { roomId: hostRoom });
   });
 
@@ -115,10 +104,11 @@ io.on('connection', (socket) => {
     if (socket.data.role !== 'host') return;
     if (!data || !data.kind) return;
 
+    // broadcast to players
     socket.broadcast.emit('hostAction', { kind: data.kind });
   });
 
-  // --- CONVERSATION START (host presses "2" first time) ---
+  // --- CONVERSATION START (host presses "2") ---
   socket.on('startConversation', () => {
     if (socket.data.role !== 'host') return;
     if (currentConversationId) return; // already running
@@ -131,23 +121,31 @@ io.on('connection', (socket) => {
 
     console.log('Conversation started', conversationId);
 
+    // notify everyone (host + players)
     io.emit('conversationStart', { conversationId });
 
-    // fallback timeout (in case host never presses 2 again)
+    // after timeout, pick a response for host
     conversationTimeout = setTimeout(() => {
-      // IMPORTANT: only end if still the active one
-      if (currentConversationId !== conversationId) return;
-      endConversationAndSendResult(conversationId, 'timeout');
+      console.log('Conversation ending', conversationId);
+
+      let chosenMessage = null;
+      if (conversationResponses.length > 0) {
+        const idx = Math.floor(Math.random() * conversationResponses.length);
+        chosenMessage = conversationResponses[idx].text;
+      }
+
+      // send chosen response only to host
+      if (hostSocketId && hostConnected) {
+        io.to(hostSocketId).emit('conversationResult', {
+          conversationId,
+          message: chosenMessage || null
+        });
+      }
+
+      // end for everyone
+      io.emit('conversationEnd', { conversationId });
+      clearConversationState();
     }, CONVERSATION_DURATION_MS);
-  });
-
-  // --- CONVERSATION END NOW (host presses "2" second time) ---
-  socket.on('endConversationNow', () => {
-    if (socket.data.role !== 'host') return;
-    if (!currentConversationId) return;
-
-    const conversationId = currentConversationId;
-    endConversationAndSendResult(conversationId, 'forced');
   });
 
   // --- PLAYER MESSAGES DURING CONVERSATION ---
@@ -155,7 +153,7 @@ io.on('connection', (socket) => {
     if (!currentConversationId) return;
     if (conversationId !== currentConversationId) return;
 
-    const trimmed = (text || '').toString().slice(0, 120).trim();
+    const trimmed = (text || '').toString().slice(0, 120);
     if (!trimmed) return;
 
     conversationResponses.push({
@@ -168,6 +166,7 @@ io.on('connection', (socket) => {
 
   // --- PLAYER TYPING INDICATOR DURING CONVERSATION ---
   socket.on('playerTyping', ({ conversationId, typing }) => {
+    // only track typing for the active conversation
     if (!currentConversationId) return;
     if (conversationId !== currentConversationId) return;
     if (!hostSocketId || !hostConnected) return;
@@ -177,6 +176,8 @@ io.on('connection', (socket) => {
       typing: !!typing
     });
   });
+
+
 
   // --- DISCONNECT ---
   socket.on('disconnect', () => {
@@ -190,8 +191,10 @@ io.on('connection', (socket) => {
       hostConnected = false;
       hostSocketId  = null;
 
+      // tell players to hide host
       io.emit('hostOffline');
 
+      // if host leaves mid-conversation, end it
       if (currentConversationId) {
         const endedConversationId = currentConversationId;
         clearConversationState();
@@ -202,6 +205,7 @@ io.on('connection', (socket) => {
 });
 
 // --- GHOST PLAYER UPDATER ---
+// Every few seconds, pick one online player and send its room to the host
 setInterval(() => {
   if (!hostConnected || !hostSocketId) return;
   const rooms = Array.from(playerRooms.values());
