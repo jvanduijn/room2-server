@@ -23,10 +23,12 @@ const playerRooms = new Map(); // socketId -> roomId
 // --- CONVERSATION STATE ---
 let currentConversationId = null;
 let conversationResponses = []; // [{ socketId, text }]
+let conversationHostId    = null; // <-- NEW: host socket that started the conversation
 
 function clearConversationState() {
   currentConversationId = null;
   conversationResponses = [];
+  conversationHostId = null;
 }
 
 function pickRandomResponseOrNull() {
@@ -100,6 +102,7 @@ io.on('connection', (socket) => {
 
     currentConversationId = conversationId;
     conversationResponses = [];
+    conversationHostId = socket.id; // <-- NEW
 
     console.log('Conversation started', conversationId);
 
@@ -116,14 +119,23 @@ io.on('connection', (socket) => {
     console.log('Conversation ending (host pressed 3)', conversationId);
 
     const chosen = pickRandomResponseOrNull();
-    const message = chosen || 'no response..';
+    const message = (chosen && String(chosen).trim()) ? String(chosen) : 'no response..';
 
-    // send chosen response only to host
-    if (hostSocketId && hostConnected) {
-      io.to(hostSocketId).emit('conversationResult', {
-        conversationId,
-        message
-      });
+    // ALWAYS send chosen response to the host who pressed "3"
+    socket.emit('conversationResult', { conversationId, message });
+
+    // Optional redundancy: also send to hostSocketId if different
+    if (hostSocketId && hostSocketId !== socket.id) {
+      io.to(hostSocketId).emit('conversationResult', { conversationId, message });
+    }
+
+    // Optional redundancy: also send to the host who started it (if different)
+    if (
+      conversationHostId &&
+      conversationHostId !== socket.id &&
+      conversationHostId !== hostSocketId
+    ) {
+      io.to(conversationHostId).emit('conversationResult', { conversationId, message });
     }
 
     // end for everyone (closes player input)
