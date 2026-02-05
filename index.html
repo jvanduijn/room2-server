@@ -887,7 +887,6 @@
   let hostUnlocked = !isHost;
   window.currentRoom = currentRoom;
 
-  let needsSecondPressFor2 = false; // add this ONCE somewhere above the keydown listener
 
 
 
@@ -1099,7 +1098,7 @@
       popupMsgEl.style.display = 'none';
     }, duration);
   }
-  function showHostWaitingMessage(duration = 0) {
+  function showHostWaitingMessage(duration = null) {
   if (!popupMsgEl) return;
 
   popupMsgEl.classList.remove('host-msg','player-msg');
@@ -1110,13 +1109,14 @@
     '<span class="actor-text tight-after-icon">\'s response</span>';
   popupMsgEl.style.display = 'flex';
 
-  // Only auto-hide if duration > 0
   clearTimeout(showHostWaitingMessage._timeout);
-  if (duration > 0) {
-    showHostWaitingMessage._timeout = setTimeout(() => {
-      popupMsgEl.style.display = 'none';
-    }, duration);
-  }
+
+  // IMPORTANT: if duration is null, do NOT auto-hide
+  if (duration == null) return;
+
+  showHostWaitingMessage._timeout = setTimeout(() => {
+    popupMsgEl.style.display = 'none';
+  }, duration);
 }
 
   function showObjectPopup(text) {
@@ -1294,67 +1294,73 @@
   });
 
   socket.on('conversationStart', ({ conversationId }) => {
-    console.log('conversationStart', conversationId);
-    currentConversationId = conversationId;
-    hasRespondedThisRound = false;
+  console.log('conversationStart', conversationId);
+  currentConversationId = conversationId;
+  hasRespondedThisRound = false;
 
-    if (hostIndicator) hostIndicator.style.display = 'block';
-    if (playerIndicator) playerIndicator.style.display = 'none';
+  if (hostIndicator) hostIndicator.style.display = 'block';
+  if (playerIndicator) playerIndicator.style.display = 'none';
 
-    if (isHost) {
-          // do NOT auto-show a timed waiting popup for host
-  // host controls the popup with key "2"
-    } else {
-      if (playerChatEl) playerChatEl.style.display = 'grid';
-      if (chatInputEl) {
-        chatInputEl.value = '';
-
-        // iOS: focus works better when visible + slight delay
-        setTimeout(() => {
-          try { chatInputEl.focus({ preventScroll: true }); } catch(e) { chatInputEl.focus(); }
-          chatInputEl.click();
-        }, 50);
-      }
-      if (popupMsgEl) {
-        popupMsgEl.classList.remove('host-msg','player-msg');
-        popupMsgEl.classList.add('host-msg');
-        popupMsgEl.textContent = 'react to the host…';
-        popupMsgEl.style.display = 'block';
-      }
+  if (isHost) {
+    convoOpen = true;
+    // host already showed waiting on key "2"
+  } else {
+    if (playerChatEl) playerChatEl.style.display = 'grid';
+    if (chatInputEl) {
+      chatInputEl.value = '';
+      setTimeout(() => {
+        try { chatInputEl.focus({ preventScroll: true }); } catch(e) { chatInputEl.focus(); }
+        chatInputEl.click();
+      }, 50);
     }
-  });
-
-  socket.on('conversationEnd', ({ conversationId }) => {
-    console.log('conversationEnd', conversationId);
-    if (conversationId !== currentConversationId) return;
-
-    currentConversationId = null;
-    hasRespondedThisRound = false;
-
-if (isHost) needsSecondPressFor2 = false;
-
-    if (hostIndicator) hostIndicator.style.display = 'none';
-    if (playerIndicator) playerIndicator.style.display = 'none';
-    if (playerChatEl) playerChatEl.style.display = 'none';
-
-    if (!isHost && popupMsgEl) {
-      popupMsgEl.style.display = 'none';
+    if (popupMsgEl) {
+      popupMsgEl.classList.remove('host-msg','player-msg');
+      popupMsgEl.classList.add('host-msg');
+      popupMsgEl.textContent = 'react to the host…';
+      popupMsgEl.style.display = 'block';
     }
-  });
-  socket.on('conversationResult', ({ conversationId, message }) => {
-  if (!isHost) return;
+  }
+});
 
-  if (!revealRequested) {
-    // ignore if result arrives before 2nd press (shouldn't happen with endConversationNow)
-    return;
+socket.on('conversationEnd', ({ conversationId }) => {
+  console.log('conversationEnd', conversationId);
+  if (conversationId !== currentConversationId) return;
+
+  currentConversationId = null;
+  hasRespondedThisRound = false;
+
+  if (isHost) {
+    convoOpen = false;
+    // hide the waiting popup when the convo ends
+    if (popupMsgEl) popupMsgEl.style.display = 'none';
   }
 
-  revealRequested = false;
-  convoArmed = false;
+  if (hostIndicator) hostIndicator.style.display = 'none';
+  if (playerIndicator) playerIndicator.style.display = 'none';
+  if (playerChatEl) playerChatEl.style.display = 'none';
 
-  const text = message ? String(message) : 'no response..';
+  if (!isHost && popupMsgEl) {
+    popupMsgEl.style.display = 'none';
+  }
+});
+
+
+socket.on('conversationResult', ({ conversationId, message }) => {
+  if (!isHost) return;
+
+  const text = (message && String(message).trim()) ? String(message) : 'no response..';
+
+  // play a sound if you like
+  playSound(pickRandomFromPool('message'));
+
+  // show as "player" response bubble
   showActorMessage('player', text, 6000);
 });
+
+
+
+
+
   // Host receives typing indicator from player
   socket.on('playerTyping', ({ conversationId, typing }) => {
     if (!isHost) return;
@@ -1631,24 +1637,21 @@ if (isHost) needsSecondPressFor2 = false;
       case '0':
         triggerHostAction('tvOff');
         break;
-        case '2':
-  // FIRST PRESS: start conversation + show waiting (no timer)
-  if (!needsSecondPressFor2) {
-    needsSecondPressFor2 = true;
+        case '2': {
+  // start conversation (if not already open)
+  if (convoOpen) break;
 
-    socket.emit('startConversation');     // open the slot
-    showHostWaitingMessage();             // stays until you press 2 again
-    break;
-  }
+  socket.emit('startConversation');
+  showHostWaitingMessage(0); // stays until endConversation triggers conversationEnd
+  break;
+}
 
-  // SECOND PRESS: hide waiting + force end (faster)
-  needsSecondPressFor2 = false;
+case '3': {
+  // end conversation (only if one is open)
+  if (!convoOpen) break;
 
-  // this requires server.js to listen for 'endConversationNow'
-  socket.emit('endConversationNow');
-
-  // optional: hide waiting immediately on second press
-  if (popupMsgEl) popupMsgEl.style.display = 'none';
+  socket.emit('endConversation');
+  // (waiting will be hidden when conversationEnd arrives)
   break;
   }
 });
