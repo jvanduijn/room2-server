@@ -37,27 +37,6 @@ function clearConversationState() {
   }
 }
 
-function endConversationAndSendResult(conversationId) {
-  let chosenMessage = null;
-
-  if (conversationResponses.length > 0) {
-    const idx = Math.floor(Math.random() * conversationResponses.length);
-    chosenMessage = conversationResponses[idx].text;
-  }
-
-  // send chosen response only to host
-  if (hostSocketId && hostConnected) {
-    io.to(hostSocketId).emit('conversationResult', {
-      conversationId,
-      message: chosenMessage || null
-    });
-  }
-
-  // end for everyone
-  io.emit('conversationEnd', { conversationId });
-  clearConversationState();
-}
-
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 
@@ -116,9 +95,8 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('hostAction', { kind: data.kind });
   });
 
-  // --- CONVERSATION START (host presses "2" first time) ---
-  // Optional payload.timeLimitMs lets host set a custom response window per round.
-  socket.on('startConversation', (payload = {}) => {
+  // --- CONVERSATION START (host presses "2") ---
+  socket.on('startConversation', () => {
     if (socket.data.role !== 'host') return;
     if (currentConversationId) return; // already running
 
@@ -133,27 +111,28 @@ io.on('connection', (socket) => {
     // notify everyone (host + players)
     io.emit('conversationStart', { conversationId });
 
-    // allow host to shorten/extend the window (clamped)
-    const requested = Number(payload.timeLimitMs);
-    const duration =
-      Number.isFinite(requested) && requested > 0
-        ? Math.min(Math.max(requested, 500), 60000) // clamp 0.5s..60s
-        : CONVERSATION_DURATION_MS;
-
+    // after timeout, pick a response for host
     conversationTimeout = setTimeout(() => {
-      console.log('Conversation ending (timeout)', conversationId);
-      endConversationAndSendResult(conversationId);
-    }, duration);
-  });
+      console.log('Conversation ending', conversationId);
 
-  // --- FORCE END (host presses "2" second time, or other key) ---
-  socket.on('endConversationNow', () => {
-    if (socket.data.role !== 'host') return;
-    if (!currentConversationId) return;
+      let chosenMessage = null;
+      if (conversationResponses.length > 0) {
+        const idx = Math.floor(Math.random() * conversationResponses.length);
+        chosenMessage = conversationResponses[idx].text;
+      }
 
-    const conversationId = currentConversationId;
-    console.log('Conversation ending (forced)', conversationId);
-    endConversationAndSendResult(conversationId);
+      // send chosen response only to host
+      if (hostSocketId && hostConnected) {
+        io.to(hostSocketId).emit('conversationResult', {
+          conversationId,
+          message: chosenMessage || null
+        });
+      }
+
+      // end for everyone
+      io.emit('conversationEnd', { conversationId });
+      clearConversationState();
+    }, CONVERSATION_DURATION_MS);
   });
 
   // --- PLAYER MESSAGES DURING CONVERSATION ---
@@ -200,7 +179,7 @@ io.on('connection', (socket) => {
       // tell players to hide host
       io.emit('hostOffline');
 
-      // if host leaves mid-conversation, end it (no result needed because host is gone)
+      // if host leaves mid-conversation, end it
       if (currentConversationId) {
         const endedConversationId = currentConversationId;
         clearConversationState();
