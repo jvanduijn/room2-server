@@ -127,7 +127,7 @@
   inset:-2px;                   /* match your other overlays */
   background: rgba(0,0,0,0.55); /* night darkness strength */
   opacity: var(--house-dark, 0);
-  transition: opacity 600ms ease; /* smooth fade */
+  transition: opacity 3000ms ease; /* smooth fade */
   pointer-events:none;           /* doors stay clickable */
   z-index: 0;                    /* behind rooms/doors/players */
 }
@@ -1572,7 +1572,7 @@ function setHouseNight(isNight){
 }
 
 
-const NIGHT_DURATION_MS = 10000; // 10s
+const NIGHT_DURATION_MS = 15000; // 10s
 let nightTimer = null;
 
 function startNightPulse(){
