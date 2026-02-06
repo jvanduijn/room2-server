@@ -2288,7 +2288,6 @@ socket.on('conversationResult', ({ message }) => {
 
   showActorMessage('player', text, 6000);
 });
-
 socket.on('conversationEnd', ({ conversationId }) => {
   if (conversationId !== currentConversationId) return;
 
@@ -2297,20 +2296,16 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
   if (isHost) {
     convoOpen = false;
-
-    // only hide waiting (don't kill the result bubble if it’s showing)
     if (hostWaiting) {
       hostWaiting = false;
       if (popupMsgEl) popupMsgEl.style.display = 'none';
     }
+  } else {
+    // ✅ clear locked input for players
+    if (chatInputEl) chatInputEl.value = '';
   }
 
-  if (!isHost) {
-  if (playerChatEl) playerChatEl.style.display = 'grid';
-  setChatLocked(true, 'wait for the host…');
-  showPlayerChatLocked();
-
-}
+  if (playerChatEl) playerChatEl.style.display = 'none';
   if (!isHost && popupMsgEl && !resultShowing) popupMsgEl.style.display = 'none';
 });
 
