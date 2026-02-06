@@ -363,27 +363,7 @@
       background-color: #ffe0e0;
     }
 
-    /* Furniture popup attached flush to map bottom-left */
-    .instruction-box {
-      display: none;
-      position: absolute;
-      top: calc(100% - 1px); /* removes visible gap with map border */
-      left: -2px;
-      margin-top: 0;
-      font-size: 12px;
-      padding: 3px 7px;
-      background-color: #212121;
-      color: #00ff88;
-      border-top: none !important;
-      border: 1px solid #00ff88;
-      text-align: left;
-      z-index: 950;
-      width: auto;
-      max-width: 260px;
-      letter-spacing: 0.5px;
-      border-radius: 0;
-      box-sizing: border-box;
-    }
+
 
     /* Host inventory bar */
     .action-bar {
@@ -886,25 +866,7 @@ body.host-scale .action-btn .off-badge .off-icon{
         height: 44px;
       }
 
-      /* Instruction box pinned top-left of the map */
-      .instruction-box {
-        position: absolute !important;
-        top: 8px !important;
-        left: 8px !important;
-        right: auto !important;
-        bottom: auto !important;
-
-        width: max-content;
-        max-width: 72vw;
-
-        font-size: 15px;
-        padding: 6px 10px;
-        z-index: 1200;
-        box-sizing: border-box;
-        white-space: normal;
-        line-height: 1.25;
-      }
-
+ 
       .action-btn.has-off {
   position: relative;
 }
@@ -1196,9 +1158,7 @@ body.host-scale .action-btn .off-badge .off-icon{
       </div>
     </div>
 
-    <!-- furniture popup attached to map -->
-    <div id="instructionBox" class="instruction-box"></div>
-  </div><!-- /map -->
+ 
 
   <!-- Host-only action bar -->
   <div class="action-bar">
@@ -1382,7 +1342,6 @@ const CONVO_LOOP_POOL = [
   const mapEl         = document.getElementById('map');
   const playerEl      = document.getElementById('player');
   const hostEl        = document.getElementById('host');
-  const instructionBox= document.getElementById('instructionBox');
   const popupMsgEl    = document.getElementById('popup-message');
   const tvAreaEl      = document.getElementById('tv-area');
   const showerAreaEl  = document.getElementById('shower-area');
@@ -2035,15 +1994,6 @@ function stopConvoLoop() {
   }, duration);
 }
 
-  function showObjectPopup(text) {
-    if (isHost) return;
-    instructionBox.textContent = text;
-    instructionBox.style.display = 'block';
-    clearTimeout(showObjectPopup._timeout);
-    showObjectPopup._timeout = setTimeout(() => {
-      instructionBox.style.display = 'none';
-    }, 2500);
-  }
 
   function moveElementToRoom(el, roomId, role) {
     const room = document.getElementById(roomId);
