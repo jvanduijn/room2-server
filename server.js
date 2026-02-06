@@ -55,6 +55,25 @@ io.on('connection', (socket) => {
     }
   });
 
+
+  // --- PLAYER POKES HOST (shows !! etc.) ---
+socket.on('pokeHost', (data) => {
+  // only non-host players can poke
+  if (socket.data.role === 'host') return;
+
+  // if no host, nothing to do
+  if (!hostSocketId || !hostConnected) return;
+
+  // send to host (and optionally to everyone else)
+  io.to(hostSocketId).emit('pokeHost', {
+    from: socket.id,
+    roomId: (data && data.roomId) ? data.roomId : null
+  });
+
+  // OPTIONAL: if you want other players to also see it:
+  // socket.broadcast.emit('pokeHost', { from: socket.id, roomId: data?.roomId ?? null });
+});
+
   // host confirms login success
   socket.on('hostReady', () => {
     if (socket.id !== hostSocketId) return;
