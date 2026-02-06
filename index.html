@@ -78,6 +78,11 @@
       background-color: #ebebeb;
     }
 
+/* NEVER show player chat on host */
+body.host-scale #player-chat{
+  display: none !important;
+}
+
     /* host view ~30% bigger on desktop */
     body.host-scale .everything {
       transform: scale(1.3);
