@@ -2308,14 +2308,14 @@ socket.on('playerTyping', ({ conversationId, typing }) => {
   if (!isHost) return;
   if (!currentConversationId || conversationId !== currentConversationId) return;
 
+  // typing belongs to PLAYER, not host
+  if (!playerTypingIndicator) return;
+
   if (typing) {
-    showHostSignal('...', 900000); // "blijft" aan zolang typing true blijft
+    playerTypingIndicator.textContent = '...';
+    playerTypingIndicator.style.display = 'block';
   } else {
-    // zet terug naar "?" en hide indicator
-    if (hostIndicator) {
-      hostIndicator.textContent = '?';
-      hostIndicator.style.display = 'none';
-    }
+    playerTypingIndicator.style.display = 'none';
   }
 });
 
