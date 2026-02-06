@@ -21,27 +21,19 @@
 
 
 
-    /* Server room darkness overlay (default = dark) */
+
+/* overlay */
 #room2::after{
   content:"";
   position:absolute;
-  top:-2px; left:-2px; right:-2px; bottom:-2px;  /* touch edges like room4 */
-  background: rgba(0, 0, 0, 0.148);
-  opacity: 1;                 /* default dark */
-  transition: opacity 220ms ease;
-  pointer-events: none;       /* ✅ doors remain clickable */
-  z-index: 0;                 /* behind everything inside room2 */
+  inset:-2px; /* a bit bigger so it touches edges */
+  background: rgba(0,0,0,0.26); /* slightly less dark than before */
+  opacity: var(--room2-dark, 1); /* 1 = dark/off, 0 = lit/on */
+  pointer-events:none;           /* doors stay clickable */
+  z-index: 0;                    /* behind doors/objects */
 }
 
-/* When server room “light is on” -> remove darkness */
-#room2.server-lit::after{
-  opacity: 0;
-}
 
-/* optional: subtle “tube glow” when lit */
-#room2.server-lit{
-  box-shadow: inset 0 0 0 1px rgba(0,255,136,0.18);
-}
 
 
 
@@ -1267,7 +1259,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   </div>
   <!-- Player chat bar -->
   <div id="player-chat" class="player-chat">
-    <input id="chat-input" type="text" maxlength="120" placeholder="type your reaction…" />
+    <input id="chat-input" type="text" maxlength="24" placeholder="type your reaction…" />
     <button id="chat-send">send</button>
   </div>
 </div>
@@ -1666,81 +1658,6 @@ function startLightLoop() {
   }
 }
 
-const serverRoomEl = document.getElementById('room2');
-let lastKnownHostRoom = null;
-let serverFlickerTimer = null;
-
-/* hard set: no transitions */
-function setServerRoomLitImmediate(on){
-  if (!serverRoomEl) return;
-  serverRoomEl.style.transition = 'none';
-  serverRoomEl.classList.toggle('server-lit', !!on);
-}
-
-/* smooth set (after flicker is done) */
-function setServerRoomLitSmooth(on){
-  if (!serverRoomEl) return;
-  serverRoomEl.style.transition = '';
-  serverRoomEl.classList.toggle('server-lit', !!on);
-}
-
-function clearServerFlicker(){
-  if (serverFlickerTimer){
-    clearTimeout(serverFlickerTimer);
-    serverFlickerTimer = null;
-  }
-}
-
-/* sharp fluorescent flicker */
-function flickerServerRoomThenOn(){
-  if (!serverRoomEl) return;
-
-  clearServerFlicker();
-
-  // total flicker time (short + sharp)
-  const flickers = 4 + Math.floor(Math.random() * 3); // 4–6 snaps
-  let count = 0;
-
-  function snap(){
-    if (count >= flickers){
-      setServerRoomLitSmooth(true); // final ON, smooth allowed again
-      clearServerFlicker();
-      return;
-    }
-
-    // hard snap
-    setServerRoomLitImmediate(Math.random() > 0.5);
-
-    count++;
-
-    // very irregular fluorescent timing
-    const nextIn = 40 + Math.floor(Math.random() * 90); // 40–130ms
-    serverFlickerTimer = setTimeout(snap, nextIn);
-  }
-
-  // start from dark
-  setServerRoomLitImmediate(false);
-  snap();
-}
-
-function syncServerRoomLightWithHost(newHostRoom){
-  if (!newHostRoom) return;
-
-  const wasInServer = (lastKnownHostRoom === 'room2');
-  const isInServer  = (newHostRoom === 'room2');
-
-  if (!wasInServer && isInServer){
-    flickerServerRoomThenOn();
-  } else if (wasInServer && !isInServer){
-    clearServerFlicker();
-    setServerRoomLitImmediate(false); // snap OFF
-  } else {
-    setServerRoomLitImmediate(isInServer);
-  }
-
-  lastKnownHostRoom = newHostRoom;
-}
-
 
 
 
@@ -1795,6 +1712,108 @@ function pickRandomDifferent(pool, lastUrl) {
     url = pool[(pool.indexOf(url) + 1) % pool.length];
   }
   return url;
+}
+
+const room2El = document.getElementById('room2');
+
+let serverLightOn = false;
+let serverFlickerArmed = false;
+let serverFlickerTimeout = null;
+
+function setRoom2Darkness(opacity01){
+  if (!room2El) return;
+  const v = Math.max(0, Math.min(1, opacity01));
+  room2El.style.setProperty('--room2-dark', String(v));
+}
+
+/**
+ * Snappy fluorescent flicker: a few hard steps with tiny timings.
+ * We keep it “jittery” by using random patterns + no CSS easing.
+ */
+function flickerRoom2Once() {
+  if (!serverLightOn) return;
+
+  // quick, ugly, fluorescent-like steps (dark->bright->dark->bright)
+  // 0 = fully lit, 1 = fully dark
+  const patterns = [
+    [0.85, 35, 0.10, 45, 0.65, 28, 0.00, 0],
+    [0.95, 25, 0.20, 40, 0.80, 22, 0.05, 35, 0.00, 0],
+    [0.60, 30, 0.15, 30, 0.70, 25, 0.00, 0],
+    [0.90, 18, 0.05, 40, 0.55, 20, 0.00, 0],
+  ];
+
+  const seq = patterns[Math.floor(Math.random() * patterns.length)];
+
+  let i = 0;
+  function step(){
+    if (!serverLightOn) return;
+
+    const opacity = seq[i++];
+    const dur = seq[i++];
+
+    if (typeof opacity !== 'number') return;
+
+    setRoom2Darkness(opacity);
+
+    if (dur > 0) {
+      setTimeout(step, dur);
+    } else {
+      // end: ensure fully lit
+      setRoom2Darkness(0);
+    }
+  }
+
+  step();
+}
+
+/**
+ * Re-arm random flickers while the light is ON.
+ * Random spacing keeps it organic.
+ */
+function armRoom2RandomFlickers(){
+  disarmRoom2RandomFlickers();
+  serverFlickerArmed = true;
+
+  const scheduleNext = () => {
+    if (!serverFlickerArmed || !serverLightOn) return;
+
+    // random wait between flickers (tweak to taste)
+    const wait = 1800 + Math.random() * 6200; // 1.8s -> 8.0s
+
+    serverFlickerTimeout = setTimeout(() => {
+      // small chance of flicker each time
+      const chance = 0.55; // 55% of the time
+      if (Math.random() < chance) flickerRoom2Once();
+
+      scheduleNext();
+    }, wait);
+  };
+
+  scheduleNext();
+}
+
+function disarmRoom2RandomFlickers(){
+  serverFlickerArmed = false;
+  if (serverFlickerTimeout) clearTimeout(serverFlickerTimeout);
+  serverFlickerTimeout = null;
+}
+
+/**
+ * Turn server room light ON/OFF (with a startup flicker).
+ */
+function setServerRoomLight(isOn){
+  serverLightOn = !!isOn;
+
+  if (!serverLightOn) {
+    disarmRoom2RandomFlickers();
+    setRoom2Darkness(1); // dark/off
+    return;
+  }
+
+  // light on: startup flicker + then random flickers
+  setRoom2Darkness(1);
+  setTimeout(() => flickerRoom2Once(), 60 + Math.random() * 120);
+  setTimeout(() => armRoom2RandomFlickers(), 350);
 }
 
 function startConvoLoop() {
@@ -1970,15 +1989,16 @@ function stopConvoLoop() {
     }
 
     currentRoom = targetRoom;
+    
     window.currentRoom = currentRoom;
     updateActiveRoom(currentRoom);
+// ✅ host: server light follows where host is
+if (isHost) setServerRoomLight(currentRoom === 'room2');
 
-    if (isHost) {
+if (isHost) {
   setAmbientForRoom(currentRoom);
-  syncBathroomLightForRoom(currentRoom);   // ✅ add this
-
+  syncBathroomLightForRoom(currentRoom);
   playEnterForRoom(currentRoom);
-
 }
 
     if (isHost) {
@@ -1986,9 +2006,9 @@ function stopConvoLoop() {
       hostRoom = currentRoom;
       moveElementToRoom(hostEl, hostRoom, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
+      setServerRoomLight(hostRoom === 'room2');
 
   // ✅ server room light follows host (host’s own view too)
-  syncServerRoomLightWithHost(hostRoom);
 
     } else {
       moveElementToRoom(playerEl, currentRoom, 'player');
@@ -2010,13 +2030,15 @@ function stopConvoLoop() {
   });
 
   socket.on('hostPosition', (data) => {
-    if (!data || !data.roomId) return;
-    hostRoom = data.roomId;
-    hostEl.style.display = 'block';
-    moveElementToRoom(hostEl, hostRoom, 'host');
-    syncServerRoomLightWithHost(hostRoom);
+  if (!data || !data.roomId) return;
+  hostRoom = data.roomId;
 
-  });
+  hostEl.style.display = 'block';
+  moveElementToRoom(hostEl, hostRoom, 'host');
+
+  // ✅ players: light follows host
+  if (!isHost) setServerRoomLight(hostRoom === 'room2');
+});
 
   socket.on('initialHostPosition', (data) => {
     if (!isHost) return;
@@ -2025,24 +2047,28 @@ function stopConvoLoop() {
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
-      syncServerRoomLightWithHost(hostRoom);
 
     }
   });
 
   socket.on('hostOnline', ({ roomId }) => {
-    if (isHost) return;
-    hostRoom = roomId || 'room5';
-    hostEl.style.display = 'block';
-    moveElementToRoom(hostEl, hostRoom, 'host');
-    triggerHostArrivalEffect();
-  });
+  if (isHost) return;
 
-  socket.on('hostOffline', () => {
-    if (!isHost) {
-      hostEl.style.display = 'none';
-    }
-  });
+  hostRoom = roomId || 'room5';
+  hostEl.style.display = 'block';
+  moveElementToRoom(hostEl, hostRoom, 'host');
+  triggerHostArrivalEffect();
+
+  // ✅ players: if host comes online in room2, light should be on
+  setServerRoomLight(hostRoom === 'room2');
+});
+
+socket.on('hostOffline', () => {
+  if (!isHost) {
+    hostEl.style.display = 'none';
+    setServerRoomLight(false); // ✅ light off when host disappears
+  }
+});
 
   socket.on('ghostPlayerPosition', ({ roomId }) => {
     if (!isHost) return;
@@ -2629,6 +2655,7 @@ if (hostPasswordEl) {
       setAmbientForRoom(currentRoom); // host only
       syncBathroomLightForRoom(currentRoom);     // ✅ add this
 
+      setServerRoomLight(currentRoom === 'room2');
 
 
 // don't play enter sound on initial load (only after first actual move)
@@ -2644,9 +2671,11 @@ didInitialEnterSound = true;
       stopAmbient(); // make sure players never run ambient
 
       if (actionBarEl) actionBarEl.style.display = 'none';
+
+      setServerRoomLight(false);
+
     }
     setBathroomDarkness(bathroomLightEnabled);
-    syncServerRoomLightWithHost(hostRoom);
     serverAmbientEnabled = false;
 
   });
