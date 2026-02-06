@@ -118,6 +118,29 @@
       z-index: 0 !important; /* below popups */
     }
 
+    /* ===== WHOLE HOUSE NIGHT OVERLAY (entire map) ===== */
+#map{
+  isolation: isolate; /* keep pseudo-element layering sane */
+}
+
+/* 0 = day, 1 = night */
+#map::before{
+  content:"";
+  position:absolute;
+  inset:-2px;                   /* match your other overlays */
+  background: rgba(0,0,0,0.55); /* night darkness strength */
+  opacity: var(--house-dark, 0);
+  transition: opacity 600ms ease; /* smooth fade */
+  pointer-events:none;           /* doors stay clickable */
+  z-index: 0;                    /* behind rooms/doors/players */
+}
+
+/* make sure everything inside map sits above the overlay */
+#map > *{
+  position: relative;
+  z-index: 1;
+}
+
     #map {
       position: relative;
       -webkit-tap-highlight-color: transparent;
@@ -1296,7 +1319,6 @@ let serverLightLastOn = null;  // internal edge-detect
 
 
   let serverAmbientEnabled = false;
-  const SERVERROOM_OFF_DELAY = 1500; // ms
 
 
 // ===== TIMELINE / CREDITS =====
@@ -1306,7 +1328,7 @@ let timelineElapsed = 0;     // ms
 let timelineLastTick = null; // performance.now()
 let timelineRAF = null;
 let timelineFinished = false;
-const SERVERROOM_LIT_OPACITY = 0.07; // try 0.06–0.1
+
 
 
   let convoOpen = false;       // is a conversation currently collecting?
@@ -1384,6 +1406,8 @@ const CONVO_LOOP_POOL = [
   };
 
 
+
+
   // one-shot "enter room" sounds (host only)
 const ROOM_ENTER = {
   room1: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom.mp3',
@@ -1449,6 +1473,7 @@ const LIGHT_HUM_LOOP_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.de
 
 const SERVERS_OFF_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/turn_off_servers.mp3';
 const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/turn_on_servers.mp3';
+
 
 
 
@@ -1543,6 +1568,43 @@ function stopAmbient() {
   ambientAudio = null;
   ambientRoom = null;
 }
+
+
+
+let houseNight = false;
+
+function setHouseNight(isNight){
+  houseNight = !!isNight;
+  if (!mapEl) return;
+  mapEl.style.setProperty('--house-dark', houseNight ? '1' : '0');
+}
+
+
+const NIGHT_DURATION_MS = 10000; // 10s
+let nightTimer = null;
+
+function startNightPulse(){
+  // host only
+  if (!isHost || !hostUnlocked) return;
+
+  // restart if pressed again
+  if (nightTimer) clearTimeout(nightTimer);
+  nightTimer = null;
+
+  // turn night ON locally + for everyone
+  setHouseNight(true);
+  socket.emit('hostAction', { kind: 'nightOn' });
+
+  // auto back to day after 10s
+  nightTimer = setTimeout(() => {
+    setHouseNight(false);
+    socket.emit('hostAction', { kind: 'nightOff' });
+    nightTimer = null;
+  }, NIGHT_DURATION_MS);
+}
+
+
+
 
 document.querySelectorAll('.off-badge').forEach(badge => {
   badge.addEventListener('click', (e) => {
@@ -1843,6 +1905,10 @@ function setServerRoomLight(isOn){
 
   const STARTUP_DELAY_MS = 1500;
 
+  const SERVERROOM_OFF_DELAY = 1500; // ms
+const SERVERROOM_LIT_OPACITY = 0.07; // try 0.06–0.1
+
+
   setTimeout(() => {
     if (!serverLightOn) return;
 
@@ -2129,6 +2195,10 @@ socket.on('hostOffline', () => {
   if (!data || !data.kind) return;
   const kind = data.kind;
 
+// whole-house night overlay (host controlled)
+if (kind === 'nightOn')  setHouseNight(true);
+if (kind === 'nightOff') setHouseNight(false);
+
   // ✅ bathroom darkness visual for everyone
   if (kind === 'lightOn')  setBathroomDarkness(true);
   if (kind === 'lightOff') setBathroomDarkness(false);
@@ -2304,7 +2374,7 @@ socket.on('conversationEnd', ({ conversationId }) => {
         conversationId: convId,
         typing: false
       });
-    }, 1500);
+    }, 2200);
   }
 
   if (chatSendEl) {
@@ -2472,6 +2542,8 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
   switch (kind) {
     case 'sleep':
+    startNightPulse(); // ✅ night for 10s, then day again (broadcast)
+
       playSound(pickRandomFromPool('sleep'));
       break;
 
@@ -2712,6 +2784,7 @@ if (hostPasswordEl) {
 
   window.addEventListener('load', () => {
     hostEl.style.display = 'none';
+    setHouseNight(false);
 
     if (hostBannerEl) {
       hostBannerEl.textContent = isHost
