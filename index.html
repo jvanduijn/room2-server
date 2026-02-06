@@ -2146,11 +2146,21 @@ function goToRoom(targetRoom) {
   }, duration);
 }
 
-socket.on('pokeHost', () => {
+socket.on('pokeHost', (data) => {
   if (!isHost) return;
-  showHostSignal('!', 1000);
-});
 
+  // show the poke ABOVE THE PLAYER on the host screen
+  // (and optionally move the player ghost to the room that poked)
+  const roomId = data && data.roomId ? data.roomId : null;
+
+  if (roomId) {
+    playerEl.style.display = 'block';
+    playerEl.style.opacity = '1'; // keep ghost vibe (optional)
+    moveElementToRoom(playerEl, roomId, 'player');
+  }
+
+  pulsePoke(1000); // uses #player-poke (the "!" bubble)
+});
 
   socket.on('hostOnline', ({ roomId }) => {
   if (isHost) return;
