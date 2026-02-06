@@ -870,6 +870,8 @@ body.host-scale .action-btn .off-badge .off-icon{
       .host-banner {
         z-index: 1 !important; /* below popups */
         right: 14px;
+        top: -8px !important;
+
         font-size: 13px;
         padding: 4px 8px;
       }
@@ -920,40 +922,55 @@ body.host-scale .action-btn .off-badge .off-icon{
   transform: scale(0.9);
 }
 
-      /* Popup message shrink-to-content (not full width) */
-      .popup-message {
-        top: 8px !important;
-        left: 8px !important;
-        right: auto !important;
-        bottom: auto !important;
+.popup-message {
+    /* ✅ attach to the TOP EDGE of the MAP (just above it) */
+    top: -36px !important;     /* sits above the map border */
+    left: 6px !important;
 
-        width: max-content;
-        max-width: 72vw;
+    right: auto !important;
+    bottom: auto !important;
 
-        transform: none !important;
-        align-items: center;
-        display: none;
-        white-space: normal;
-      }
+    width: max-content;
+    max-width: calc(100% - 12px);
 
-      .popup-message .actor-text {
-        white-space: normal; /* override nowrap on phone */
-      }
+    transform: none !important;
+    display: none;
 
-      /* Chat bar stuck to bottom of the MAP (below it), not screen bottom */
+    /* ✅ slightly bigger on phone */
+    font-size: 16px !important;
+    padding: 7px 10px !important;
+    line-height: 1.2;
+
+    white-space: normal;
+    z-index: 2000;
+  }
+
+  .popup-message .actor-text {
+    font-size: 16px !important;
+    white-space: normal;
+  }
       .player-chat {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: calc(400px * 0.93 + 18px + 10px); /* map height * scale + map margin-top + a little gap */
-        margin: 0 auto;
-        width: 400px;
-        transform: none;
+    position: absolute;
 
-        background: #000;
-        border: 2px solid #00ff88;
-        padding: 6px 8px;
-      }
+    /* center it and keep it inside the phone width */
+    left: 50%;
+    transform: translateX(-50%);
+
+    /* ✅ stick to bottom of the map, but 15px higher than your current position */
+    top: calc(400px * 0.93 + 18px + 10px - 15px);
+
+    /* ✅ never overflow phone width */
+    width: calc(100vw - 16px);   /* 8px padding left + right */
+    max-width: 400px;
+
+    margin: 0;
+    box-sizing: border-box;
+
+    background: #000;
+    border: 2px solid #00ff88;
+    padding: 6px 8px;
+    display: none; /* keep your logic */
+  }
 
       .player-chat input,
       .player-chat button {
@@ -2155,7 +2172,7 @@ socket.on('pokeHost', (data) => {
 
   if (roomId) {
     playerEl.style.display = 'block';
-    playerEl.style.opacity = '1'; // keep ghost vibe (optional)
+    playerEl.style.opacity = '0.7'; // keep ghost vibe (optional)
     moveElementToRoom(playerEl, roomId, 'player');
   }
 
@@ -2370,8 +2387,9 @@ socket.emit('pokeHost', { roomId: currentRoom });
     });
 
     hasRespondedThisRound = true;
-    playerChatEl.style.display = 'none';
-
+    setChatLocked(true, 'wait for the host…');
+    playerChatEl.style.display = 'grid'; // keep it visible
+    
     if (popupMsgEl && !isHost) {
       popupMsgEl.style.display = 'none';
     }
@@ -2391,6 +2409,7 @@ socket.emit('pokeHost', { roomId: currentRoom });
         if (playerTypingIndicator) {
   playerTypingIndicator.style.display = 'none';
 }
+
       socket.emit('playerTyping', {
         conversationId: convId,
         typing: false
