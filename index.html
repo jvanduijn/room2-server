@@ -2145,6 +2145,13 @@ function goToRoom(targetRoom) {
     }
   });
 
+  socket.on('pokeHost', () => {
+  if (!isHost) return;
+
+  // show "!!" above the HOST
+  pulseIndicator(hostIndicator, '!!', 1000);
+});
+
   socket.on('hostOnline', ({ roomId }) => {
   if (isHost) return;
 
@@ -2298,27 +2305,27 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
     playerIndicator.style.display = typing ? 'block' : 'none';
   });
+
+
   hostEl.addEventListener('click', () => {
   if (isHost) return;
   if (currentRoom !== hostRoom) return;
 
   playClickSound();
 
-  // ✅ new: reactions on click
-  // "!" above the player, "!!" above the host (both for 1s)
+  // ✅ ONLY show "!" above the PLAYER
   pulseIndicator(playerIndicator, '!', 1000);
-  pulseIndicator(hostIndicator, '!!', 1000);
 
-  // (optional) also tell host / others, if your server forwards it
+  // ✅ tell the server — host will react separately
   socket.emit('pokeHost', { roomId: currentRoom });
 
+  // optional little physical feedback
   const originalTransform = hostEl.style.transform || '';
   hostEl.style.transform = originalTransform + ' scale(1.1)';
   setTimeout(() => {
     moveElementToRoom(hostEl, hostRoom, 'host');
   }, 50);
 });
-
   function sendPlayerMessage() {
     if (!playerChatEl || !chatInputEl) return;
     if (!currentConversationId) return;
