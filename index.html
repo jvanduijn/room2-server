@@ -1289,8 +1289,14 @@ body.host-scale .action-btn .off-badge .off-icon{
   let serverAmbientEnabled = true; // host-only toggle for room2
   let bathroomLightEnabled = false; // light can be enabled, but only plays in room4
 
+  let serverLightEnabled = true; // or false if you want it OFF by default
+let serverLightLastOn = null;  // internal edge-detect
+
 
   let resultShowing = false;
+
+
+  let serverAmbientEnabled = false;
 
 
 // ===== TIMELINE / CREDITS =====
@@ -1801,6 +1807,30 @@ function disarmRoom2RandomFlickers(){
 /**
  * Turn server room light ON/OFF (with a startup flicker).
  */
+
+
+ function applyServerRoomLightFor(roomId){
+  const shouldBeOn = !!serverLightEnabled && roomId === 'room2';
+
+  // edge detect: if it was off and should be on => do startup flicker
+  if (serverLightLastOn === null) {
+    // first run: no fancy edge logic, just set state
+    setServerRoomLight(shouldBeOn);
+  } else if (!serverLightLastOn && shouldBeOn) {
+    // turning ON => your flicker happens inside setServerRoomLight(true)
+    setServerRoomLight(true);
+  } else if (serverLightLastOn && !shouldBeOn) {
+    // turning OFF => snap dark
+    setServerRoomLight(false);
+  } else {
+    // unchanged
+    setServerRoomLight(shouldBeOn);
+  }
+
+  serverLightLastOn = shouldBeOn;
+}
+
+
 function setServerRoomLight(isOn){
   serverLightOn = !!isOn;
 
@@ -1982,42 +2012,36 @@ function stopConvoLoop() {
   setTimeout(() => hostEl.classList.remove('arrival-sparkle'), 3000);
 }
 
-  function goToRoom(targetRoom) {
-    if (targetRoom === currentRoom) return;
-    if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) {
-      return;
-    }
+function goToRoom(targetRoom) {
+  if (targetRoom === currentRoom) return;
+  if (!roomGraph[currentRoom] || !roomGraph[currentRoom].includes(targetRoom)) return;
 
-    currentRoom = targetRoom;
-    
-    window.currentRoom = currentRoom;
-    updateActiveRoom(currentRoom);
-// ✅ host: server light follows where host is
-if (isHost) setServerRoomLight(currentRoom === 'room2');
+  currentRoom = targetRoom;
+  window.currentRoom = currentRoom;
+  updateActiveRoom(currentRoom);
 
-if (isHost) {
-  setAmbientForRoom(currentRoom);
-  syncBathroomLightForRoom(currentRoom);
-  playEnterForRoom(currentRoom);
+  // host-only per-room audio stuff
+  if (isHost) {
+    setAmbientForRoom(currentRoom);
+    syncBathroomLightForRoom(currentRoom);
+    playEnterForRoom(currentRoom);
+  }
+
+  if (isHost) {
+    if (!hostUnlocked) return;
+    hostRoom = currentRoom;
+    moveElementToRoom(hostEl, hostRoom, 'host');
+    socket.emit('hostMove', { roomId: hostRoom });
+  } else {
+    moveElementToRoom(playerEl, currentRoom, 'player');
+    socket.emit('playerMove', { roomId: currentRoom });
+  }
+
+  // ✅ IMPORTANT:
+  // Do NOT call setServerRoomLight() here anymore.
+  // The server-room light is now controlled only by C/8 (serverAmbOn/off).
 }
 
-    if (isHost) {
-      if (!hostUnlocked) return;
-      hostRoom = currentRoom;
-      moveElementToRoom(hostEl, hostRoom, 'host');
-      socket.emit('hostMove', { roomId: hostRoom });
-      setServerRoomLight(hostRoom === 'room2');
-
-  // ✅ server room light follows host (host’s own view too)
-
-    } else {
-      moveElementToRoom(playerEl, currentRoom, 'player');
-      socket.emit('playerMove', { roomId: currentRoom });
-    }
-
-    if (isHost || !isMobile) {
-    }
-  }
 
   // SOCKET.IO
   socket.on('connect', () => {
@@ -2037,7 +2061,6 @@ if (isHost) {
   moveElementToRoom(hostEl, hostRoom, 'host');
 
   // ✅ players: light follows host
-  if (!isHost) setServerRoomLight(hostRoom === 'room2');
 });
 
   socket.on('initialHostPosition', (data) => {
@@ -2060,13 +2083,11 @@ if (isHost) {
   triggerHostArrivalEffect();
 
   // ✅ players: if host comes online in room2, light should be on
-  setServerRoomLight(hostRoom === 'room2');
 });
 
 socket.on('hostOffline', () => {
   if (!isHost) {
     hostEl.style.display = 'none';
-    setServerRoomLight(false); // ✅ light off when host disappears
   }
 });
 
@@ -2077,47 +2098,53 @@ socket.on('hostOffline', () => {
     playerEl.style.display = 'block';
     moveElementToRoom(playerEl, roomId, 'player');
   });
-
   socket.on('hostAction', (data) => {
-    if (!data || !data.kind) return;
-    const kind = data.kind;
+  if (!data || !data.kind) return;
+  const kind = data.kind;
 
+  // ✅ bathroom darkness visual for everyone
+  if (kind === 'lightOn')  setBathroomDarkness(true);
+  if (kind === 'lightOff') setBathroomDarkness(false);
 
-  if (kind === 'lightOn')  setBathroomDarkness(true);   // ✅ add
-  if (kind === 'lightOff') setBathroomDarkness(false);  // ✅ add
+  // ✅ server room light (room2) follows C/8 for everyone
+  if (kind === 'serverAmbOn')  setServerRoomLight(true);   // flicker ON + random flickers
+  if (kind === 'serverAmbOff') setServerRoomLight(false);  // snap OFF
 
-    if (kind === 'tvOn') setTvVisualState(true);
-    else if (kind === 'tvOff') setTvVisualState(false);
-    if (kind === 'showerOn') setShowerVisualState(true);
-    else if (kind === 'showerOff') setShowerVisualState(false);
+  // tv/shower visuals for everyone
+  if (kind === 'tvOn') setTvVisualState(true);
+  else if (kind === 'tvOff') setTvVisualState(false);
 
-    const msg = actionMessages[kind];
-    if (!msg) return;
+  if (kind === 'showerOn') setShowerVisualState(true);
+  else if (kind === 'showerOff') setShowerVisualState(false);
 
-    if (isHost) {
-      showActorMessage('host', msg);
-    } else {
-      if (!popupMsgEl) return;
-      popupMsgEl.classList.remove('host-msg','player-msg');
-      popupMsgEl.classList.add('host-msg');
-      popupMsgEl.innerHTML =
-        '<span class="actor-icon actor-host"></span>' +
-        '<span class="actor-text">' + msg + '</span>';
-      popupMsgEl.style.display = 'flex';
+  const msg = actionMessages[kind];
+  if (!msg) return;
 
-      clearTimeout(showActorMessage._timeout);
-      showActorMessage._timeout = setTimeout(() => {
-        if (currentConversationId && !hasRespondedThisRound) {
-          popupMsgEl.classList.remove('host-msg','player-msg');
-          popupMsgEl.classList.add('host-msg');
-          popupMsgEl.textContent = '..asks for your reaction!';
-          popupMsgEl.style.display = 'block';
-        } else {
-          popupMsgEl.style.display = 'none';
-        }
-      }, 4000);
-    }
-  });
+  // show popup message
+  if (isHost) {
+    showActorMessage('host', msg);
+  } else {
+    if (!popupMsgEl) return;
+    popupMsgEl.classList.remove('host-msg','player-msg');
+    popupMsgEl.classList.add('host-msg');
+    popupMsgEl.innerHTML =
+      '<span class="actor-icon actor-host"></span>' +
+      '<span class="actor-text">' + msg + '</span>';
+    popupMsgEl.style.display = 'flex';
+
+    clearTimeout(showActorMessage._timeout);
+    showActorMessage._timeout = setTimeout(() => {
+      if (currentConversationId && !hasRespondedThisRound) {
+        popupMsgEl.classList.remove('host-msg','player-msg');
+        popupMsgEl.classList.add('host-msg');
+        popupMsgEl.textContent = '..asks for your reaction!';
+        popupMsgEl.style.display = 'block';
+      } else {
+        popupMsgEl.style.display = 'none';
+      }
+    }, 4000);
+  }
+});
 
   socket.on('conversationStart', ({ conversationId }) => {
   currentConversationId = conversationId;
@@ -2341,124 +2368,145 @@ socket.on('conversationEnd', ({ conversationId }) => {
       showerAudio = null;
     }
   }
-
   function triggerHostAction(kind) {
-    if (!isHost || !hostUnlocked) return;
+  if (!isHost || !hostUnlocked) return;
 
-    const allowed = new Set(roomActions[currentRoom] || []);
-    if (!allowed.has(kind)) return;
+  const allowed = new Set(roomActions[currentRoom] || []);
+  if (!allowed.has(kind)) return;
 
-    const msg = actionMessages[kind];
-    if (msg) showActorMessage('host', msg);
+  const msg = actionMessages[kind];
+  if (msg) showActorMessage('host', msg);
 
-    socket.emit('hostAction', { kind });
+  // broadcast to players
+  socket.emit('hostAction', { kind });
 
-    if (kind === 'tvOff') {
-  flashButton('tvOff');
-  playSound(TV_OFF_ONESHOT_URL);   // <-- one-shot for "0"
-  stopTvLoop();
-  setTvVisualState(false);
-  return;
-}
+  // --- special OFF actions that stop loops ---
+  if (kind === 'tvOff') {
+    flashButton('tvOff');
+    playSound(TV_OFF_ONESHOT_URL);
+    stopTvLoop();
+    setTvVisualState(false);
+    return;
+  }
 
-if (kind === 'serverAmbOff') {
-  flashButton('serverAmbOff');
-  serverAmbientEnabled = false;
-  playSound(SERVERS_OFF_URL); // <-- one-shot for "X"
+  // ✅ C/8 now controls BOTH:
+  // - server ambience (host-only audio)
+  // - server room light (everyone visual via hostAction handler)
+  if (kind === 'serverAmbOff') {
+    flashButton('serverAmbOff');
 
-  // only stop if we’re currently in room2
-  if (currentRoom === 'room2') stopAmbient();
-  return;
-}
+    serverAmbientEnabled = false;
+    playSound(SERVERS_OFF_URL);
 
-if (kind === 'serverAmbOn') {
-  flashButton('serverAmbOn');
-  serverAmbientEnabled = true;
-  playSound(SERVERS_ON_URL); // <-- one-shot for "X"
+    // host local audio
+    if (currentRoom === 'room2') stopAmbient();
 
+    // host local visual (players will also do it via socket.on('hostAction'))
+    setServerRoomLight(false);
 
-  // only start if we’re currently in room2
-  if (currentRoom === 'room2') setAmbientForRoom('room2');
-  return;
-}
+    return;
+  }
 
-if (kind === 'showerOff') {
-  flashButton('showerOff');
-  playSound(SHOWER_OFF_ONESHOT_URL); // <-- one-shot for "X"
-  stopShowerLoop();
-  setShowerVisualState(false);
-  return;
-}
+  if (kind === 'serverAmbOn') {
+    flashButton('serverAmbOn');
 
-if (kind === 'lightOff') {
-  flashButton('lightOff');
-  setBathroomDarkness(false);          // ✅ add
+    serverAmbientEnabled = true;
+    playSound(SERVERS_ON_URL);
 
-  bathroomLightEnabled = false;
-  playSound(LIGHT_OFF_SWITCH_URL); // one-shot
-  syncBathroomLightForRoom(currentRoom);   // ✅ stops hum if in room4
-  return;
-}
+    // host local audio (only starts if actually in room2)
+    if (currentRoom === 'room2') setAmbientForRoom('room2');
 
-    flashButton(kind);
+    // host local visual (players will also do it via socket.on('hostAction'))
+    setServerRoomLight(true);
 
-    switch (kind) {
-      case 'sleep':
-        playSound(pickRandomFromPool('sleep'));
-        break;
-      case 'table':
-        playSound(pickRandomFromPool('table'));
-        break;
-        case 'lightOn': {
-  bathroomLightEnabled = true;
-  setBathroomDarkness(true);           // ✅ add
+    return;
+  }
 
-  playSound(LIGHT_ON_SWITCH_URL);          // one-shot
-  syncBathroomLightForRoom(currentRoom);   // ✅ starts hum only if in room4
-  break;
-}
-      case 'piano':
-        playSound(pickRandomFromPool('piano'));
-        break;
-      case 'water':
-        playSound(pickRandomFromPool('water'));
-        break;
-      case 'showerOn': {
-        stopShowerLoop();
-        setShowerVisualState(true);
-        const url = pickRandomFromPool('shower');
-        if (!url) break;
-        try {
-          showerAudio = new Audio(url);
-          showerAudio.loop = true;
-          showerAudio.play().catch(() => {});
-        } catch (e) {
-          console.error(e);
-        }
-        break;
+  if (kind === 'showerOff') {
+    flashButton('showerOff');
+    playSound(SHOWER_OFF_ONESHOT_URL);
+    stopShowerLoop();
+    setShowerVisualState(false);
+    return;
+  }
+
+  if (kind === 'lightOff') {
+    flashButton('lightOff');
+    setBathroomDarkness(false);
+
+    bathroomLightEnabled = false;
+    playSound(LIGHT_OFF_SWITCH_URL);
+    syncBathroomLightForRoom(currentRoom);
+    return;
+  }
+
+  // --- normal actions ---
+  flashButton(kind);
+
+  switch (kind) {
+    case 'sleep':
+      playSound(pickRandomFromPool('sleep'));
+      break;
+
+    case 'table':
+      playSound(pickRandomFromPool('table'));
+      break;
+
+    case 'lightOn': {
+      bathroomLightEnabled = true;
+      setBathroomDarkness(true);
+      playSound(LIGHT_ON_SWITCH_URL);
+      syncBathroomLightForRoom(currentRoom);
+      break;
+    }
+
+    case 'piano':
+      playSound(pickRandomFromPool('piano'));
+      break;
+
+    case 'water':
+      playSound(pickRandomFromPool('water'));
+      break;
+
+    case 'showerOn': {
+      stopShowerLoop();
+      setShowerVisualState(true);
+      const url = pickRandomFromPool('shower');
+      if (!url) break;
+      try {
+        showerAudio = new Audio(url);
+        showerAudio.loop = true;
+        showerAudio.play().catch(() => {});
+      } catch (e) {
+        console.error(e);
       }
-      case 'brush':
-        playSound(pickRandomFromPool('brush'));
-        break;
-      case 'dinner':
-        playSound(pickRandomFromPool('dinner'));
-        break;
-      case 'tvOn': {
-        stopTvLoop();
-        setTvVisualState(true);
-        const url = pickRandomFromPool('tvOn');
-        if (!url) return;
-        try {
-          tvAudio = new Audio(url);
-          tvAudio.loop = true;
-          tvAudio.play().catch(() => {});
-        } catch (e) {
-          console.error(e);
-        }
-        break;
+      break;
+    }
+
+    case 'brush':
+      playSound(pickRandomFromPool('brush'));
+      break;
+
+    case 'dinner':
+      playSound(pickRandomFromPool('dinner'));
+      break;
+
+    case 'tvOn': {
+      stopTvLoop();
+      setTvVisualState(true);
+      const url = pickRandomFromPool('tvOn');
+      if (!url) return;
+      try {
+        tvAudio = new Audio(url);
+        tvAudio.loop = true;
+        tvAudio.play().catch(() => {});
+      } catch (e) {
+        console.error(e);
       }
+      break;
     }
   }
+}
 
   document.querySelectorAll('.action-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2655,7 +2703,9 @@ if (hostPasswordEl) {
       setAmbientForRoom(currentRoom); // host only
       syncBathroomLightForRoom(currentRoom);     // ✅ add this
 
-      setServerRoomLight(currentRoom === 'room2');
+
+// start dark if servers are off, lit/flicker if on
+setServerRoomLight(!!serverAmbientEnabled);
 
 
 // don't play enter sound on initial load (only after first actual move)
@@ -2671,8 +2721,8 @@ didInitialEnterSound = true;
       stopAmbient(); // make sure players never run ambient
 
       if (actionBarEl) actionBarEl.style.display = 'none';
+      applyServerRoomLightFor('room5'); // forces OFF
 
-      setServerRoomLight(false);
 
     }
     setBathroomDarkness(bathroomLightEnabled);
