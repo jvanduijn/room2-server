@@ -1347,6 +1347,8 @@ const CONVO_LOOP_POOL = [
 
 
 
+const PLAYER_JOIN_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/effectmessage.mp3';
+
 
 
 
@@ -1961,6 +1963,13 @@ function stopConvoLoop() {
   convoLoopAudio = null;
 }
 
+socket.on('playerJoined', () => {
+  if (!isHost) return;          // ✅ only host hears it
+  if (!hostUnlocked) return;    // ✅ optional: don’t beep before login
+  playSound(PLAYER_JOIN_SOUND_URL);
+});
+
+
 
   function playSound(url) {
     if (!url) return;
@@ -2066,6 +2075,10 @@ function stopConvoLoop() {
       btn.style.display = allowed.has(action) ? 'flex' : 'none';
     });
   }
+
+
+
+
 
   function setTvVisualState(on) {
     if (!tvAreaEl) return;
@@ -2389,7 +2402,7 @@ socket.emit('pokeHost', { roomId: currentRoom });
     hasRespondedThisRound = true;
     setChatLocked(true, 'wait for the host…');
     playerChatEl.style.display = 'grid'; // keep it visible
-    
+
     if (popupMsgEl && !isHost) {
       popupMsgEl.style.display = 'none';
     }
