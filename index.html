@@ -709,6 +709,20 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 
 
+/* locked state (player only) */
+.player-chat.locked {
+  border-color: rgba(0,255,136,0.35);
+  opacity: 0.7;
+}
+
+.player-chat.locked input,
+.player-chat.locked button {
+  opacity: 0.55;
+  filter: grayscale(1);
+  cursor: not-allowed;
+}
+
+
 
 
 
@@ -1029,11 +1043,11 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       <div class="clickable-region"
            style="left: 5px; top: 3px; width: 55px; height: 50px;"
-           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+           onclick="if(window.currentRoom==='room1'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; bottom: 3px; width: 55px; height: 45px;"
-           onclick="if(window.currentRoom==='room1'){playClickSound(); showObjectPopup('virtual trees'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
+           onclick="if(window.currentRoom==='room1'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/trees1.mp3');}">
       </div>
     </div>
 
@@ -1046,27 +1060,27 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       <div class="clickable-region"
            style="left: 98px; top: 5px; width: 38px; height: 30px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('computer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/computersound2.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 94px; top: 105px; width: 25px; height: 27px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('printer'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/3dprinter3.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 23px; bottom: 7px; width: 63px; height: 58px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('hologram area'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/hologram1.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 3px; top: 3px; width: 60px; height: 46px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('book case'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bookcase1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; top: 3px; width: 80px; height: 46px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 3px; bottom: 3px; width: 80px; height: 46px;"
-           onclick="if(window.currentRoom==='room2'){playClickSound(); showObjectPopup('server rack'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
+           onclick="if(window.currentRoom==='room2'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/serversound1.mp3');}">
       </div>
     </div>
 
@@ -1077,15 +1091,15 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       <div class="clickable-region"
            style="left: 10px; top: 11px; width: 43px; height: 65px;"
-           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('dinner table'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 8px; bottom: 1px; width: 13px; height: 11px;"
-           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('stove'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/stove1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 34px; bottom: 1px; width: 14px; height: 11px;"
-           onclick="if(window.currentRoom==='room3'){playClickSound(); showObjectPopup('sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
+           onclick="if(window.currentRoom==='room3'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/loudsink1.mp3');}">
       </div>
     </div>
 
@@ -1097,19 +1111,19 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       <div id="shower-area" class="clickable-region"
            style="left: 0px; top: 0px; width: 24px; height: 24px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('shower'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/douche.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 21px; top: 62px; width: 14px; height: 15px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('toilet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sink1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 0px; top: 33px; width: 8px; height: 22px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('double sink'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3');}">
       </div>
       <div class="clickable-region"
            style="right: 0px; top: 45px; width: 8px; height: 25px;"
-           onclick="if(window.currentRoom==='room4'){playClickSound(); showObjectPopup('cabinet'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
+           onclick="if(window.currentRoom==='room4'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cabinclick.mp3');}">
       </div>
     </div>
 
@@ -1122,19 +1136,19 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       <div class="clickable-region"
            style="left: 94px; top: 25px; width: 55px; height: 45px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('Grand Piano');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound();}">
       </div>
       <div id="tv-area" class="clickable-region"
            style="left: 24px; top: 2px; width: 34px; height: 8px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('TV'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvbutton1.mp3');}">
       </div>
       <div class="clickable-region"
            style="left: 5px; bottom: 2px; width: 34px; height: 34px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('couch');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound();}">
       </div>
       <div class="clickable-region"
            style="left: 70px; bottom: 1px; width: 20px; height: 10px;"
-           onclick="if(window.currentRoom==='room5'){playClickSound(); showObjectPopup('WELCOME doormat');}">
+           onclick="if(window.currentRoom==='room5'){playClickSound();}">
       </div>
     </div>
 
@@ -1154,11 +1168,12 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       <div class="clickable-region"
            style="left: 40px; top: 19px; width: 55px; height: 47px;"
-           onclick="if(window.currentRoom==='room7'){playClickSound(); showObjectPopup('bed'); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
+           onclick="if(window.currentRoom==='room7'){playClickSound(); playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/bed2.mp3');}">
       </div>
     </div>
 
- 
+</div><!-- /map -->
+
 
   <!-- Host-only action bar -->
   <div class="action-bar">
@@ -2215,21 +2230,24 @@ if (kind === 'nightOff') setHouseNight(false);
   if (isHost) {
     convoOpen = true;
     // hostWaiting is shown by key "2"
-  } else {
-    // players can chat until host presses 3
-    if (playerChatEl) playerChatEl.style.display = 'grid';
-    if (chatInputEl) {
-      chatInputEl.value = '';
-      setTimeout(() => {
-        try { chatInputEl.focus({ preventScroll: true }); } catch(e) { chatInputEl.focus(); }
-      }, 50);
-    }
-    if (popupMsgEl) {
-      popupMsgEl.classList.remove('host-msg','player-msg');
-      popupMsgEl.classList.add('host-msg');
-      popupMsgEl.textContent = 'react to the host…';
-      popupMsgEl.style.display = 'block';
-    }
+} else {
+  // players: unlock chat only during conversation
+  if (playerChatEl) playerChatEl.style.display = 'grid';
+  setChatLocked(false, 'type your reaction…');
+
+  if (chatInputEl) {
+    chatInputEl.value = '';
+    setTimeout(() => {
+      try { chatInputEl.focus({ preventScroll: true }); } catch(e) { chatInputEl.focus(); }
+    }, 50);
+  }
+
+  if (popupMsgEl) {
+    popupMsgEl.classList.remove('host-msg','player-msg');
+    popupMsgEl.classList.add('host-msg');
+    popupMsgEl.textContent = 'react to the host…';
+    popupMsgEl.style.display = 'block';
+  }
   }
 });
 
@@ -2272,7 +2290,10 @@ socket.on('conversationEnd', ({ conversationId }) => {
     }
   }
 
-  if (playerChatEl) playerChatEl.style.display = 'none';
+  if (!isHost) {
+  if (playerChatEl) playerChatEl.style.display = 'grid';
+  setChatLocked(true, 'wait for the host…');
+}
   if (!isHost && popupMsgEl && !resultShowing) popupMsgEl.style.display = 'none';
 });
 
@@ -2314,7 +2335,10 @@ socket.emit('pokeHost', { roomId: currentRoom });
   }, 50);
 });
   function sendPlayerMessage() {
+    if (chatInputEl && chatInputEl.disabled) return;
+
     if (!playerChatEl || !chatInputEl) return;
+
     if (!currentConversationId) return;
     if (hasRespondedThisRound) return;
 
@@ -2384,6 +2408,20 @@ playerTypingIndicator.style.display = hasText ? 'block' : 'none';
       });
     });
   }
+
+
+
+  function setChatLocked(locked, placeholderText = null) {
+  if (!playerChatEl || !chatInputEl || !chatSendEl) return;
+
+  playerChatEl.classList.toggle('locked', !!locked);
+  chatInputEl.disabled = !!locked;
+  chatSendEl.disabled = !!locked;
+
+  if (placeholderText != null) {
+    chatInputEl.placeholder = placeholderText;
+  }
+}
 
   document.querySelectorAll('.door').forEach(door => {
     const target  = door.dataset.target;
@@ -2783,6 +2821,11 @@ if (hostPasswordEl) {
       updateActiveRoom(currentRoom);
       setAmbientForRoom(currentRoom); // host only
       syncBathroomLightForRoom(currentRoom);     // ✅ add this
+
+
+// players: show chat bar always, but locked until host starts conversation
+if (playerChatEl) playerChatEl.style.display = 'grid';
+setChatLocked(true, 'wait for the host…');
 
 
 // start dark if servers are off, lit/flicker if on
