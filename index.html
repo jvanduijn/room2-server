@@ -19,6 +19,32 @@
       height: 100%;
     }
 
+
+
+    /* Server room darkness overlay (default = dark) */
+#room2::after{
+  content:"";
+  position:absolute;
+  top:-2px; left:-2px; right:-2px; bottom:-2px;  /* touch edges like room4 */
+  background: rgba(0,0,0,0.42);
+  opacity: 1;                 /* default dark */
+  transition: opacity 220ms ease;
+  pointer-events: none;       /* ✅ doors remain clickable */
+  z-index: 0;                 /* behind everything inside room2 */
+}
+
+/* When server room “light is on” -> remove darkness */
+#room2.server-lit::after{
+  opacity: 0;
+}
+
+/* optional: subtle “tube glow” when lit */
+#room2.server-lit{
+  box-shadow: inset 0 0 0 1px rgba(0,255,136,0.18);
+}
+
+
+
    /* --- Bathroom darkness overlay that DOES NOT affect doors/clicks --- */
 #room4{
   isolation: isolate; /* keeps overlay stacking contained */
@@ -1433,7 +1459,7 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
     ],
     table: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/eatingmoment.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/eatingmoment1.mp3'
 
     ],
     piano: [
@@ -1639,6 +1665,84 @@ function startLightLoop() {
     console.error(e);
   }
 }
+
+
+const serverRoomEl = document.getElementById('room2');
+let lastKnownHostRoom = null;
+let serverFlickerTimer = null;
+
+function setServerRoomLit(on){
+  if (!serverRoomEl) return;
+  serverRoomEl.classList.toggle('server-lit', !!on);
+}
+
+function clearServerFlicker(){
+  if (serverFlickerTimer) {
+    clearTimeout(serverFlickerTimer);
+    serverFlickerTimer = null;
+  }
+}
+
+/**
+ * Fluorescent flicker: random blinks then ends ON.
+ * durationMs ~ 700-1200, blinks random.
+ */
+function flickerServerRoomThenOn(){
+  if (!serverRoomEl) return;
+
+  clearServerFlicker();
+
+  const total = 700 + Math.floor(Math.random() * 600); // 700–1300ms
+  const endAt = performance.now() + total;
+
+  function step(){
+    const now = performance.now();
+    const remaining = endAt - now;
+
+    if (remaining <= 0){
+      setServerRoomLit(true);     // final state ON
+      clearServerFlicker();
+      return;
+    }
+
+    // random toggle cadence
+    const nextIn = 50 + Math.floor(Math.random() * 140); // 50–190ms
+    const shouldBeOn = Math.random() > 0.45;             // bias slightly toward ON
+    setServerRoomLit(shouldBeOn);
+
+    serverFlickerTimer = setTimeout(step, nextIn);
+  }
+
+  // start flicker from OFF/dark
+  setServerRoomLit(false);
+  step();
+}
+
+/**
+ * Call this whenever host room is updated.
+ * - Entering room2 => flicker then ON
+ * - Leaving room2  => OFF (dark)
+ */
+function syncServerRoomLightWithHost(newHostRoom){
+  if (!newHostRoom) return;
+
+  const wasInServer = (lastKnownHostRoom === 'room2');
+  const isInServer  = (newHostRoom === 'room2');
+
+  if (!wasInServer && isInServer){
+    flickerServerRoomThenOn();
+  } else if (wasInServer && !isInServer){
+    clearServerFlicker();
+    setServerRoomLit(false);
+  } else {
+    // no transition; keep stable state
+    setServerRoomLit(isInServer);
+  }
+
+  lastKnownHostRoom = newHostRoom;
+}
+
+
 
 // bathroom light behaves like ambience: only audible in room4
 function syncBathroomLightForRoom(roomId) {
@@ -1882,6 +1986,10 @@ function stopConvoLoop() {
       hostRoom = currentRoom;
       moveElementToRoom(hostEl, hostRoom, 'host');
       socket.emit('hostMove', { roomId: hostRoom });
+
+  // ✅ server room light follows host (host’s own view too)
+  syncServerRoomLightWithHost(hostRoom);
+
     } else {
       moveElementToRoom(playerEl, currentRoom, 'player');
       socket.emit('playerMove', { roomId: currentRoom });
@@ -1906,6 +2014,8 @@ function stopConvoLoop() {
     hostRoom = data.roomId;
     hostEl.style.display = 'block';
     moveElementToRoom(hostEl, hostRoom, 'host');
+    syncServerRoomLightWithHost(hostRoom);
+
   });
 
   socket.on('initialHostPosition', (data) => {
@@ -1915,6 +2025,8 @@ function stopConvoLoop() {
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
       updateActiveRoom(currentRoom);
+      syncServerRoomLightWithHost(hostRoom);
+
     }
   });
 
@@ -2534,6 +2646,7 @@ didInitialEnterSound = true;
       if (actionBarEl) actionBarEl.style.display = 'none';
     }
     setBathroomDarkness(bathroomLightEnabled);
+    syncServerRoomLightWithHost(hostRoom);
 
   });
 </script>
