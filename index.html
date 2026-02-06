@@ -1286,10 +1286,9 @@ body.host-scale .action-btn .off-badge .off-icon{
   let moveAudio    = null;
   let hostUnlocked = !isHost;
   let lightAudio   = null; // bathroom light hum loop (host only)
-  let serverAmbientEnabled = true; // host-only toggle for room2
   let bathroomLightEnabled = false; // light can be enabled, but only plays in room4
 
-  let serverLightEnabled = true; // or false if you want it OFF by default
+  let serverLightEnabled = false; // or false if you want it OFF by default
 let serverLightLastOn = null;  // internal edge-detect
 
 
@@ -2721,12 +2720,11 @@ didInitialEnterSound = true;
       stopAmbient(); // make sure players never run ambient
 
       if (actionBarEl) actionBarEl.style.display = 'none';
-      applyServerRoomLightFor('room5'); // forces OFF
+      setServerRoomLight(false); // start dark for players
 
 
     }
     setBathroomDarkness(bathroomLightEnabled);
-    serverAmbientEnabled = false;
 
   });
 </script>
