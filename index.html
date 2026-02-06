@@ -118,10 +118,7 @@
       z-index: 0 !important; /* below popups */
     }
 
-    /* ===== WHOLE HOUSE NIGHT OVERLAY (entire map) ===== */
-#map{
-  isolation: isolate; /* keep pseudo-element layering sane */
-}
+ 
 
 /* 0 = day, 1 = night */
 #map::before{
@@ -135,11 +132,6 @@
   z-index: 0;                    /* behind rooms/doors/players */
 }
 
-/* make sure everything inside map sits above the overlay */
-#map > *{
-  position: relative;
-  z-index: 1;
-}
 
     #map {
       position: relative;
