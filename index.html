@@ -1774,13 +1774,20 @@ function pickRandomDifferent(pool, lastUrl) {
   }
   return url;
 }
-
 const room2El = document.getElementById('room2');
+
+// tune these safely (now always defined before use)
+const SERVERROOM_OFF_DELAY = 1500;     // ms
+const SERVERROOM_STARTUP_DELAY = 1500; // ms
+const SERVERROOM_LIT_OPACITY = 0.07;   // 0=lit, 1=dark (your “slightly brighter” look)
 
 let serverLightOn = false;
 let serverFlickerArmed = false;
 let serverFlickerTimeout = null;
-// --- SERVER ROOM LIGHT (room2) ---
+
+// NEW: keep handles so delayed actions can't fight each other
+let serverStartupTimer = null;
+let serverOffTimer = null;
 
 function setRoom2Darkness(opacity01){
   if (!room2El) return;
@@ -1788,15 +1795,9 @@ function setRoom2Darkness(opacity01){
   room2El.style.setProperty('--room2-dark', String(v));
 }
 
-/**
- * Softer fluorescent flicker: fewer harsh snaps, slightly longer,
- * ends fully lit (opacity 0).
- * 0 = fully lit, 1 = fully dark
- */
 function flickerRoom2Once() {
   if (!serverLightOn) return;
 
-  // gentler patterns (less extreme darkness, slightly longer total)
   const patterns = [
     [0.55, 70, 0.15, 110, 0.40, 80, 0.00, 0],
     [0.65, 60, 0.20, 120, 0.50, 70, 0.10, 90, 0.00, 0],
@@ -1819,17 +1820,11 @@ function flickerRoom2Once() {
 
     if (dur > 0) setTimeout(step, dur);
     else setRoom2Darkness(SERVERROOM_LIT_OPACITY);
-}
+  }
 
   step();
 }
 
-/**
- * Random flickers while ON — made more pleasant:
- * - longer gaps
- * - lower probability
- * - often "micro flicker" (very subtle), sometimes a real flicker
- */
 function armRoom2RandomFlickers(){
   disarmRoom2RandomFlickers();
   serverFlickerArmed = true;
@@ -1837,17 +1832,13 @@ function armRoom2RandomFlickers(){
   const scheduleNext = () => {
     if (!serverFlickerArmed || !serverLightOn) return;
 
-    // more breathing room between events
-    const wait = 4200 + Math.random() * 10500; // 4.2s -> 14.7s
+    const wait = 4200 + Math.random() * 10500;
     serverFlickerTimeout = setTimeout(() => {
       if (!serverFlickerArmed || !serverLightOn) return;
 
-      // lower chance overall
-      const chance = 0.28; // 28%
+      const chance = 0.28;
       if (Math.random() < chance) {
-        // 70% subtle micro flicker, 30% full flicker
         if (Math.random() < 0.70) {
-          // micro: tiny dim pulse, easy on eyes
           setRoom2Darkness(0.12);
           setTimeout(() => {
             if (serverLightOn) setRoom2Darkness(SERVERROOM_LIT_OPACITY);
@@ -1870,22 +1861,10 @@ function disarmRoom2RandomFlickers(){
   serverFlickerTimeout = null;
 }
 
-/**
- * Turn server room light ON/OFF:
- * - OFF: snap dark
- * - ON: wait 1500ms, then do a longer startup flicker (2–3 hits),
- *       then arm gentle random flickers.
- */
- const SERVERROOM_OFF_DELAY = 1500; // ms
-const SERVERROOM_LIT_OPACITY = 0.07; // 0 = fully lit, 1 = fully dark
-
-let serverStartupTimer = null;
-let serverOffTimer = null;
-
 function setServerRoomLight(isOn){
   serverLightOn = !!isOn;
 
-  // cancel any pending timers from previous state
+  // cancel pending delayed actions so state can't “fight itself”
   if (serverStartupTimer) { clearTimeout(serverStartupTimer); serverStartupTimer = null; }
   if (serverOffTimer) { clearTimeout(serverOffTimer); serverOffTimer = null; }
 
@@ -1893,7 +1872,6 @@ function setServerRoomLight(isOn){
   if (!serverLightOn) {
     disarmRoom2RandomFlickers();
 
-    // delayed snap to dark
     serverOffTimer = setTimeout(() => {
       if (!serverLightOn) setRoom2Darkness(1);
       serverOffTimer = null;
@@ -1906,13 +1884,10 @@ function setServerRoomLight(isOn){
   disarmRoom2RandomFlickers();
   setRoom2Darkness(1);
 
-  const STARTUP_DELAY_MS = 1500;
-
   serverStartupTimer = setTimeout(() => {
     serverStartupTimer = null;
     if (!serverLightOn) return;
 
-    // longer startup: 2–3 flickers
     const hits = 2 + Math.floor(Math.random() * 2); // 2 or 3
     let n = 0;
 
@@ -1920,19 +1895,13 @@ function setServerRoomLight(isOn){
       if (!serverLightOn) return;
       flickerRoom2Once();
       n++;
-      if (n < hits) {
-        setTimeout(doHit, 260 + Math.random() * 220);
-      } else {
-        setTimeout(() => {
-          if (serverLightOn) armRoom2RandomFlickers();
-        }, 650);
-      }
+      if (n < hits) setTimeout(doHit, 260 + Math.random() * 220);
+      else setTimeout(() => { if (serverLightOn) armRoom2RandomFlickers(); }, 650);
     };
 
     doHit();
-  }, STARTUP_DELAY_MS);
+  }, SERVERROOM_STARTUP_DELAY);
 }
-
 
 
 
