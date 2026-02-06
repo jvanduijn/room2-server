@@ -2160,9 +2160,10 @@ function goToRoom(targetRoom) {
     }
   });
 
-
   function pulsePoke(duration = 1000){
+  if (playerTypingIndicator) playerTypingIndicator.style.display = 'none'; // optional failsafe
   if (!playerPokeIndicator) return;
+
   playerPokeIndicator.style.display = 'block';
   clearTimeout(playerPokeIndicator._t);
   playerPokeIndicator._t = setTimeout(() => {
