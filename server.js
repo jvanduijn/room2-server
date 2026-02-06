@@ -178,6 +178,29 @@ socket.on('endConversation', () => {
     });
   });
 
+
+  // --- JOIN ---
+socket.on('join', ({ role }) => {
+  socket.data.role = role;
+  console.log(`Client ${socket.id} joined as ${role}`);
+
+  if (role === 'host') {
+    hostSocketId = socket.id;
+    socket.emit('initialHostPosition', { roomId: hostRoom });
+  } else {
+    if (hostConnected) {
+      socket.emit('hostPosition', { roomId: hostRoom });
+    }
+
+    // ✅ NEW: notify host that a player joined (host-only)
+    if (hostSocketId && hostConnected) {
+      io.to(hostSocketId).emit('playerJoined', {
+        socketId: socket.id
+      });
+    }
+  }
+});
+
   // --- DISCONNECT ---
   socket.on('disconnect', () => {
     console.log('Client disconnected', socket.id);
