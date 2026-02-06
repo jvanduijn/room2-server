@@ -127,7 +127,7 @@
   inset:-2px;                   /* match your other overlays */
   background: rgba(0,0,0,0.55); /* night darkness strength */
   opacity: var(--house-dark, 0);
-  transition: opacity 3000ms ease; /* smooth fade */
+  transition: opacity 3s ease; /* smooth fade */
   pointer-events:none;           /* doors stay clickable */
   z-index: 0;                    /* behind rooms/doors/players */
 }
@@ -1572,7 +1572,7 @@ function setHouseNight(isNight){
 }
 
 
-const NIGHT_DURATION_MS = 15000; // 10s
+const NIGHT_DURATION_MS = 20000; 
 let nightTimer = null;
 
 function startNightPulse(){
@@ -1876,35 +1876,43 @@ function disarmRoom2RandomFlickers(){
  * - ON: wait 1500ms, then do a longer startup flicker (2–3 hits),
  *       then arm gentle random flickers.
  */
+ const SERVERROOM_OFF_DELAY = 1500; // ms
+const SERVERROOM_LIT_OPACITY = 0.07; // 0 = fully lit, 1 = fully dark
+
+let serverStartupTimer = null;
+let serverOffTimer = null;
+
 function setServerRoomLight(isOn){
   serverLightOn = !!isOn;
+
+  // cancel any pending timers from previous state
+  if (serverStartupTimer) { clearTimeout(serverStartupTimer); serverStartupTimer = null; }
+  if (serverOffTimer) { clearTimeout(serverOffTimer); serverOffTimer = null; }
+
+  // OFF
   if (!serverLightOn) {
-  disarmRoom2RandomFlickers();
+    disarmRoom2RandomFlickers();
 
-  // delay the darkness snap
-  setTimeout(() => {
-    // only turn off if still OFF after delay
-    if (!serverLightOn) {
-      setRoom2Darkness(1);
-    }
-  }, SERVERROOM_OFF_DELAY);
+    // delayed snap to dark
+    serverOffTimer = setTimeout(() => {
+      if (!serverLightOn) setRoom2Darkness(1);
+      serverOffTimer = null;
+    }, SERVERROOM_OFF_DELAY);
 
-  return;
-}
-  // start ON state: go dark immediately, then delayed startup flicker
+    return;
+  }
+
+  // ON
   disarmRoom2RandomFlickers();
   setRoom2Darkness(1);
 
   const STARTUP_DELAY_MS = 1500;
 
-  const SERVERROOM_OFF_DELAY = 1500; // ms
-const SERVERROOM_LIT_OPACITY = 0.07; // try 0.06–0.1
-
-
-  setTimeout(() => {
+  serverStartupTimer = setTimeout(() => {
+    serverStartupTimer = null;
     if (!serverLightOn) return;
 
-    // longer startup: 2–3 flickers spaced out a bit
+    // longer startup: 2–3 flickers
     const hits = 2 + Math.floor(Math.random() * 2); // 2 or 3
     let n = 0;
 
@@ -1915,7 +1923,6 @@ const SERVERROOM_LIT_OPACITY = 0.07; // try 0.06–0.1
       if (n < hits) {
         setTimeout(doHit, 260 + Math.random() * 220);
       } else {
-        // give it a moment, then arm random flickers
         setTimeout(() => {
           if (serverLightOn) armRoom2RandomFlickers();
         }, 650);
@@ -1925,7 +1932,6 @@ const SERVERROOM_LIT_OPACITY = 0.07; // try 0.06–0.1
     doHit();
   }, STARTUP_DELAY_MS);
 }
-
 
 
 
