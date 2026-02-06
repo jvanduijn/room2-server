@@ -2092,6 +2092,11 @@ function stopConvoLoop() {
     else showerAreaEl.classList.remove('shower-on');
   }
 
+  function showHostSignal(text, duration = 1000) {
+  // gebruikt hostIndicator als “signal lampje” voor de host
+  pulseIndicator(hostIndicator, text, duration, '?');
+}
+
   function triggerHostArrivalEffect() {
   if (!hostEl) return;
   hostEl.classList.add('arrival-sparkle');
@@ -2171,10 +2176,12 @@ function goToRoom(targetRoom) {
   }, duration);
 }
 
-  socket.on('pokeHost', () => {
+socket.on('pokeHost', () => {
   if (!isHost) return;
-  pulsePoke(1000); // shows "!" above player on host view
+  showHostSignal('!', 1000);
 });
+
+
   socket.on('hostOnline', ({ roomId }) => {
   if (isHost) return;
 
@@ -2293,9 +2300,9 @@ socket.on('conversationResult', ({ message }) => {
     return;
   }
 
+ 
   if (playerChatEl) playerChatEl.style.display = 'none';
 
-  playSound(pickRandomFromPool('message'));
   showActorMessage('player', text, 6000);
 });
 
@@ -2321,12 +2328,17 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
 socket.on('playerTyping', ({ conversationId, typing }) => {
   if (!isHost) return;
-  if (!playerTypingIndicator) return;
   if (!currentConversationId || conversationId !== currentConversationId) return;
 
-  // typing bubble stays "..."
-  playerTypingIndicator.textContent = '...';
-  playerTypingIndicator.style.display = typing ? 'block' : 'none';
+  if (typing) {
+    showHostSignal('...', 900000); // "blijft" aan zolang typing true blijft
+  } else {
+    // zet terug naar "?" en hide indicator
+    if (hostIndicator) {
+      hostIndicator.textContent = '?';
+      hostIndicator.style.display = 'none';
+    }
+  }
 });
 
 
