@@ -1052,8 +1052,9 @@ body.host-scale .action-btn .off-badge .off-icon{
     <div id="popup-message" class="popup-message"></div>
 
     <div id="player" class="player">
-      <div id="player-indicator" class="conversation-indicator">...</div>
-    </div>
+        <div id="player-indicator" class="conversation-indicator">...</div>
+        <div id="player-poke" class="conversation-indicator">!</div>
+      </div>
     <div id="host" class="random-object">
       <div id="host-indicator" class="conversation-indicator">?</div>
     </div>
@@ -1385,8 +1386,8 @@ const CONVO_LOOP_POOL = [
   const popupMsgEl    = document.getElementById('popup-message');
   const tvAreaEl      = document.getElementById('tv-area');
   const showerAreaEl  = document.getElementById('shower-area');
-  const playerIndicator = document.getElementById('player-indicator'); // "..." bubble
-
+  const playerTypingIndicator = document.getElementById('player-indicator'); // "..."
+  const playerPokeIndicator   = document.getElementById('player-poke');      // "!"
   const roomGraph = {
     room1: ['room2','room4'],
     room2: ['room1','room5','room6'],
@@ -1904,17 +1905,31 @@ function setServerRoomLight(isOn){
 }
 
 
-function pulseIndicator(el, text, duration = 1000) {
+function pulseIndicator(el, text, duration = 1000, restoreText = null) {
   if (!el) return;
+
+  // remember what was there before
+  const prevText = el.textContent;
+  const prevDisplay = el.style.display;
+
+  // token so overlapping pulses don't fight
+  const token = Date.now() + Math.random();
+  el._pulseToken = token;
+
   el.textContent = text;
   el.style.display = 'block';
 
   clearTimeout(el._pulseT);
   el._pulseT = setTimeout(() => {
-    el.style.display = 'none';
+    if (el._pulseToken !== token) return;
+
+    // restore the old text (or an explicit restoreText)
+    el.textContent = (restoreText != null) ? restoreText : prevText;
+
+    // restore display state (so typing logic keeps control)
+    el.style.display = prevDisplay || 'none';
   }, duration);
 }
-
 
 
 function startConvoLoop() {
@@ -2145,11 +2160,19 @@ function goToRoom(targetRoom) {
     }
   });
 
+
+  function pulsePoke(duration = 1000){
+  if (!playerPokeIndicator) return;
+  playerPokeIndicator.style.display = 'block';
+  clearTimeout(playerPokeIndicator._t);
+  playerPokeIndicator._t = setTimeout(() => {
+    playerPokeIndicator.style.display = 'none';
+  }, duration);
+}
+
   socket.on('pokeHost', () => {
   if (!isHost) return;
-
-  // show "!" above the PLAYER (ghost) on the host screen
-  pulseIndicator(playerIndicator, '!', 1000);
+  pulsePoke(1000); // shows "!" above player on host view
 });
   socket.on('hostOnline', ({ roomId }) => {
   if (isHost) return;
@@ -2270,7 +2293,6 @@ socket.on('conversationResult', ({ message }) => {
   }
 
   if (playerChatEl) playerChatEl.style.display = 'none';
-  if (playerIndicator) playerIndicator.style.display = 'none';
 
   playSound(pickRandomFromPool('message'));
   showActorMessage('player', text, 6000);
@@ -2296,14 +2318,15 @@ socket.on('conversationEnd', ({ conversationId }) => {
   if (!isHost && popupMsgEl && !resultShowing) popupMsgEl.style.display = 'none';
 });
 
-  // Host receives typing indicator from player
-  socket.on('playerTyping', ({ conversationId, typing }) => {
-    if (!isHost) return;
-    if (!playerIndicator) return;
-    if (!currentConversationId || conversationId !== currentConversationId) return;
+socket.on('playerTyping', ({ conversationId, typing }) => {
+  if (!isHost) return;
+  if (!playerTypingIndicator) return;
+  if (!currentConversationId || conversationId !== currentConversationId) return;
 
-    playerIndicator.style.display = typing ? 'block' : 'none';
-  });
+  // typing bubble stays "..."
+  playerTypingIndicator.textContent = '...';
+  playerTypingIndicator.style.display = typing ? 'block' : 'none';
+});
 
 
   hostEl.addEventListener('click', () => {
@@ -2312,11 +2335,13 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
   playClickSound();
 
-  // ✅ ONLY show "!" above the PLAYER
-  pulseIndicator(playerIndicator, '!', 1000);
+  // ✅ show "!" above the PLAYER (poke indicator only)
+pulsePoke(1000);
 
-  // ✅ tell the server — host will react separately
-  socket.emit('pokeHost', { roomId: currentRoom });
+// send to server so host can see it too
+socket.emit('pokeHost', { roomId: currentRoom });
+
+
 
   // optional little physical feedback
   const originalTransform = hostEl.style.transform || '';
@@ -2347,9 +2372,10 @@ socket.on('conversationEnd', ({ conversationId }) => {
       popupMsgEl.style.display = 'none';
     }
 
-    if (playerIndicator) {
-      playerIndicator.style.display = 'block';
-    }
+    if (playerTypingIndicator) {
+  playerTypingIndicator.style.display = 'block';
+  playerTypingIndicator.textContent = '...';
+}
 
     socket.emit('playerTyping', {
       conversationId: convId,
@@ -2358,9 +2384,9 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
     if (typingTimeout) clearTimeout(typingTimeout);
     typingTimeout = setTimeout(() => {
-      if (playerIndicator) {
-        playerIndicator.style.display = 'none';
-      }
+        if (playerTypingIndicator) {
+  playerTypingIndicator.style.display = 'none';
+}
       socket.emit('playerTyping', {
         conversationId: convId,
         typing: false
@@ -2383,9 +2409,10 @@ socket.on('conversationEnd', ({ conversationId }) => {
     });
 
     chatInputEl.addEventListener('input', () => {
-      if (!playerIndicator) return;
-      const hasText = !!chatInputEl.value.trim();
-      playerIndicator.style.display = hasText ? 'block' : 'none';
+        if (!playerTypingIndicator) return;
+const hasText = !!chatInputEl.value.trim();
+playerTypingIndicator.textContent = '...';
+playerTypingIndicator.style.display = hasText ? 'block' : 'none';
 
       if (!currentConversationId) return;
       socket.emit('playerTyping', {
