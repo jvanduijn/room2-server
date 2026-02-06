@@ -1296,6 +1296,7 @@ let serverLightLastOn = null;  // internal edge-detect
 
 
   let serverAmbientEnabled = false;
+  const SERVERROOM_OFF_DELAY = 1500; // ms
 
 
 // ===== TIMELINE / CREDITS =====
@@ -1305,6 +1306,7 @@ let timelineElapsed = 0;     // ms
 let timelineLastTick = null; // performance.now()
 let timelineRAF = null;
 let timelineFinished = false;
+const SERVERROOM_LIT_OPACITY = 0.07; // try 0.06–0.1
 
 
   let convoOpen = false;       // is a conversation currently collecting?
@@ -1486,7 +1488,7 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brushteeth.wav'
     ],
     dinner: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cookingdinner.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/cookingdinner1.mp3'
     ],
     tvOn: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tvroom.wav'
@@ -1762,8 +1764,8 @@ function flickerRoom2Once() {
     setRoom2Darkness(opacity);
 
     if (dur > 0) setTimeout(step, dur);
-    else setRoom2Darkness(0); // end fully lit
-  }
+    else setRoom2Darkness(SERVERROOM_LIT_OPACITY);
+}
 
   step();
 }
@@ -1794,7 +1796,7 @@ function armRoom2RandomFlickers(){
           // micro: tiny dim pulse, easy on eyes
           setRoom2Darkness(0.12);
           setTimeout(() => {
-            if (serverLightOn) setRoom2Darkness(0);
+            if (serverLightOn) setRoom2Darkness(SERVERROOM_LIT_OPACITY);
           }, 140 + Math.random() * 140);
         } else {
           flickerRoom2Once();
@@ -1822,13 +1824,19 @@ function disarmRoom2RandomFlickers(){
  */
 function setServerRoomLight(isOn){
   serverLightOn = !!isOn;
-
   if (!serverLightOn) {
-    disarmRoom2RandomFlickers();
-    setRoom2Darkness(1); // dark/off
-    return;
-  }
+  disarmRoom2RandomFlickers();
 
+  // delay the darkness snap
+  setTimeout(() => {
+    // only turn off if still OFF after delay
+    if (!serverLightOn) {
+      setRoom2Darkness(1);
+    }
+  }, SERVERROOM_OFF_DELAY);
+
+  return;
+}
   // start ON state: go dark immediately, then delayed startup flicker
   disarmRoom2RandomFlickers();
   setRoom2Darkness(1);
