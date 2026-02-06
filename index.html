@@ -2293,6 +2293,8 @@ socket.on('conversationEnd', ({ conversationId }) => {
   if (!isHost) {
   if (playerChatEl) playerChatEl.style.display = 'grid';
   setChatLocked(true, 'wait for the host…');
+  showPlayerChatLocked();
+
 }
   if (!isHost && popupMsgEl && !resultShowing) popupMsgEl.style.display = 'none';
 });
@@ -2411,16 +2413,22 @@ playerTypingIndicator.style.display = hasText ? 'block' : 'none';
 
 
 
-  function setChatLocked(locked, placeholderText = null) {
+  function setChatLocked(locked, placeholderText) {
+  if (isHost) return; // ✅ host never
   if (!playerChatEl || !chatInputEl || !chatSendEl) return;
 
   playerChatEl.classList.toggle('locked', !!locked);
   chatInputEl.disabled = !!locked;
   chatSendEl.disabled = !!locked;
 
-  if (placeholderText != null) {
-    chatInputEl.placeholder = placeholderText;
-  }
+  if (placeholderText != null) chatInputEl.placeholder = placeholderText;
+}
+
+function showPlayerChatLocked() {
+  if (isHost) return; // ✅ host never
+  if (!playerChatEl) return;
+  playerChatEl.style.display = 'grid';
+  setChatLocked(true, 'wait for the host…');
 }
 
   document.querySelectorAll('.door').forEach(door => {
@@ -2805,6 +2813,8 @@ if (hostPasswordEl) {
     hostEl.style.display = 'none';
     setHouseNight(false);
 
+
+
     if (hostBannerEl) {
       hostBannerEl.textContent = isHost
         ? 'to join visit room2.net'
@@ -2815,6 +2825,7 @@ if (hostPasswordEl) {
     if (isHost) {
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
       playerEl.style.display = 'none';
+      if (playerChatEl) playerChatEl.style.display = 'none';
 
       currentRoom = hostRoom;
       window.currentRoom = currentRoom;
@@ -2846,6 +2857,7 @@ didInitialEnterSound = true;
 
       if (actionBarEl) actionBarEl.style.display = 'none';
       setServerRoomLight(false); // start dark for players
+      showPlayerChatLocked();
 
 
     }
