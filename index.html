@@ -26,7 +26,7 @@
   content:"";
   position:absolute;
   top:-2px; left:-2px; right:-2px; bottom:-2px;  /* touch edges like room4 */
-  background: rgba(0,0,0,0.42);
+  background: rgba(0, 0, 0, 0.148);
   opacity: 1;                 /* default dark */
   transition: opacity 220ms ease;
   pointer-events: none;       /* ✅ doors remain clickable */
@@ -1666,63 +1666,63 @@ function startLightLoop() {
   }
 }
 
-
 const serverRoomEl = document.getElementById('room2');
 let lastKnownHostRoom = null;
 let serverFlickerTimer = null;
 
-function setServerRoomLit(on){
+/* hard set: no transitions */
+function setServerRoomLitImmediate(on){
   if (!serverRoomEl) return;
+  serverRoomEl.style.transition = 'none';
+  serverRoomEl.classList.toggle('server-lit', !!on);
+}
+
+/* smooth set (after flicker is done) */
+function setServerRoomLitSmooth(on){
+  if (!serverRoomEl) return;
+  serverRoomEl.style.transition = '';
   serverRoomEl.classList.toggle('server-lit', !!on);
 }
 
 function clearServerFlicker(){
-  if (serverFlickerTimer) {
+  if (serverFlickerTimer){
     clearTimeout(serverFlickerTimer);
     serverFlickerTimer = null;
   }
 }
 
-/**
- * Fluorescent flicker: random blinks then ends ON.
- * durationMs ~ 700-1200, blinks random.
- */
+/* sharp fluorescent flicker */
 function flickerServerRoomThenOn(){
   if (!serverRoomEl) return;
 
   clearServerFlicker();
 
-  const total = 700 + Math.floor(Math.random() * 600); // 700–1300ms
-  const endAt = performance.now() + total;
+  // total flicker time (short + sharp)
+  const flickers = 4 + Math.floor(Math.random() * 3); // 4–6 snaps
+  let count = 0;
 
-  function step(){
-    const now = performance.now();
-    const remaining = endAt - now;
-
-    if (remaining <= 0){
-      setServerRoomLit(true);     // final state ON
+  function snap(){
+    if (count >= flickers){
+      setServerRoomLitSmooth(true); // final ON, smooth allowed again
       clearServerFlicker();
       return;
     }
 
-    // random toggle cadence
-    const nextIn = 50 + Math.floor(Math.random() * 140); // 50–190ms
-    const shouldBeOn = Math.random() > 0.45;             // bias slightly toward ON
-    setServerRoomLit(shouldBeOn);
+    // hard snap
+    setServerRoomLitImmediate(Math.random() > 0.5);
 
-    serverFlickerTimer = setTimeout(step, nextIn);
+    count++;
+
+    // very irregular fluorescent timing
+    const nextIn = 40 + Math.floor(Math.random() * 90); // 40–130ms
+    serverFlickerTimer = setTimeout(snap, nextIn);
   }
 
-  // start flicker from OFF/dark
-  setServerRoomLit(false);
-  step();
+  // start from dark
+  setServerRoomLitImmediate(false);
+  snap();
 }
 
-/**
- * Call this whenever host room is updated.
- * - Entering room2 => flicker then ON
- * - Leaving room2  => OFF (dark)
- */
 function syncServerRoomLightWithHost(newHostRoom){
   if (!newHostRoom) return;
 
@@ -1733,14 +1733,14 @@ function syncServerRoomLightWithHost(newHostRoom){
     flickerServerRoomThenOn();
   } else if (wasInServer && !isInServer){
     clearServerFlicker();
-    setServerRoomLit(false);
+    setServerRoomLitImmediate(false); // snap OFF
   } else {
-    // no transition; keep stable state
-    setServerRoomLit(isInServer);
+    setServerRoomLitImmediate(isInServer);
   }
 
   lastKnownHostRoom = newHostRoom;
 }
+
 
 
 
