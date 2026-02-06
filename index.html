@@ -127,7 +127,7 @@
   inset:-2px;                   /* match your other overlays */
   background: rgba(0,0,0,0.55); /* night darkness strength */
   opacity: var(--house-dark, 0);
-  transition: opacity 3s ease; /* smooth fade */
+  transition: opacity 5s ease; /* smooth fade */
   pointer-events:none;           /* doors stay clickable */
   z-index: 0;                    /* behind rooms/doors/players */
 }
@@ -1572,7 +1572,7 @@ function setHouseNight(isNight){
 }
 
 
-const NIGHT_DURATION_MS = 20000; 
+const NIGHT_DURATION_MS = 23000; 
 let nightTimer = null;
 
 function startNightPulse(){
@@ -1903,6 +1903,17 @@ function setServerRoomLight(isOn){
   }, SERVERROOM_STARTUP_DELAY);
 }
 
+
+function pulseIndicator(el, text, duration = 1000) {
+  if (!el) return;
+  el.textContent = text;
+  el.style.display = 'block';
+
+  clearTimeout(el._pulseT);
+  el._pulseT = setTimeout(() => {
+    el.style.display = 'none';
+  }, duration);
+}
 
 
 
@@ -2287,19 +2298,26 @@ socket.on('conversationEnd', ({ conversationId }) => {
 
     playerIndicator.style.display = typing ? 'block' : 'none';
   });
-
   hostEl.addEventListener('click', () => {
-    if (isHost) return;
-    if (currentRoom !== hostRoom) return;
+  if (isHost) return;
+  if (currentRoom !== hostRoom) return;
 
-    playClickSound();
+  playClickSound();
 
-    const originalTransform = hostEl.style.transform || '';
-    hostEl.style.transform = originalTransform + ' scale(1.1)';
-    setTimeout(() => {
-      moveElementToRoom(hostEl, hostRoom, 'host');
-    }, 50);
-  });
+  // ✅ new: reactions on click
+  // "!" above the player, "!!" above the host (both for 1s)
+  pulseIndicator(playerIndicator, '!', 1000);
+  pulseIndicator(hostIndicator, '!!', 1000);
+
+  // (optional) also tell host / others, if your server forwards it
+  socket.emit('pokeHost', { roomId: currentRoom });
+
+  const originalTransform = hostEl.style.transform || '';
+  hostEl.style.transform = originalTransform + ' scale(1.1)';
+  setTimeout(() => {
+    moveElementToRoom(hostEl, hostRoom, 'host');
+  }, 50);
+});
 
   function sendPlayerMessage() {
     if (!playerChatEl || !chatInputEl) return;
