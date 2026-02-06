@@ -1479,7 +1479,7 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
 
     ],
     shower: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/showerrunning.mp3'
+      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/showerrunning1.mp3'
     ],
     brush: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
@@ -1724,6 +1724,7 @@ const room2El = document.getElementById('room2');
 let serverLightOn = false;
 let serverFlickerArmed = false;
 let serverFlickerTimeout = null;
+// --- SERVER ROOM LIGHT (room2) ---
 
 function setRoom2Darkness(opacity01){
   if (!room2El) return;
@@ -1732,19 +1733,19 @@ function setRoom2Darkness(opacity01){
 }
 
 /**
- * Snappy fluorescent flicker: a few hard steps with tiny timings.
- * We keep it “jittery” by using random patterns + no CSS easing.
+ * Softer fluorescent flicker: fewer harsh snaps, slightly longer,
+ * ends fully lit (opacity 0).
+ * 0 = fully lit, 1 = fully dark
  */
 function flickerRoom2Once() {
   if (!serverLightOn) return;
 
-  // quick, ugly, fluorescent-like steps (dark->bright->dark->bright)
-  // 0 = fully lit, 1 = fully dark
+  // gentler patterns (less extreme darkness, slightly longer total)
   const patterns = [
-    [0.85, 35, 0.10, 45, 0.65, 28, 0.00, 0],
-    [0.95, 25, 0.20, 40, 0.80, 22, 0.05, 35, 0.00, 0],
-    [0.60, 30, 0.15, 30, 0.70, 25, 0.00, 0],
-    [0.90, 18, 0.05, 40, 0.55, 20, 0.00, 0],
+    [0.55, 70, 0.15, 110, 0.40, 80, 0.00, 0],
+    [0.65, 60, 0.20, 120, 0.50, 70, 0.10, 90, 0.00, 0],
+    [0.45, 80, 0.18, 130, 0.35, 90, 0.00, 0],
+    [0.60, 55, 0.12, 140, 0.42, 85, 0.00, 0],
   ];
 
   const seq = patterns[Math.floor(Math.random() * patterns.length)];
@@ -1760,20 +1761,18 @@ function flickerRoom2Once() {
 
     setRoom2Darkness(opacity);
 
-    if (dur > 0) {
-      setTimeout(step, dur);
-    } else {
-      // end: ensure fully lit
-      setRoom2Darkness(0);
-    }
+    if (dur > 0) setTimeout(step, dur);
+    else setRoom2Darkness(0); // end fully lit
   }
 
   step();
 }
 
 /**
- * Re-arm random flickers while the light is ON.
- * Random spacing keeps it organic.
+ * Random flickers while ON — made more pleasant:
+ * - longer gaps
+ * - lower probability
+ * - often "micro flicker" (very subtle), sometimes a real flicker
  */
 function armRoom2RandomFlickers(){
   disarmRoom2RandomFlickers();
@@ -1782,13 +1781,25 @@ function armRoom2RandomFlickers(){
   const scheduleNext = () => {
     if (!serverFlickerArmed || !serverLightOn) return;
 
-    // random wait between flickers (tweak to taste)
-    const wait = 1800 + Math.random() * 6200; // 1.8s -> 8.0s
-
+    // more breathing room between events
+    const wait = 4200 + Math.random() * 10500; // 4.2s -> 14.7s
     serverFlickerTimeout = setTimeout(() => {
-      // small chance of flicker each time
-      const chance = 0.55; // 55% of the time
-      if (Math.random() < chance) flickerRoom2Once();
+      if (!serverFlickerArmed || !serverLightOn) return;
+
+      // lower chance overall
+      const chance = 0.28; // 28%
+      if (Math.random() < chance) {
+        // 70% subtle micro flicker, 30% full flicker
+        if (Math.random() < 0.70) {
+          // micro: tiny dim pulse, easy on eyes
+          setRoom2Darkness(0.12);
+          setTimeout(() => {
+            if (serverLightOn) setRoom2Darkness(0);
+          }, 140 + Math.random() * 140);
+        } else {
+          flickerRoom2Once();
+        }
+      }
 
       scheduleNext();
     }, wait);
@@ -1804,32 +1815,11 @@ function disarmRoom2RandomFlickers(){
 }
 
 /**
- * Turn server room light ON/OFF (with a startup flicker).
+ * Turn server room light ON/OFF:
+ * - OFF: snap dark
+ * - ON: wait 1500ms, then do a longer startup flicker (2–3 hits),
+ *       then arm gentle random flickers.
  */
-
-
- function applyServerRoomLightFor(roomId){
-  const shouldBeOn = !!serverLightEnabled && roomId === 'room2';
-
-  // edge detect: if it was off and should be on => do startup flicker
-  if (serverLightLastOn === null) {
-    // first run: no fancy edge logic, just set state
-    setServerRoomLight(shouldBeOn);
-  } else if (!serverLightLastOn && shouldBeOn) {
-    // turning ON => your flicker happens inside setServerRoomLight(true)
-    setServerRoomLight(true);
-  } else if (serverLightLastOn && !shouldBeOn) {
-    // turning OFF => snap dark
-    setServerRoomLight(false);
-  } else {
-    // unchanged
-    setServerRoomLight(shouldBeOn);
-  }
-
-  serverLightLastOn = shouldBeOn;
-}
-
-
 function setServerRoomLight(isOn){
   serverLightOn = !!isOn;
 
@@ -1839,11 +1829,41 @@ function setServerRoomLight(isOn){
     return;
   }
 
-  // light on: startup flicker + then random flickers
+  // start ON state: go dark immediately, then delayed startup flicker
+  disarmRoom2RandomFlickers();
   setRoom2Darkness(1);
-  setTimeout(() => flickerRoom2Once(), 60 + Math.random() * 120);
-  setTimeout(() => armRoom2RandomFlickers(), 350);
+
+  const STARTUP_DELAY_MS = 1500;
+
+  setTimeout(() => {
+    if (!serverLightOn) return;
+
+    // longer startup: 2–3 flickers spaced out a bit
+    const hits = 2 + Math.floor(Math.random() * 2); // 2 or 3
+    let n = 0;
+
+    const doHit = () => {
+      if (!serverLightOn) return;
+      flickerRoom2Once();
+      n++;
+      if (n < hits) {
+        setTimeout(doHit, 260 + Math.random() * 220);
+      } else {
+        // give it a moment, then arm random flickers
+        setTimeout(() => {
+          if (serverLightOn) armRoom2RandomFlickers();
+        }, 650);
+      }
+    };
+
+    doHit();
+  }, STARTUP_DELAY_MS);
 }
+
+
+
+
+
 
 function startConvoLoop() {
   stopConvoLoop();
