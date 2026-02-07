@@ -54,7 +54,7 @@
 
   background: rgba(0, 0, 0, 0.317);
   opacity: 1;
-  transition: opacity 220ms ease;
+  transition: opacity 500ms ease;
   pointer-events: none;
   z-index: 0;
 }
@@ -974,9 +974,10 @@ body.host-scale .action-btn .off-badge .off-icon{
   transform: translateX(-50%) !important;
 
   width: max-content;
+  z-index: 10000 !important;
   max-width: 86vw;
 
-  font-size: 18px !important;         /* slightly bigger */
+  font-size: 16px !important;         /* slightly bigger */
   padding: 6px 8px;
   text-align: center;
 
@@ -986,7 +987,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
   .popup-message .actor-text {
-    font-size: 18px !important;
+    font-size: 20px !important;
     white-space: normal;
   }
 
@@ -2366,7 +2367,6 @@ socket.on('conversationResult', ({ message }) => {
   }
 
  
-  if (playerChatEl) playerChatEl.style.display = 'none';
 
   showActorMessage('player', text, 6000);
 });
