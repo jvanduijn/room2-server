@@ -899,7 +899,7 @@ body.host-scale .action-btn .off-badge .off-icon{
       .host-banner {
         z-index: 1 !important; /* below popups */
         right: 14px;
-        top: -2px !important;
+        top: 2px !important;
 
         font-size: 13px;
         padding: 4px 8px;
@@ -1294,20 +1294,21 @@ body.host-scale .action-btn .off-badge .off-icon{
         0<img class="off-icon" src="https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/icon_cancel.png" alt="off">
       </span>
         </button>
+    </div>
 
   
-  <!-- Player chat + purpose (players only, phone) -->
-  <div id="player-chat-wrap" class="player-chat-wrap">
+<!-- Player chat + purpose (players only, phone) -->
+<div id="player-chat-wrap" class="player-chat-wrap">
     <div id="player-chat" class="player-chat">
       <input id="chat-input" type="text" maxlength="24" placeholder="type your reaction…" />
       <button id="chat-send">send</button>
     </div>
-
+  
     <div id="player-purpose" class="player-purpose">
       your purpose in the game is to chat with the host!
     </div>
   </div>
-</div><!-- /.everything -->
+  </div><!-- /.everything -->
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
