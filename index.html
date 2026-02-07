@@ -19,7 +19,9 @@
       height: 100%;
     }
 
-
+    .player-purpose{
+  display: none;
+}
 
 
 /* overlay */
@@ -860,6 +862,26 @@ body.host-scale .action-btn .off-badge .off-icon{
         touch-action: manipulation;/* avoids scroll gestures becoming scroll */
       }
 
+      .player-purpose{
+  position: absolute;
+  left: 0;
+  right: 0;
+
+  /* place it just under the chat bar */
+  top: calc(400px * 0.93 + 18px + 14px + 54px);
+
+  width: min(412px, calc(100vw - 12px));
+  margin: 0 auto;
+
+  font-size: 16px;          /* like your input sizing on phone */
+  line-height: 1.2;
+  text-align: center;
+
+  color: rgba(0,0,0,0.7);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
       #map {
         transform: scale(0.93) !important;
         transform-origin: top center;
@@ -870,7 +892,7 @@ body.host-scale .action-btn .off-badge .off-icon{
       .host-banner {
         z-index: 1 !important; /* below popups */
         right: 14px;
-        top: -8px !important;
+        top: -10px !important;
 
         font-size: 13px;
         padding: 4px 8px;
@@ -923,54 +945,48 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
 .popup-message {
-    /* ✅ attach to the TOP EDGE of the MAP (just above it) */
-    top: -36px !important;     /* sits above the map border */
-    left: 6px !important;
+  top: 20px !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
 
-    right: auto !important;
-    bottom: auto !important;
+  transform: translateX(-50%) !important;
 
-    width: max-content;
-    max-width: calc(100% - 12px);
+  width: max-content;
+  max-width: 86vw;
 
-    transform: none !important;
-    display: none;
+  font-size: 16px;         /* slightly bigger */
+  padding: 8px 10px;       /* more prominent */
+  text-align: center;
 
-    /* ✅ slightly bigger on phone */
-    font-size: 16px !important;
-    padding: 7px 10px !important;
-    line-height: 1.2;
-
-    white-space: normal;
-    z-index: 2000;
-  }
+  align-items: center;
+  display: none;
+  white-space: normal;
+}
 
   .popup-message .actor-text {
     font-size: 16px !important;
     white-space: normal;
   }
-      .player-chat {
-    position: absolute;
+  .player-chat {
+  position: absolute;
+  left: 0;
+  right: 0;
 
-    /* center it and keep it inside the phone width */
-    left: 50%;
-    transform: translateX(-50%);
+  /* ✅ 4px more down (increase the last number by +4) */
+  top: calc(400px * 0.93 + 18px + 14px);
 
-    /* ✅ stick to bottom of the map, but 15px higher than your current position */
-    top: calc(400px * 0.93 + 18px + 10px - 15px);
+  margin: 0 auto;
 
-    /* ✅ never overflow phone width */
-    width: calc(100vw - 16px);   /* 8px padding left + right */
-    max-width: 400px;
+  /* ✅ slightly wider (+12px) but never overflow phone width */
+  width: min(412px, calc(100vw - 12px));
 
-    margin: 0;
-    box-sizing: border-box;
+  transform: none;
 
-    background: #000;
-    border: 2px solid #00ff88;
-    padding: 6px 8px;
-    display: none; /* keep your logic */
-  }
+  background: #000;
+  border: 2px solid #00ff88;
+  padding: 6px 8px;
+}
 
       .player-chat input,
       .player-chat button {
@@ -1276,6 +1292,10 @@ body.host-scale .action-btn .off-badge .off-icon{
     <button id="chat-send">send</button>
   </div>
 </div>
+
+<div id="player-purpose" class="player-purpose">
+    your purpose in the game is to chat with the host!
+  </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -2399,6 +2419,11 @@ socket.emit('pokeHost', { roomId: currentRoom });
       text
     });
 
+    // ✅ keep chat visible, but lock it immediately (and clear the input)
+if (!isHost) {
+  showPlayerChatLocked();
+}
+
     hasRespondedThisRound = true;
     setChatLocked(true, 'wait for the host…');
     playerChatEl.style.display = 'grid'; // keep it visible
@@ -2460,23 +2485,37 @@ playerTypingIndicator.style.display = hasText ? 'block' : 'none';
 
 
 
-  function setChatLocked(locked, placeholderText) {
-  if (isHost) return; // ✅ host never
-  if (!playerChatEl || !chatInputEl || !chatSendEl) return;
+  function setChatLocked(isLocked) {
+  if (!chatInputEl || !chatSendEl) return;
 
-  playerChatEl.classList.toggle('locked', !!locked);
-  chatInputEl.disabled = !!locked;
-  chatSendEl.disabled = !!locked;
-
-  if (placeholderText != null) chatInputEl.placeholder = placeholderText;
+  if (isLocked) {
+    // ALWAYS clear any typed/sent text + force wait placeholder
+    chatInputEl.value = '';
+    chatInputEl.placeholder = 'wait for the host..';
+    chatInputEl.disabled = true;
+    chatSendEl.disabled = true;
+    chatInputEl.style.opacity = '0.55';
+  } else {
+    chatInputEl.value = '';
+    chatInputEl.placeholder = 'type your reaction…';
+    chatInputEl.disabled = false;
+    chatSendEl.disabled = false;
+    chatInputEl.style.opacity = '1';
+  }
 }
 
 function showPlayerChatLocked() {
-  if (isHost) return; // ✅ host never
   if (!playerChatEl) return;
   playerChatEl.style.display = 'grid';
-  setChatLocked(true, 'wait for the host…');
+  setChatLocked(true);
 }
+
+function showPlayerChatUnlocked() {
+  if (!playerChatEl) return;
+  playerChatEl.style.display = 'grid';
+  setChatLocked(false);
+}
+
 
   document.querySelectorAll('.door').forEach(door => {
     const target  = door.dataset.target;
@@ -2855,6 +2894,17 @@ if (hostPasswordEl) {
     lastLoginLen = (hostPasswordEl.value || '').length;
   });
 }
+
+
+const purposeEl = document.getElementById('player-purpose');
+
+window.addEventListener('load', () => {
+  if (purposeEl) {
+    if (!isHost && isMobile) purposeEl.style.display = 'block';
+    else purposeEl.style.display = 'none';
+  }
+});
+
 
   window.addEventListener('load', () => {
     hostEl.style.display = 'none';
