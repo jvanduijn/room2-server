@@ -1332,7 +1332,11 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  const isHost = window.location.search.includes('host=1');
+const isHost =
+  window.location.pathname === '/host' ||
+  window.location.search.includes('host=1'); // keep backward compatibility
+
+
   window.isHost = isHost;
   const socket = io();
 
@@ -1418,7 +1422,7 @@ const PLAYER_JOIN_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.d
 
   const HOST_LOGIN_SUCCESS_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter2.mp3';
   const CREDITS_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3';
-  const LOGIN_MOMENT = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/welcome3.mp3';
+  const LOGIN_MOMENT = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/welcome2.mp3';
 
 
   const actionBarEl   = document.querySelector('.action-bar');
