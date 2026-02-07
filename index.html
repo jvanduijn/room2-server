@@ -966,7 +966,9 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
 .popup-message {
-    top: 5px !important;
+
+  top: 15px !important; /* 10px lower */
+
     left: 50% !important;
   right: auto !important;
   bottom: auto !important;
@@ -1075,7 +1077,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 <!-- host login overlay -->
 <div id="host-login" class="host-login-overlay">
   <div class="host-login-panel">
-    <div class="host-login-subtitle">want to JOIN? please visit room2.net</div>
+    <div class="host-login-subtitle">please JOIN! visit room2.net</div>
     <div class="host-login-title">host login</div>
     <input
       id="host-password"
@@ -1324,14 +1326,14 @@ body.host-scale .action-btn .off-badge .off-icon{
     </div>
   
     <div id="player-purpose" class="player-purpose">
-        Your purpose in room2<br>
+        <b>your purpose</b> in room2<br>
         is to reply to the host!
       </div>
   </div>
   </div><!-- /.everything -->
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
 const isHost =
   window.location.pathname === '/host' ||
   window.location.search.includes('host=1'); // keep backward compatibility
@@ -1628,7 +1630,7 @@ function setHouseNight(isNight){
 }
 
 
-const NIGHT_DURATION_MS = 23000; 
+const NIGHT_DURATION_MS = 30000; 
 let nightTimer = null;
 
 function startNightPulse(){
@@ -1649,6 +1651,12 @@ function startNightPulse(){
     socket.emit('hostAction', { kind: 'nightOff' });
     nightTimer = null;
   }, NIGHT_DURATION_MS);
+}
+
+function vibratePulse(pattern = [25, 30, 25]) {
+  // mobile only + requires user gesture at least once on iOS (Android usually ok)
+  if (!navigator.vibrate) return;
+  try { navigator.vibrate(pattern); } catch(e) {}
 }
 
 
@@ -2021,9 +2029,9 @@ function stopConvoLoop() {
 }
 
 socket.on('playerJoined', () => {
-  if (!isHost) return;          // ✅ only host hears it
-  if (!hostUnlocked) return;    // ✅ optional: don’t beep before login
-  playSound(PLAYER_JOIN_SOUND_URL);
+  if (!isHost) return;
+  if (!hostUnlocked) return;
+  playTypingSound(PLAYER_JOIN_SOUND_URL); // ✅ does NOT stop piano/tv/etc.
 });
 
 
@@ -2052,6 +2060,8 @@ socket.on('playerJoined', () => {
     popupMsgEl.classList.remove('host-msg','player-msg');
     popupMsgEl.textContent = text;
     popupMsgEl.style.display = 'block';
+    vibratePulse();
+
     clearTimeout(showMessage._timeout);
     showMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
@@ -2071,6 +2081,8 @@ socket.on('playerJoined', () => {
       '<span class="actor-icon ' + iconClass + '"></span>' +
       '<span class="actor-text">' + text + '</span>';
     popupMsgEl.style.display = 'flex';
+    vibratePulse();
+
     clearTimeout(showActorMessage._timeout);
     showActorMessage._timeout = setTimeout(() => {
       popupMsgEl.style.display = 'none';
@@ -2086,6 +2098,8 @@ socket.on('playerJoined', () => {
     '<span class="actor-icon actor-player"></span>' +
     '<span class="actor-text tight-after-icon">\'s response</span>';
   popupMsgEl.style.display = 'flex';
+  vibratePulse([20, 40, 20, 40, 20]); // slightly different “waiting” vibe
+
 
   clearTimeout(showHostWaitingMessage._timeout);
 
@@ -2247,6 +2261,8 @@ socket.on('pokeHost', (data) => {
   }
 
   pulsePoke(1000); // uses #player-poke (the "!" bubble)
+  playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
+
 });
 
   socket.on('hostOnline', ({ roomId }) => {
@@ -2425,8 +2441,12 @@ socket.on('playerTyping', ({ conversationId, typing }) => {
 
   playClickSound();
 
+
   // ✅ show "!" above the PLAYER (poke indicator only)
 pulsePoke(1000);
+
+playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
+
 
 // send to server so host can see it too
 socket.emit('pokeHost', { roomId: currentRoom });
@@ -2462,7 +2482,7 @@ socket.emit('pokeHost', { roomId: currentRoom });
 if (!isHost) {
   showPlayerChatLocked();
 }
-playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
+playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
 
     hasRespondedThisRound = true;
     setChatLocked(true);
