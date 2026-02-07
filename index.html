@@ -912,6 +912,15 @@ body.host-scale .action-btn .off-badge .off-icon{
         height: 22px;
       }
 
+      /* locked input must ALWAYS be grey (overrides focus rule) */
+.player-chat input:disabled,
+.player-chat input:disabled:focus,
+.player-chat input:disabled:focus-visible{
+  border-color: #2f2f2f !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
       .player,
       .random-object {
         width: 24px;
@@ -957,7 +966,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
 .popup-message {
-    top: -2px !important;
+    top: -8px !important;
     left: 50% !important;
   right: auto !important;
   bottom: auto !important;
@@ -967,7 +976,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   width: max-content;
   max-width: 86vw;
 
-  font-size: 22px !important;         /* slightly bigger */
+  font-size: 18px !important;         /* slightly bigger */
   padding: 6px 8px;
   text-align: center;
 
@@ -977,7 +986,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 }
 
   .popup-message .actor-text {
-    font-size: 16px !important;
+    font-size: 18px !important;
     white-space: normal;
   }
 
