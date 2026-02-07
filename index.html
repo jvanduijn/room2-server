@@ -580,19 +580,24 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 
     
-
-
-/* locked look (grey) */
+/* nicer locked look: grey, calmer, not neon */
 .player-chat input:disabled{
-  background:#1b1b1b;
-  border-color:#333;
-  color:#9a9a9a;
+  background: #2a2a2a;
+  border-color: #5a5a5a;
+  color: #c7c7c7;
   caret-color: transparent;
 }
 
 .player-chat input:disabled::placeholder{
-  color:#9a9a9a;
-  opacity:0.75;
+  color:#c7c7c7;
+  opacity:0.9;
+}
+
+.player-chat button:disabled{
+  background:#2a2a2a;
+  border-color:#5a5a5a;
+  color:#c7c7c7;
+  cursor: default;
 }
 
 
@@ -735,33 +740,6 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 
 
-/* locked state (player only) */
-.player-chat.locked {
-  border-color: rgba(0,255,136,0.35);
-  opacity: 0.7;
-}
-
-.player-chat.locked input,
-.player-chat.locked button {
-  opacity: 0.55;
-  filter: grayscale(1);
-  cursor: not-allowed;
-}
-
-/* locked button grey */
-.player-chat button:disabled{
-  background:#1b1b1b;
-  border-color:#333;
-  color:#9a9a9a;
-  cursor: default;
-}
-
-
-
-
-
-
-
     .player-chat button:active {
       transform: scale(0.97);
     }
@@ -871,6 +849,26 @@ body.host-scale .action-btn .off-badge .off-icon{
       body {
         align-items: flex-start;
       }
+
+
+      .player-purpose{
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(400px * 0.93 + 18px + 14px + 54px);
+  width: min(412px, calc(100vw - 12px));
+  margin: 0 auto;
+  font-size: 16px;
+  line-height: 1.2;
+  text-align: center;
+  color: rgba(0,0,0,0.7);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body.host-scale .player-purpose{
+  display:none !important;
+}
 
       .everything {
         margin-top: 24px;
@@ -2317,13 +2315,13 @@ if (kind === 'nightOff') setHouseNight(false);
   currentConversationId = conversationId;
   hasRespondedThisRound = false;
 
+  if (playerChatEl) playerChatEl.style.display = 'grid';
+setChatLocked(false);
+
   if (isHost) {
     convoOpen = true;
     // hostWaiting is shown by key "2"
 } else {
-  // players: unlock chat only during conversation
-  if (playerChatEl) playerChatEl.style.display = 'grid';
-  setChatLocked(false, 'type your reaction…');
 
   if (chatInputEl) {
     chatInputEl.value = '';
@@ -2373,19 +2371,22 @@ socket.on('conversationEnd', ({ conversationId }) => {
   if (isHost) {
     convoOpen = false;
 
-    // only hide waiting (don't kill the result bubble if it’s showing)
     if (hostWaiting) {
       hostWaiting = false;
       if (popupMsgEl) popupMsgEl.style.display = 'none';
     }
   }
 
+  // PLAYER: only do something if chat is NOT already locked/visible
   if (!isHost) {
-  if (playerChatEl) playerChatEl.style.display = 'grid';
-  setChatLocked(true, 'wait for the host…');
-  showPlayerChatLocked();
+    // If it's already locked, do nothing (prevents blink)
+    const alreadyLocked = !!chatInputEl && chatInputEl.disabled;
 
-}
+    if (!alreadyLocked) {
+      showPlayerChatLocked(); // this also sets placeholder + disabled
+    }
+  }
+
   if (!isHost && popupMsgEl && !resultShowing) popupMsgEl.style.display = 'none';
 });
 
@@ -2450,7 +2451,7 @@ if (!isHost) {
 }
 
     hasRespondedThisRound = true;
-    setChatLocked(true, 'wait for the host…');
+    setChatLocked(true);
     playerChatEl.style.display = 'grid'; // keep it visible
 
     if (popupMsgEl && !isHost) {
@@ -2514,18 +2515,15 @@ playerTypingIndicator.style.display = hasText ? 'block' : 'none';
   if (!chatInputEl || !chatSendEl) return;
 
   if (isLocked) {
-    // ALWAYS clear any typed/sent text + force wait placeholder
     chatInputEl.value = '';
     chatInputEl.placeholder = 'wait for the host..';
     chatInputEl.disabled = true;
     chatSendEl.disabled = true;
-    chatInputEl.style.opacity = '0.55';
   } else {
     chatInputEl.value = '';
     chatInputEl.placeholder = 'type your reaction…';
     chatInputEl.disabled = false;
     chatSendEl.disabled = false;
-    chatInputEl.style.opacity = '1';
   }
 }
 
@@ -2921,14 +2919,7 @@ if (hostPasswordEl) {
 }
 
 
-const purposeEl = document.getElementById('player-purpose');
 
-window.addEventListener('load', () => {
-  if (purposeEl) {
-    if (!isHost && isMobile) purposeEl.style.display = 'block';
-    else purposeEl.style.display = 'none';
-  }
-});
 
 
   window.addEventListener('load', () => {
@@ -2955,10 +2946,6 @@ window.addEventListener('load', () => {
       setAmbientForRoom(currentRoom); // host only
       syncBathroomLightForRoom(currentRoom);     // ✅ add this
 
-
-// players: show chat bar always, but locked until host starts conversation
-if (playerChatEl) playerChatEl.style.display = 'grid';
-setChatLocked(true, 'wait for the host…');
 
 
 // start dark if servers are off, lit/flicker if on
