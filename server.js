@@ -970,7 +970,6 @@ body.host-scale .action-btn .off-badge .off-icon{
 
   top: 15px !important; /* 10px lower */
 
-    top: 12px !important;
     left: 50% !important;
   right: auto !important;
   bottom: auto !important;
@@ -1328,7 +1327,7 @@ body.host-scale .action-btn .off-badge .off-icon{
     </div>
   
     <div id="player-purpose" class="player-purpose">
-        <b>your purpose<b> in room2<br>
+        <b>your purpose</b> in room2<br>
         is to reply to the host!
       </div>
   </div>
@@ -2263,7 +2262,7 @@ socket.on('pokeHost', (data) => {
   }
 
   pulsePoke(1000); // uses #player-poke (the "!" bubble)
-  playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
+  playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
 
 });
 
@@ -2447,7 +2446,7 @@ socket.on('playerTyping', ({ conversationId, typing }) => {
   // ✅ show "!" above the PLAYER (poke indicator only)
 pulsePoke(1000);
 
-playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
+playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
 
 
 // send to server so host can see it too
@@ -2484,7 +2483,7 @@ socket.emit('pokeHost', { roomId: currentRoom });
 if (!isHost) {
   showPlayerChatLocked();
 }
-playSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
+playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
 
     hasRespondedThisRound = true;
     setChatLocked(true);
