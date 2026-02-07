@@ -857,15 +857,13 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       .player-purpose{
     display: block;
-    margin-top: 8px; /* spacing under chat */
-    padding: 0 6px;  /* little breathing room */
+    margin-top: 8px;
+    padding: 0 6px;
     font-size: 16px;
     line-height: 1.2;
     text-align: center;
     color: rgba(0,0,0,0.7);
-    font-family: Arial, Helvetica, sans-serif;
   }
-
 
   body.host-scale .player-chat-wrap,
   body.host-scale .player-purpose{
@@ -982,41 +980,24 @@ body.host-scale .action-btn .off-badge .off-icon{
   }
 
 
-
+  /* wrapper is the anchored block */
   .player-chat-wrap{
     display: block;
     position: absolute;
     left: 0;
     right: 0;
-
-    /* same anchor you used for the chat */
     top: calc(400px * 0.93 + 18px + 14px);
-
     width: min(428px, calc(100vw - 8px));
     margin: 0 auto;
   }
-
-
   
-  .player-chat {
-  position: absolute;
-  left: 0;
-  right: 0;
+  /* chat is normal flow inside wrapper */
+  .player-chat{
+    position: static;        /* <-- IMPORTANT */
+    width: 100%;
+    margin: 0;
+  }
 
-  /* ✅ 4px more down (increase the last number by +4) */
-  top: calc(400px * 0.93 + 18px + 14px);
-
-  margin: 0 auto;
-
-  /* ✅ slightly wider (+12px) but never overflow phone width */
-  width: min(428px, calc(100vw - 8px));
-
-  transform: none;
-
-  background: #000;
-  border: 2px solid #00ff88;
-  padding: 6px 8px;
-}
 
       .player-chat input,
       .player-chat button {
@@ -1315,8 +1296,8 @@ body.host-scale .action-btn .off-badge .off-icon{
         </button>
 
   
-   <!-- Player chat + purpose -->
-   <div id="player-chat-wrap" class="player-chat-wrap">
+  <!-- Player chat + purpose (players only, phone) -->
+  <div id="player-chat-wrap" class="player-chat-wrap">
     <div id="player-chat" class="player-chat">
       <input id="chat-input" type="text" maxlength="24" placeholder="type your reaction…" />
       <button id="chat-send">send</button>
@@ -1326,7 +1307,7 @@ body.host-scale .action-btn .off-badge .off-icon{
       your purpose in the game is to chat with the host!
     </div>
   </div>
-</div>
+</div><!-- /.everything -->
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
