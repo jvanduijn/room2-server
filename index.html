@@ -586,20 +586,22 @@ body.host-scale .action-btn .off-badge .off-icon{
     
 /* nicer locked look: grey, calmer, not neon */
 .player-chat input:disabled{
-  background: #2a2a2a;
+  background: #585858;
   border-color: #5a5a5a;
+  border:1px solid #2f2f2f;
+
   color: #c7c7c7;
   caret-color: transparent;
 }
 
 .player-chat input:disabled::placeholder{
-  color:#c7c7c7;
-  opacity:0.9;
+  color:#ececec;
+  opacity:1;
 }
 
 .player-chat button:disabled{
   background:#2a2a2a;
-  border-color:#5a5a5a;
+  border-color:#757575;
   color:#c7c7c7;
   cursor: default;
 }
@@ -857,7 +859,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 
       .player-purpose{
     display: block;
-    margin-top: 12px;
+    margin-top: 10px;
     padding: 0 6px;
     font-size: 18px;
     line-height: 1.2;
@@ -901,7 +903,7 @@ body.host-scale .action-btn .off-badge .off-icon{
         right: 14px;
         top: 0px !important;
 
-        font-size: 13px;
+        font-size: 16px;
         padding: 4px 8px;
       }
 
@@ -965,7 +967,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   width: max-content;
   max-width: 86vw;
 
-  font-size: 18px;         /* slightly bigger */
+  font-size: 20px !important;         /* slightly bigger */
   padding: 10px 10px;       /* more prominent */
   text-align: center;
 
@@ -986,9 +988,9 @@ body.host-scale .action-btn .off-badge .off-icon{
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(400px * 0.93 + 18px + 4px);
+    top: calc(400px * 0.93 + 18px + 9px);
 
-    width: min(428px, calc(100vw - 2px));
+    width: min(428px, calc(100vw - 4px));
     margin: 0 auto;
   }
   
@@ -1306,7 +1308,7 @@ body.host-scale .action-btn .off-badge .off-icon{
     </div>
   
     <div id="player-purpose" class="player-purpose">
-        your purpose in room2<br>
+        Your purpose in room2<br>
         is to reply to the host!
       </div>
   </div>
