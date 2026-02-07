@@ -967,7 +967,6 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 .popup-message {
 
-
   top: 15px !important; /* 10px lower */
 
     left: 50% !important;
@@ -2030,9 +2029,9 @@ function stopConvoLoop() {
 }
 
 socket.on('playerJoined', () => {
-  if (!isHost) return;          // ✅ only host hears it
-  if (!hostUnlocked) return;    // ✅ optional: don’t beep before login
-  playSound(PLAYER_JOIN_SOUND_URL);
+  if (!isHost) return;
+  if (!hostUnlocked) return;
+  playTypingSound(PLAYER_JOIN_SOUND_URL); // ✅ does NOT stop piano/tv/etc.
 });
 
 
