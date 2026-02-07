@@ -967,7 +967,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 .popup-message {
 
-  top: 15px !important; /* 10px lower */
+  top: 10px !important; /* 10px lower */
 
     left: 50% !important;
   right: auto !important;
@@ -2381,7 +2381,7 @@ socket.on('conversationResult', ({ message }) => {
   if (isHost) {
     hostWaiting = false;
     if (popupMsgEl) popupMsgEl.style.display = 'none';
-    playSound(pickRandomFromPool('message'));
+    playTypingSound(pickRandomFromPool('message'));
     showActorMessage('player', text, 6000);
     return;
   }
@@ -2445,7 +2445,6 @@ socket.on('playerTyping', ({ conversationId, typing }) => {
   // ✅ show "!" above the PLAYER (poke indicator only)
 pulsePoke(1000);
 
-playTypingSound('https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3');
 
 
 // send to server so host can see it too
