@@ -2362,9 +2362,11 @@ setChatLocked(false);
 
   if (popupMsgEl) {
     popupMsgEl.classList.remove('host-msg','player-msg');
-    popupMsgEl.classList.add('host-msg');
-    popupMsgEl.textContent = 'asks for your response…';
-    popupMsgEl.style.display = 'block';
+popupMsgEl.classList.add('host-msg');
+popupMsgEl.innerHTML =
+  '<span class="actor-icon actor-host"></span>' +
+  '<span class="actor-text">asks for your response…</span>';
+popupMsgEl.style.display = 'flex';
   }
   }
 });
@@ -2382,13 +2384,13 @@ socket.on('conversationResult', ({ message }) => {
     hostWaiting = false;
     if (popupMsgEl) popupMsgEl.style.display = 'none';
     playTypingSound(pickRandomFromPool('message'));
-    showActorMessage('player', text, 6000);
+    showActorMessage('player', 'response: ' + text, 7000);
     return;
   }
 
  
 
-  showActorMessage('player', text, 6000);
+  showActorMessage('player', 'response: ' + text, 7000);
 });
 
 socket.on('conversationEnd', ({ conversationId }) => {
