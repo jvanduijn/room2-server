@@ -10,6 +10,13 @@ const io     = new Server(server, {
 });
 
 // static files (index.html etc.)
+
+// clean host URL: /host
+app.get('/host', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+
 app.use(express.static(__dirname));
 
 // --- HOST STATE ---
