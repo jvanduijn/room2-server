@@ -967,7 +967,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 
 .popup-message {
 
-  top: 4px !important; /* 10px lower */
+  top: 6px !important; /* 10px lower */
 
     left: 50% !important;
   right: auto !important;
@@ -2384,13 +2384,13 @@ socket.on('conversationResult', ({ message }) => {
     hostWaiting = false;
     if (popupMsgEl) popupMsgEl.style.display = 'none';
     playTypingSound(pickRandomFromPool('message'));
-    showActorMessage('player', 'response: ' + text, 7000);
+    showActorMessage('player', ': ' + text, 7000);
     return;
   }
 
  
 
-  showActorMessage('player', 'response: ' + text, 7000);
+  showActorMessage('player', ': ' + text, 7000);
 });
 
 socket.on('conversationEnd', ({ conversationId }) => {
