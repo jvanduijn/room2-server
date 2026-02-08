@@ -2055,7 +2055,7 @@ socket.on('playerJoined', () => {
     playSound(CLICK_SOUND_URL);
   }
 
-  function showMessage(text, duration = 4000) {
+  function showMessage(text, duration = 5000) {
     if (!popupMsgEl || !text) return;
     popupMsgEl.classList.remove('host-msg','player-msg');
     popupMsgEl.textContent = text;
@@ -2068,7 +2068,7 @@ socket.on('playerJoined', () => {
     }, duration);
   }
 
-  function showActorMessage(actor, text, duration = 4000) {
+  function showActorMessage(actor, text, duration = 5000) {
     if (!popupMsgEl || !text) return;
     const iconClass = actor === 'player' ? 'actor-player' : 'actor-host';
     popupMsgEl.classList.remove('host-msg','player-msg');
@@ -2337,7 +2337,7 @@ if (kind === 'nightOff') setHouseNight(false);
       } else {
         popupMsgEl.style.display = 'none';
       }
-    }, 4000);
+    }, 5000);
   }
 });
 
@@ -2378,7 +2378,7 @@ socket.on('conversationResult', ({ message }) => {
   const text = (message && String(message).trim()) ? String(message) : 'no response..';
 
   resultShowing = true;
-  setTimeout(() => { resultShowing = false; }, 6500); // slightly > 6000
+  setTimeout(() => { resultShowing = false; }, 7100); // slightly > 6000
 
   if (isHost) {
     hostWaiting = false;
