@@ -702,6 +702,15 @@ body.host-scale .action-btn .off-badge .off-icon{
   background: rgba(0,0,0,0.25);
 }
 
+/* ===== HOST BANNER BLINK (join reminder) ===== */
+.host-banner{
+  transition: color 120ms ease;
+}
+
+.host-banner.blink-join{
+  color: #baffd9 !important; /* light green flash */
+}
+
 .credits-roll{
   color: #ffffff;
   text-align: center;
@@ -1019,6 +1028,8 @@ body.host-scale .action-btn .off-badge .off-icon{
   border-color: #5a5a5a !important;
   background: #2a2a2a; /* optional: slightly greyed bar */
 }
+
+
 
   /* wrapper is the anchored block */
   .player-chat-wrap{
@@ -1629,6 +1640,66 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
     return pool[idx];
   }
 
+
+  // ===== JOIN REMINDER BEEP + BLINK =====
+const JOIN_BEEP_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3';
+
+let joinReminderTimer = null;
+let joinBlinkTimer = null;
+
+function clearJoinReminder(){
+  if (joinReminderTimer) { clearTimeout(joinReminderTimer); joinReminderTimer = null; }
+  if (joinBlinkTimer) { clearTimeout(joinBlinkTimer); joinBlinkTimer = null; }
+}
+
+function blinkJoinBannerOnce(){
+  if (!hostBannerEl) return;
+
+  hostBannerEl.classList.add('blink-join');
+  clearTimeout(hostBannerEl._blinkT);
+  hostBannerEl._blinkT = setTimeout(() => {
+    hostBannerEl.classList.remove('blink-join');
+  }, 150);
+}
+
+function blinkJoinBannerBurst(){
+  // blink a few times at random (2..4 blinks), with random gaps
+  const blinks = 2 + Math.floor(Math.random() * 3); // 2-4
+  let i = 0;
+
+  const step = () => {
+    if (!hostBannerEl) return;
+    blinkJoinBannerOnce();
+    i++;
+    if (i >= blinks) return;
+
+    const gap = 90 + Math.random() * 140; // 90-230ms between blinks
+    joinBlinkTimer = setTimeout(step, gap);
+  };
+
+  step();
+}
+
+function scheduleJoinReminder(){
+  clearJoinReminder();
+
+  // next beep somewhere between 30s and 60s
+  const delay = 30000 + Math.random() * 30000;
+
+  joinReminderTimer = setTimeout(() => {
+    joinReminderTimer = null;
+
+    // optional: don't do it during red alert / credits
+    if (!redAlertActive && !(creditsOverlayEl && creditsOverlayEl.classList.contains('show'))) {
+      playTypingSound(JOIN_BEEP_URL); // ✅ does NOT stop other sounds
+      blinkJoinBannerBurst();
+    }
+
+    // schedule next
+    scheduleJoinReminder();
+  }, delay);
+}
+
   function playTypingSound(url) {
   // one-shot sound without killing currentAudio/tv/shower/etc.
   if (!url) return;
@@ -1652,7 +1723,7 @@ const redAlertEl = document.getElementById('redAlertOverlay');
 
 // durations (real ms)
 const RED_ALERT_TO_FULL_MS    = 13 * 1000; // 1.5 minutes
-const RED_ALERT_TO_CREDITS_MS = 11 * 1000; // 30s after full red
+const RED_ALERT_TO_CREDITS_MS = 13 * 1000; // 30s after full red
 
 let redAlertAudio = null;
 let redAlertActive = false;
@@ -1907,6 +1978,8 @@ function showCredits(){
   timelineRunning = false;
   if (timelineRAF) cancelAnimationFrame(timelineRAF);
   timelineRAF = null;
+
+  clearJoinReminder();
 
   setTimelineUI(100);
 
@@ -3109,6 +3182,7 @@ case '3': {
 
 
     hostUnlocked = true;
+    scheduleJoinReminder();
     hostLoginEl.style.display = 'none';
 
     hostEl.style.display = 'block';
@@ -3180,6 +3254,8 @@ if (hostPasswordEl) {
         : 'volume ON is allowed';
       hostBannerEl.style.display = 'block';
     }
+
+    // start periodic join reminder (host only)
 
     if (isHost) {
       if (hostLoginEl)  hostLoginEl.style.display = 'flex';
