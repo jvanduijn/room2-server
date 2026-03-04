@@ -1447,6 +1447,8 @@ const PLAYER_JOIN_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.d
 
   const HOST_LOGIN_SUCCESS_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter2.mp3';
   const CREDITS_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3';
+  const CREDITS_SOUND2_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satiewrongly.mp3';
+
   const LOGIN_MOMENT = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/welcome2.mp3';
 
 
@@ -1731,6 +1733,8 @@ function scheduleRedAlertFrom(t0){
 
   redAlertTimerCredits = setTimeout(() => {
     localRedAlertCreditsState();
+    playSound(CREDITS_SOUND2_URL);
+
   }, msToCredits);
 }
 
@@ -1844,6 +1848,7 @@ function showCredits(){
 
   // credits sound (one-shot)
   playSound(CREDITS_SOUND_URL);
+  playSound(CREDITS_SOUND2_URL);
 
   // fade overlay in
   creditsOverlayEl.classList.add('show');
