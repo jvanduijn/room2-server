@@ -1700,8 +1700,12 @@ function showRedOverlayFull(){
 // PURE state setters (no internal timers)
 function localRedAlertStartState(){
   redAlertActive = true;
+
+  // ✅ hard cut everything else
+  stopAllNonAlarmAudio();
+
   showRedOverlayHalf();
-  playRedAlertAudio();          // ✅ alarm during 50% phase
+  playRedAlertAudio(); // alarm is the only sound during 50%
 }
 function localRedAlertFullState(){
   showRedOverlayFull();
@@ -1790,6 +1794,36 @@ function setHouseNight(isNight){
   mapEl.style.setProperty('--house-dark', houseNight ? '1' : '0');
 }
 
+
+function stopAllNonAlarmAudio(){
+  // stop your known loop sources
+  stopAmbient();
+  stopTvLoop();
+  stopShowerLoop();
+  stopLightLoop();
+  stopConvoLoop();
+
+  // stop any current one-shot (clicks, actions, etc.)
+  if (currentAudio) {
+    try { currentAudio.pause(); currentAudio.currentTime = 0; } catch(e){}
+    currentAudio = null;
+  }
+
+  // stop move audio if ever used
+  if (moveAudio) {
+    try { moveAudio.pause(); moveAudio.currentTime = 0; } catch(e){}
+    moveAudio = null;
+  }
+
+  // kill any "loose" <audio> that may exist (belt + suspenders)
+  // (keeps the alarm alive because we skip redAlertAudio)
+  try{
+    document.querySelectorAll('audio').forEach(a => {
+      if (a === redAlertAudio) return;
+      try { a.pause(); a.currentTime = 0; } catch(e){}
+    });
+  }catch(e){}
+}
 
 const NIGHT_DURATION_MS = 32000; 
 let nightTimer = null;
