@@ -1371,7 +1371,6 @@ const isHost =
     document.body.classList.add('host-scale');
   }
 
-  const HOST_START_ROOM = 'room5';
 
   const HOST_START_ROOM = 'room5';
 
@@ -1743,18 +1742,40 @@ function scheduleRedAlertFrom(t0){
   }, msToCredits);
 }
 
-// HOST triggers (authoritative clock)
+const RED_ALERT_ENTER_DELAY_MS = 4000;
+let redAlertArming = false;
+let redAlertArmTimer = null;
+
+function clearRedAlertArm(){
+  redAlertArming = false;
+  if (redAlertArmTimer) { clearTimeout(redAlertArmTimer); redAlertArmTimer = null; }
+}
+
 function startRedAlertAsHost(){
   if (!isHost || !hostUnlocked) return;
-  if (redAlertActive) return;
+  if (redAlertActive || redAlertArming) return; // already running or waiting
 
-  const t0 = Date.now();
+  redAlertArming = true;
 
-  // host local schedule
-  scheduleRedAlertFrom(t0);
+  // (optional) tiny feedback while waiting
+  showHostSignal('…', 900);
 
-  // broadcast start time so everyone uses same clock
-  socket.emit('hostAction', { kind: 'redAlertStart', t0 });
+  redAlertArmTimer = setTimeout(() => {
+    redAlertArmTimer = null;
+    redAlertArming = false;
+
+    // re-check state (just in case)
+    if (!isHost || !hostUnlocked) return;
+    if (redAlertActive) return;
+
+    const t0 = Date.now();
+
+    // start locally
+    scheduleRedAlertFrom(t0);
+
+    // broadcast start time so everyone uses same clock
+    socket.emit('hostAction', { kind: 'redAlertStart', t0 });
+  }, RED_ALERT_ENTER_DELAY_MS);
 }
 
 let houseNight = false;
