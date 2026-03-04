@@ -1388,7 +1388,7 @@ let serverLightLastOn = null;  // internal edge-detect
 
 
 const RED_ALERT_ALARM_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/alarmroom2.wav';
-const RED_ALERT_TO_FULL_MS = 40 * 1000;     // 1.5 minutes
+const RED_ALERT_TO_FULL_MS = 30 * 1000;     // 1.5 minutes
 const RED_ALERT_TO_CREDITS_MS = 10 * 1000;  // +30 seconds after full red
 
   let resultShowing = false;
@@ -1645,14 +1645,18 @@ function stopAmbient() {
 // ===== RED ALERT (host -> everyone) =====
 const redAlertEl = document.getElementById('redAlertOverlay');
 
+// durations (real ms)
+const RED_ALERT_TO_FULL_MS    = 90 * 1000; // 1.5 minutes
+const RED_ALERT_TO_CREDITS_MS = 30 * 1000; // 30s after full red
+
 let redAlertAudio = null;
-let redAlertT1 = null; // to full red
-let redAlertT2 = null; // to credits
 let redAlertActive = false;
+let redAlertTimerFull = null;
+let redAlertTimerCredits = null;
 
 function clearRedAlertTimers(){
-  if (redAlertT1) { clearTimeout(redAlertT1); redAlertT1 = null; }
-  if (redAlertT2) { clearTimeout(redAlertT2); redAlertT2 = null; }
+  if (redAlertTimerFull) { clearTimeout(redAlertTimerFull); redAlertTimerFull = null; }
+  if (redAlertTimerCredits) { clearTimeout(redAlertTimerCredits); redAlertTimerCredits = null; }
 }
 
 function stopRedAlertAudio(){
@@ -1688,59 +1692,65 @@ function showRedOverlayFull(){
   redAlertEl.classList.add('full');
 }
 
-function localRedAlertStart(){
+// PURE state setters (no internal timers)
+function localRedAlertStartState(){
   redAlertActive = true;
-  clearRedAlertTimers();
-
-  // optional: if credits already showing from timeline, keep it as-is
-  // creditsOverlayEl.classList.remove('show'); // only if you want to force-hide
-
   showRedOverlayHalf();
-  playRedAlertAudio();
-
-  // schedule full red
-  redAlertT1 = setTimeout(() => {
-    localRedAlertFull();
-  }, RED_ALERT_TO_FULL_MS);
+  playRedAlertAudio();          // ✅ alarm during 50% phase
 }
-
-function localRedAlertFull(){
+function localRedAlertFullState(){
   showRedOverlayFull();
-  stopRedAlertAudio();
-
-  // schedule credits 30s later
-  clearTimeout(redAlertT2);
-  redAlertT2 = setTimeout(() => {
-    localRedAlertCredits();
-  }, RED_ALERT_TO_CREDITS_MS);
+  stopRedAlertAudio();          // ✅ stop alarm when 100% red starts
 }
-
-function localRedAlertCredits(){
+function localRedAlertCreditsState(){
   if (creditsOverlayEl) creditsOverlayEl.classList.add('show');
 }
 
-// HOST triggers + broadcasts the “clock”
+// SCHEDULE from a shared t0 (host time)
+function scheduleRedAlertFrom(t0){
+  clearRedAlertTimers();
+
+  const now = Date.now();
+  const elapsed = now - t0;
+
+  // if someone joins late / receives late, jump to correct state immediately
+  if (elapsed >= RED_ALERT_TO_FULL_MS) {
+    localRedAlertFullState();
+  } else {
+    localRedAlertStartState();
+  }
+
+  if (elapsed >= RED_ALERT_TO_FULL_MS + RED_ALERT_TO_CREDITS_MS) {
+    localRedAlertCreditsState();
+    return;
+  }
+
+  // schedule remaining
+  const msToFull = Math.max(0, RED_ALERT_TO_FULL_MS - elapsed);
+  const msToCredits = Math.max(0, (RED_ALERT_TO_FULL_MS + RED_ALERT_TO_CREDITS_MS) - elapsed);
+
+  redAlertTimerFull = setTimeout(() => {
+    localRedAlertFullState();
+  }, msToFull);
+
+  redAlertTimerCredits = setTimeout(() => {
+    localRedAlertCreditsState();
+  }, msToCredits);
+}
+
+// HOST triggers (authoritative clock)
 function startRedAlertAsHost(){
   if (!isHost || !hostUnlocked) return;
   if (redAlertActive) return;
 
-  // host local
-  localRedAlertStart();
+  const t0 = Date.now();
 
-  // everyone start
-  socket.emit('hostAction', { kind: 'redAlertStart' });
+  // host local schedule
+  scheduleRedAlertFrom(t0);
 
-  // everyone go full red after 90s
-  setTimeout(() => {
-    socket.emit('hostAction', { kind: 'redAlertFull' });
-  }, RED_ALERT_TO_FULL_MS);
-
-  // everyone show credits 30s after full red
-  setTimeout(() => {
-    socket.emit('hostAction', { kind: 'redAlertCredits' });
-  }, RED_ALERT_TO_FULL_MS + RED_ALERT_TO_CREDITS_MS);
+  // broadcast start time so everyone uses same clock
+  socket.emit('hostAction', { kind: 'redAlertStart', t0 });
 }
-
 
 let houseNight = false;
 
