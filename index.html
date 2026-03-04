@@ -1388,7 +1388,8 @@ let serverLightLastOn = null;  // internal edge-detect
 
 
 const RED_ALERT_ALARM_URL = 'https://YOUR-ALARM-URL-HERE/alarm.mp3';
-const RED_ALERT_DURATION_MS = 90 * 1000; // 1.5 minutes
+const RED_ALERT_TO_FULL_MS = 90 * 1000;     // 1.5 minutes
+const RED_ALERT_TO_CREDITS_MS = 30 * 1000;  // +30 seconds after full red
 
   let resultShowing = false;
 
@@ -1641,13 +1642,18 @@ function stopAmbient() {
   ambientAudio = null;
   ambientRoom = null;
 }
-
 // ===== RED ALERT (host -> everyone) =====
 const redAlertEl = document.getElementById('redAlertOverlay');
 
 let redAlertAudio = null;
-let redAlertTimer = null;
+let redAlertT1 = null; // to full red
+let redAlertT2 = null; // to credits
 let redAlertActive = false;
+
+function clearRedAlertTimers(){
+  if (redAlertT1) { clearTimeout(redAlertT1); redAlertT1 = null; }
+  if (redAlertT2) { clearTimeout(redAlertT2); redAlertT2 = null; }
+}
 
 function stopRedAlertAudio(){
   if (!redAlertAudio) return;
@@ -1662,7 +1668,6 @@ function stopRedAlertAudio(){
 function playRedAlertAudio(){
   stopRedAlertAudio();
   if (!RED_ALERT_ALARM_URL) return;
-
   try{
     redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
     redAlertAudio.loop = true;
@@ -1683,57 +1688,58 @@ function showRedOverlayFull(){
   redAlertEl.classList.add('full');
 }
 
-function hideRedOverlay(){
-  if (!redAlertEl) return;
-  redAlertEl.classList.remove('show','full');
-  redAlertEl.style.display = 'none';
-  // allow CSS to re-show normally next time
-  requestAnimationFrame(()=>{ redAlertEl.style.display = ''; });
-}
-
-function showCreditsAboveRed(){
-  // your existing overlay (black frame with credits) is #creditsOverlay
-  if (creditsOverlayEl) creditsOverlayEl.classList.add('show');
-}
-
 function localRedAlertStart(){
   redAlertActive = true;
+  clearRedAlertTimers();
 
-  // reset any previous run
-  if (redAlertTimer) clearTimeout(redAlertTimer);
-  redAlertTimer = null;
+  // optional: if credits already showing from timeline, keep it as-is
+  // creditsOverlayEl.classList.remove('show'); // only if you want to force-hide
 
   showRedOverlayHalf();
   playRedAlertAudio();
 
-  redAlertTimer = setTimeout(() => {
-    localRedAlertFinal();
-  }, RED_ALERT_DURATION_MS);
+  // schedule full red
+  redAlertT1 = setTimeout(() => {
+    localRedAlertFull();
+  }, RED_ALERT_TO_FULL_MS);
 }
 
-function localRedAlertFinal(){
-  // full red, stop alarm, show credits above
+function localRedAlertFull(){
   showRedOverlayFull();
   stopRedAlertAudio();
-  showCreditsAboveRed();
+
+  // schedule credits 30s later
+  clearTimeout(redAlertT2);
+  redAlertT2 = setTimeout(() => {
+    localRedAlertCredits();
+  }, RED_ALERT_TO_CREDITS_MS);
 }
 
+function localRedAlertCredits(){
+  if (creditsOverlayEl) creditsOverlayEl.classList.add('show');
+}
+
+// HOST triggers + broadcasts the “clock”
 function startRedAlertAsHost(){
   if (!isHost || !hostUnlocked) return;
-  if (redAlertActive) return; // prevent re-trigger spam
+  if (redAlertActive) return;
 
   // host local
   localRedAlertStart();
 
-  // broadcast start to players
+  // everyone start
   socket.emit('hostAction', { kind: 'redAlertStart' });
 
-  // broadcast final after 90s (host is the “clock”)
+  // everyone go full red after 90s
   setTimeout(() => {
-    socket.emit('hostAction', { kind: 'redAlertFinal' });
-  }, RED_ALERT_DURATION_MS);
-}
+    socket.emit('hostAction', { kind: 'redAlertFull' });
+  }, RED_ALERT_TO_FULL_MS);
 
+  // everyone show credits 30s after full red
+  setTimeout(() => {
+    socket.emit('hostAction', { kind: 'redAlertCredits' });
+  }, RED_ALERT_TO_FULL_MS + RED_ALERT_TO_CREDITS_MS);
+}
 
 
 let houseNight = false;
@@ -2405,68 +2411,61 @@ socket.on('hostOffline', () => {
     moveElementToRoom(playerEl, roomId, 'player');
   });
   socket.on('hostAction', (data) => {
-  if (!data || !data.kind) return;
-  const kind = data.kind;
-
-// whole-house night overlay (host controlled)
-if (kind === 'nightOn')  setHouseNight(true);
-if (kind === 'nightOff') setHouseNight(false);
-
-  // ✅ bathroom darkness visual for everyone
-  if (kind === 'lightOn')  setBathroomDarkness(true);
-  if (kind === 'lightOff') setBathroomDarkness(false);
-
-  // ✅ server room light (room2) follows C/8 for everyone
-  if (kind === 'serverAmbOn')  setServerRoomLight(true);   // flicker ON + random flickers
-  if (kind === 'serverAmbOff') setServerRoomLight(false);  // snap OFF
-
-  // tv/shower visuals for everyone
-  if (kind === 'tvOn') setTvVisualState(true);
-  else if (kind === 'tvOff') setTvVisualState(false);
-
-  if (kind === 'showerOn') setShowerVisualState(true);
-  else if (kind === 'showerOff') setShowerVisualState(false);
-
-  const msg = actionMessages[kind];
-  if (!msg) return;
-
-  // ✅ RED ALERT for everyone
-  if (kind === 'redAlertStart') {
-    // everyone runs locally (players may have autoplay restrictions; we'll attempt)
-    localRedAlertStart();
-    return;
-  }
-
-  if (kind === 'redAlertFinal') {
-    localRedAlertFinal();
-    return;
-  }
-
-  // show popup message
-  if (isHost) {
-    showActorMessage('host', msg);
-  } else {
-    if (!popupMsgEl) return;
-    popupMsgEl.classList.remove('host-msg','player-msg');
-    popupMsgEl.classList.add('host-msg');
-    popupMsgEl.innerHTML =
-      '<span class="actor-icon actor-host"></span>' +
-      '<span class="actor-text">' + msg + '</span>';
-    popupMsgEl.style.display = 'flex';
-
-    clearTimeout(showActorMessage._timeout);
-    showActorMessage._timeout = setTimeout(() => {
-      if (currentConversationId && !hasRespondedThisRound) {
-        popupMsgEl.classList.remove('host-msg','player-msg');
-        popupMsgEl.classList.add('host-msg');
-        popupMsgEl.textContent = '..asks for your reaction!';
-        popupMsgEl.style.display = 'block';
-      } else {
-        popupMsgEl.style.display = 'none';
-      }
-    }, 5000);
-  }
-});
+    if (!data || !data.kind) return;
+    const kind = data.kind;
+  
+    // ✅ RED ALERT for everyone (MUST be before actionMessages return)
+    if (kind === 'redAlertStart') { localRedAlertStart(); return; }
+    if (kind === 'redAlertFull')  { localRedAlertFull();  return; }
+    if (kind === 'redAlertCredits'){ localRedAlertCredits(); return; }
+  
+    // whole-house night overlay (host controlled)
+    if (kind === 'nightOn')  setHouseNight(true);
+    if (kind === 'nightOff') setHouseNight(false);
+  
+    // bathroom darkness visual for everyone
+    if (kind === 'lightOn')  setBathroomDarkness(true);
+    if (kind === 'lightOff') setBathroomDarkness(false);
+  
+    // server room light (room2) follows C/8 for everyone
+    if (kind === 'serverAmbOn')  setServerRoomLight(true);
+    if (kind === 'serverAmbOff') setServerRoomLight(false);
+  
+    // tv/shower visuals for everyone
+    if (kind === 'tvOn') setTvVisualState(true);
+    else if (kind === 'tvOff') setTvVisualState(false);
+  
+    if (kind === 'showerOn') setShowerVisualState(true);
+    else if (kind === 'showerOff') setShowerVisualState(false);
+  
+    const msg = actionMessages[kind];
+    if (!msg) return;
+  
+    // show popup message (your existing logic)
+    if (isHost) {
+      showActorMessage('host', msg);
+    } else {
+      if (!popupMsgEl) return;
+      popupMsgEl.classList.remove('host-msg','player-msg');
+      popupMsgEl.classList.add('host-msg');
+      popupMsgEl.innerHTML =
+        '<span class="actor-icon actor-host"></span>' +
+        '<span class="actor-text">' + msg + '</span>';
+      popupMsgEl.style.display = 'flex';
+  
+      clearTimeout(showActorMessage._timeout);
+      showActorMessage._timeout = setTimeout(() => {
+        if (currentConversationId && !hasRespondedThisRound) {
+          popupMsgEl.classList.remove('host-msg','player-msg');
+          popupMsgEl.classList.add('host-msg');
+          popupMsgEl.textContent = '..asks for your reaction!';
+          popupMsgEl.style.display = 'block';
+        } else {
+          popupMsgEl.style.display = 'none';
+        }
+      }, 5000);
+    }
+  });
 
   socket.on('conversationStart', ({ conversationId }) => {
   currentConversationId = conversationId;
