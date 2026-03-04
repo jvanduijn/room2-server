@@ -23,6 +23,26 @@
   display: none;
 }
 
+/* ===== RED ALERT OVERLAY ===== */
+.red-alert{
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 0, 0, 0); /* start hidden */
+  display: none;
+  z-index: 3500;                 /* below credits (4000), above everything else */
+  pointer-events: none;
+  transition: background 600ms ease, opacity 600ms ease;
+}
+
+.red-alert.show{
+  display: block;
+  background: rgba(255, 0, 0, 0.50); /* 50% red */
+}
+
+.red-alert.full{
+  background: rgba(255, 0, 0, 1);    /* 100% red */
+}
+
 
 /* overlay */
 #room2::after{
@@ -1069,6 +1089,9 @@ body.host-scale .action-btn .off-badge .off-icon{
       </div>
     </div>
   </div>
+
+  <!-- RED ALERT OVERLAY -->
+<div id="redAlertOverlay" class="red-alert" aria-hidden="true"></div>
   
 
 
@@ -1364,6 +1387,9 @@ const isHost =
 let serverLightLastOn = null;  // internal edge-detect
 
 
+const RED_ALERT_ALARM_URL = 'https://YOUR-ALARM-URL-HERE/alarm.mp3';
+const RED_ALERT_DURATION_MS = 90 * 1000; // 1.5 minutes
+
   let resultShowing = false;
 
 
@@ -1532,9 +1558,7 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/sleeping2.mp3'
     ],
     table: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/diningtable1.mp3',
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/eatingmoment1.mp3'
-
     ],
     piano: [
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satie2.mp3'
@@ -1559,7 +1583,6 @@ const SERVERS_ON_URL   = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/tu
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/showerrunning3.mp3'
     ],
     brush: [
-      'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/washinghands1.mp3',
       'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/brushteeth1.mp3'
     ],
     dinner: [
@@ -1617,6 +1640,98 @@ function stopAmbient() {
   } catch (e) {}
   ambientAudio = null;
   ambientRoom = null;
+}
+
+// ===== RED ALERT (host -> everyone) =====
+const redAlertEl = document.getElementById('redAlertOverlay');
+
+let redAlertAudio = null;
+let redAlertTimer = null;
+let redAlertActive = false;
+
+function stopRedAlertAudio(){
+  if (!redAlertAudio) return;
+  try{
+    redAlertAudio.loop = false;
+    redAlertAudio.pause();
+    redAlertAudio.currentTime = 0;
+  }catch(e){}
+  redAlertAudio = null;
+}
+
+function playRedAlertAudio(){
+  stopRedAlertAudio();
+  if (!RED_ALERT_ALARM_URL) return;
+
+  try{
+    redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
+    redAlertAudio.loop = true;
+    redAlertAudio.volume = 1;
+    redAlertAudio.play().catch(()=>{});
+  }catch(e){}
+}
+
+function showRedOverlayHalf(){
+  if (!redAlertEl) return;
+  redAlertEl.classList.add('show');
+  redAlertEl.classList.remove('full');
+}
+
+function showRedOverlayFull(){
+  if (!redAlertEl) return;
+  redAlertEl.classList.add('show');
+  redAlertEl.classList.add('full');
+}
+
+function hideRedOverlay(){
+  if (!redAlertEl) return;
+  redAlertEl.classList.remove('show','full');
+  redAlertEl.style.display = 'none';
+  // allow CSS to re-show normally next time
+  requestAnimationFrame(()=>{ redAlertEl.style.display = ''; });
+}
+
+function showCreditsAboveRed(){
+  // your existing overlay (black frame with credits) is #creditsOverlay
+  if (creditsOverlayEl) creditsOverlayEl.classList.add('show');
+}
+
+function localRedAlertStart(){
+  redAlertActive = true;
+
+  // reset any previous run
+  if (redAlertTimer) clearTimeout(redAlertTimer);
+  redAlertTimer = null;
+
+  showRedOverlayHalf();
+  playRedAlertAudio();
+
+  redAlertTimer = setTimeout(() => {
+    localRedAlertFinal();
+  }, RED_ALERT_DURATION_MS);
+}
+
+function localRedAlertFinal(){
+  // full red, stop alarm, show credits above
+  showRedOverlayFull();
+  stopRedAlertAudio();
+  showCreditsAboveRed();
+}
+
+function startRedAlertAsHost(){
+  if (!isHost || !hostUnlocked) return;
+  if (redAlertActive) return; // prevent re-trigger spam
+
+  // host local
+  localRedAlertStart();
+
+  // broadcast start to players
+  socket.emit('hostAction', { kind: 'redAlertStart' });
+
+  // broadcast final after 90s (host is the “clock”)
+  setTimeout(() => {
+    socket.emit('hostAction', { kind: 'redAlertFinal' });
+  }, RED_ALERT_DURATION_MS);
 }
 
 
@@ -2315,6 +2430,18 @@ if (kind === 'nightOff') setHouseNight(false);
   const msg = actionMessages[kind];
   if (!msg) return;
 
+  // ✅ RED ALERT for everyone
+  if (kind === 'redAlertStart') {
+    // everyone runs locally (players may have autoplay restrictions; we'll attempt)
+    localRedAlertStart();
+    return;
+  }
+
+  if (kind === 'redAlertFinal') {
+    localRedAlertFinal();
+    return;
+  }
+
   // show popup message
   if (isHost) {
     showActorMessage('host', msg);
@@ -2809,16 +2936,16 @@ function showPlayerChatUnlocked() {
       }
     }
 
-    // ENTER toggles the 10-minute timeline (host only)
-// (avoid triggering while typing in inputs)
-if (e.key === 'Enter') {
-  const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-  if (tag !== 'input' && tag !== 'textarea') {
-    e.preventDefault();
-    toggleTimeline();
-    return;
-  }
-}
+    // ENTER triggers RED ALERT (host only)
+    // (avoid triggering while typing in inputs)
+    if (e.key === 'Enter') {
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+      if (tag !== 'input' && tag !== 'textarea') {
+        e.preventDefault();
+        startRedAlertAsHost();
+        return;
+      }
+    }
 
     switch (e.key) {
       case 'z':
