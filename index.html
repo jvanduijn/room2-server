@@ -1453,6 +1453,9 @@ const PLAYER_JOIN_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.d
   const CREDITS_SOUND_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3';
   const CREDITS_SOUND2_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/satiewrongly.mp3';
 
+  const RED_FULL_ALARM = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/login3.mp3';
+
+
   const LOGIN_MOMENT = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/welcome2.mp3';
 
 
@@ -1649,7 +1652,7 @@ const redAlertEl = document.getElementById('redAlertOverlay');
 
 // durations (real ms)
 const RED_ALERT_TO_FULL_MS    = 13 * 1000; // 1.5 minutes
-const RED_ALERT_TO_CREDITS_MS = 9 * 1000; // 30s after full red
+const RED_ALERT_TO_CREDITS_MS = 11 * 1000; // 30s after full red
 
 let redAlertAudio = null;
 let redAlertActive = false;
@@ -1748,6 +1751,8 @@ let redAlertArmTimer = null;
 
 function clearRedAlertArm(){
   redAlertArming = false;
+  playSound(RED_FULL_ALARM);
+
   if (redAlertArmTimer) { clearTimeout(redAlertArmTimer); redAlertArmTimer = null; }
 }
 
@@ -1758,7 +1763,6 @@ function startRedAlertAsHost(){
   redAlertArming = true;
 
   // (optional) tiny feedback while waiting
-  showHostSignal('…', 900);
 
   redAlertArmTimer = setTimeout(() => {
     redAlertArmTimer = null;
