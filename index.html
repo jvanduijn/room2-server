@@ -677,7 +677,7 @@ body.host-scale .action-btn .off-badge .off-icon{
 .credits-overlay{
   position: fixed;
   inset: 0;
-  background: red;
+  background: red !important;
   display: none;
   z-index: 4000;
   pointer-events: none;
@@ -689,7 +689,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   display: flex;
   pointer-events: auto; /* blocks clicks */
   opacity: 1;
-  background: rgba(0,0,0,0.96); /* almost black */
+  background: red; /* almost black */
   align-items: center;
   justify-content: center;
 }
@@ -1387,7 +1387,7 @@ const isHost =
 let serverLightLastOn = null;  // internal edge-detect
 
 
-const RED_ALERT_ALARM_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/alarmroom2.wav';
+const RED_ALERT_ALARM_URL = 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/room2alam.mp3';
 
   let resultShowing = false;
 
@@ -1644,8 +1644,8 @@ function stopAmbient() {
 const redAlertEl = document.getElementById('redAlertOverlay');
 
 // durations (real ms)
-const RED_ALERT_TO_FULL_MS    = 30 * 1000; // 1.5 minutes
-const RED_ALERT_TO_CREDITS_MS = 10 * 1000; // 30s after full red
+const RED_ALERT_TO_FULL_MS    = 10 * 1000; // 1.5 minutes
+const RED_ALERT_TO_CREDITS_MS = 4 * 1000; // 30s after full red
 
 let redAlertAudio = null;
 let redAlertActive = false;
