@@ -1065,8 +1065,7 @@ body.host-scale .action-btn .off-badge .off-icon{
   <div id="creditsOverlay" class="credits-overlay" aria-hidden="true">
     <div class="credits-frame">
       <div id="creditsRoll" class="credits-roll">
-        <div class="credits-title">CREDITS</div>
-        <div class="credits-line">room2.net</div>
+        <div class="credits-line">CREDITS</div>
         <div class="credits-gap"></div>
   
         <div class="credits-heading">host played by</div>
@@ -1085,7 +1084,6 @@ body.host-scale .action-btn .off-badge .off-icon{
         <div class="credits-line">Marit Reezigt</div>
         <div class="credits-gap"></div>
   
-        <div class="credits-line">thank you for participating!</div>
       </div>
     </div>
   </div>
@@ -1489,7 +1487,7 @@ const ROOM_ENTER = {
   room2: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_serverroom2.mp3',
   room3: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_hallway.mp3',
   room4: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bathroom.mp3',
-  room5: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_livingroom.mp3',
+  room5: '',
   room6: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_kitchen.mp3',
   room7: 'https://pub-e2eda233e65d46ef9ded8e7546600fc3.r2.dev/enter_bedroom.mp3'
 };
@@ -1644,8 +1642,8 @@ function stopAmbient() {
 const redAlertEl = document.getElementById('redAlertOverlay');
 
 // durations (real ms)
-const RED_ALERT_TO_FULL_MS    = 10 * 1000; // 1.5 minutes
-const RED_ALERT_TO_CREDITS_MS = 4 * 1000; // 30s after full red
+const RED_ALERT_TO_FULL_MS    = 13 * 1000; // 1.5 minutes
+const RED_ALERT_TO_CREDITS_MS = 5 * 1000; // 30s after full red
 
 let redAlertAudio = null;
 let redAlertActive = false;
