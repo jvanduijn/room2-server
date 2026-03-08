@@ -1691,7 +1691,6 @@ function scheduleJoinReminder(){
 
     // optional: don't do it during red alert / credits
     if (!redAlertActive && !(creditsOverlayEl && creditsOverlayEl.classList.contains('show'))) {
-      playTypingSound(JOIN_BEEP_URL); // ✅ does NOT stop other sounds
       blinkJoinBannerBurst();
     }
 
