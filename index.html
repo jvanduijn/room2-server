@@ -1731,36 +1731,65 @@ let redAlertAudio = null;
 let redAlertActive = false;
 let redAlertTimerFull = null;
 let redAlertTimerCredits = null;
+let audioUnlockEl = null;
 
 function clearRedAlertTimers(){
 if (redAlertTimerFull) { clearTimeout(redAlertTimerFull); redAlertTimerFull = null; }
 if (redAlertTimerCredits) { clearTimeout(redAlertTimerCredits); redAlertTimerCredits = null; }
 }
 function playRedAlertAudio(){
-  if (!RED_ALERT_ALARM_URL) return;
-
-  try {
-    // altijd schoon opnieuw beginnen
-    stopRedAlertAudio();
-
-    redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
-    redAlertAudio.preload = 'auto';
-    redAlertAudio.loop = true;
-    redAlertAudio.volume = 1;
-
-    const p = redAlertAudio.play();
-    if (p && typeof p.catch === 'function') {
-      p.catch(err => {
-        console.log('red alert play blocked', err);
-      });
+    if (!RED_ALERT_ALARM_URL) return;
+    if (!audioUnlocked) {
+      console.log('red alert skipped: audio not unlocked yet');
+      return;
     }
-  } catch (e) {
-    console.log('red alert audio error', e);
+  
+    try {
+      stopRedAlertAudio();
+  
+      redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
+      redAlertAudio.preload = 'auto';
+      redAlertAudio.loop = true;
+      redAlertAudio.volume = 1;
+      redAlertAudio.currentTime = 0;
+  
+      const p = redAlertAudio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(err => {
+          console.log('red alert play blocked', err);
+        });
+      }
+    } catch (e) {
+      console.log('red alert audio error', e);
+    }
   }
-}
 function unlockAudioOnce() {
     if (audioUnlocked) return;
-    audioUnlocked = true;
+  
+    try {
+      // super short silent wav
+      const SILENT_WAV =
+        'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  
+      audioUnlockEl = new Audio(SILENT_WAV);
+      audioUnlockEl.preload = 'auto';
+      audioUnlockEl.volume = 0;
+  
+      const p = audioUnlockEl.play();
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          try {
+            audioUnlockEl.pause();
+            audioUnlockEl.currentTime = 0;
+          } catch (e) {}
+          audioUnlocked = true;
+        }).catch(err => {
+          console.log('audio unlock blocked', err);
+        });
+      }
+    } catch (e) {
+      console.log('audio unlock error', e);
+    }
   }
   
   function primeRedAlertAudio() {
@@ -2873,18 +2902,20 @@ setChatLocked(false);
 
 
 document.querySelectorAll('.door').forEach(door => {
-const target  = door.dataset.target;
-door.addEventListener('click', (e) => {
-e.stopPropagation();
-if (target) goToRoom(target);
-});
-});
+    const target  = door.dataset.target;
+    door.addEventListener('click', (e) => {
+      unlockAudioOnce();
+      e.stopPropagation();
+      if (target) goToRoom(target);
+    });
+  });
 
-document.querySelectorAll('.room').forEach(room => {
-room.addEventListener('click', () => {
-goToRoom(room.id);
-});
-});
+  document.querySelectorAll('.room').forEach(room => {
+    room.addEventListener('click', () => {
+      unlockAudioOnce();
+      goToRoom(room.id);
+    });
+  });
 
 function flashButton(actionName, pulses = 2, interval = 140) {
 let btn = document.querySelector('.action-btn[data-action="' + actionName + '"]');
