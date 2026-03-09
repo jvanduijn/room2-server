@@ -1726,7 +1726,6 @@ const redAlertEl = document.getElementById('redAlertOverlay');
 // durations (real ms)
 const RED_ALERT_TO_FULL_MS    = 42 * 1000; // 1.5 minutes
 const RED_ALERT_TO_CREDITS_MS = 38 * 1000; // 30s after full red
-const RED_ALERT_TO_CREDITS_MS = 36 * 1000; // 30s after full red
 
 let redAlertAudio = null;
 let redAlertActive = false;
@@ -1737,67 +1736,46 @@ function clearRedAlertTimers(){
 if (redAlertTimerFull) { clearTimeout(redAlertTimerFull); redAlertTimerFull = null; }
 if (redAlertTimerCredits) { clearTimeout(redAlertTimerCredits); redAlertTimerCredits = null; }
 }
-
-function stopRedAlertAudio(){
-if (!redAlertAudio) return;
-try{
-redAlertAudio.loop = false;
-redAlertAudio.pause();
-redAlertAudio.currentTime = 0;
-}catch(e){}
-redAlertAudio = null;
-}
-
-function unlockAudioOnce() {
-if (audioUnlocked) return;
-audioUnlocked = true;
-
-try {
-// create + play a tiny silent audio to unlock mobile audio playback
-const a = new Audio();
-a.volume = 0;
-a.src = RED_ALERT_ALARM_URL;
-a.play()
-.then(() => {
-try {
-a.pause();
-a.currentTime = 0;
-} catch(e) {}
-})
-.catch(() => {});
-} catch (e) {}
-}
-
-function primeRedAlertAudio() {
-if (redAlertPrimed) return;
-redAlertPrimed = true;
-
-try {
-redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
-redAlertAudio.loop = true;
-redAlertAudio.preload = 'auto';
-redAlertAudio.volume = 1;
-} catch (e) {}
-}
-
 function playRedAlertAudio(){
-if (!RED_ALERT_ALARM_URL) return;
+  if (!RED_ALERT_ALARM_URL) return;
 
-try{
-if (!redAlertAudio) {
-redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
-redAlertAudio.loop = true;
-redAlertAudio.preload = 'auto';
-redAlertAudio.volume = 1;
+  try {
+    // altijd schoon opnieuw beginnen
+    stopRedAlertAudio();
+
+    redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
+    redAlertAudio.preload = 'auto';
+    redAlertAudio.loop = true;
+    redAlertAudio.volume = 1;
+
+    const p = redAlertAudio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(err => {
+        console.log('red alert play blocked', err);
+      });
+    }
+  } catch (e) {
+    console.log('red alert audio error', e);
+  }
 }
-
-redAlertAudio.loop = true;
-redAlertAudio.volume = 1;
-redAlertAudio.currentTime = 0;
-redAlertAudio.play().catch(() => {});
-}catch(e){}
-}
-
+function unlockAudioOnce() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+  }
+  
+  function primeRedAlertAudio() {
+    if (redAlertPrimed) return;
+    redAlertPrimed = true;
+  }
+  function stopRedAlertAudio(){
+    if (!redAlertAudio) return;
+    try {
+      redAlertAudio.pause();
+      redAlertAudio.currentTime = 0;
+      redAlertAudio.src = '';
+    } catch (e) {}
+    redAlertAudio = null;
+  }
 function showRedOverlayHalf(){
 if (!redAlertEl) return;
 redAlertEl.classList.add('show');
