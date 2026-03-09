@@ -1778,24 +1778,31 @@ function primeRedAlertAudio() {
     redAlertAudio.volume = 1;
   } catch (e) {}
 }
-
 function playRedAlertAudio(){
-  if (!RED_ALERT_ALARM_URL) return;
-
-  try{
-    if (!redAlertAudio) {
-      redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
+    if (!RED_ALERT_ALARM_URL) return;
+    if (!audioUnlocked) return; // voorkom mislukte autoplay op player
+  
+    try {
+      if (!redAlertAudio) {
+        redAlertAudio = new Audio(RED_ALERT_ALARM_URL);
+        redAlertAudio.preload = 'auto';
+      }
+  
+      redAlertAudio.pause();
+      redAlertAudio.currentTime = 0;
       redAlertAudio.loop = true;
-      redAlertAudio.preload = 'auto';
       redAlertAudio.volume = 1;
+  
+      const p = redAlertAudio.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(err => {
+          console.log('Red alert audio blocked:', err);
+        });
+      }
+    } catch (e) {
+      console.log('Red alert audio error:', e);
     }
-
-    redAlertAudio.loop = true;
-    redAlertAudio.volume = 1;
-    redAlertAudio.currentTime = 0;
-    redAlertAudio.play().catch(() => {});
-  }catch(e){}
-}
+  }
 
 function showRedOverlayHalf(){
   if (!redAlertEl) return;
@@ -2893,9 +2900,10 @@ function showPlayerChatUnlocked() {
 }
 
 
-  document.querySelectorAll('.door').forEach(door => {
-    const target  = door.dataset.target;
+document.querySelectorAll('.door').forEach(door => {
+    const target = door.dataset.target;
     door.addEventListener('click', (e) => {
+      unlockAudioOnce();
       e.stopPropagation();
       if (target) goToRoom(target);
     });
