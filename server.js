@@ -9,13 +9,10 @@ const io     = new Server(server, {
   cors: { origin: "*" }
 });
 
-// static files (index.html etc.)
-
 // clean host URL: /host
 app.get('/host', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
-
 
 app.use(express.static(__dirname));
 
@@ -24,13 +21,13 @@ let hostRoom      = 'room5';
 let hostConnected = false;
 let hostSocketId  = null;
 
-// --- PLAYER STATE (for ghost player) ---
-const playerRooms = new Map(); // socketId -> roomId
+// --- PLAYER STATE ---
+const playerRooms = new Map();
 
 // --- CONVERSATION STATE ---
 let currentConversationId = null;
-let conversationResponses = []; // [{ socketId, text }]
-let conversationHostId    = null; // <-- NEW: host socket that started the conversation
+let conversationResponses = [];
+let conversationHostId    = null;
 
 function clearConversationState() {
   currentConversationId = null;
@@ -47,6 +44,12 @@ function pickRandomResponseOrNull() {
 io.on('connection', (socket) => {
   console.log('Client connected', socket.id);
 
+  // --- MAX/MSP BRIDGE ---
+  socket.on('maxTrigger', (data) => {
+    console.log('maxTrigger:', data);
+    io.emit('maxTrigger', data);
+  });
+
   // --- JOIN ---
   socket.on('join', ({ role }) => {
     socket.data.role = role;
@@ -59,38 +62,33 @@ io.on('connection', (socket) => {
       if (hostConnected) {
         socket.emit('hostPosition', { roomId: hostRoom });
       }
+
+      if (hostSocketId && hostConnected) {
+        io.to(hostSocketId).emit('playerJoined', {
+          socketId: socket.id
+        });
+      }
     }
   });
 
+  // --- PLAYER POKES HOST ---
+  socket.on('pokeHost', (data) => {
+    if (socket.data.role === 'host') return;
+    if (!hostSocketId || !hostConnected) return;
 
-  // --- PLAYER POKES HOST (shows !! etc.) ---
-socket.on('pokeHost', (data) => {
-  // only non-host players can poke
-  if (socket.data.role === 'host') return;
-
-  // if no host, nothing to do
-  if (!hostSocketId || !hostConnected) return;
-
-  // send to host (and optionally to everyone else)
-  io.to(hostSocketId).emit('pokeHost', {
-    from: socket.id,
-    roomId: (data && data.roomId) ? data.roomId : null
+    io.to(hostSocketId).emit('pokeHost', {
+      from: socket.id,
+      roomId: data && data.roomId ? data.roomId : null
+    });
   });
 
-  // OPTIONAL: if you want other players to also see it:
-  // socket.broadcast.emit('pokeHost', { from: socket.id, roomId: data?.roomId ?? null });
-});
-
-  // host confirms login success
   socket.on('hostReady', () => {
     if (socket.id !== hostSocketId) return;
     hostConnected = true;
     console.log('Host is now ready/online');
-
     socket.broadcast.emit('hostOnline', { roomId: hostRoom });
   });
 
-  // --- HOST MOVEMENT ---
   socket.on('hostMove', ({ roomId }) => {
     if (socket.data.role !== 'host') return;
     if (!roomId) return;
@@ -99,65 +97,49 @@ socket.on('pokeHost', (data) => {
     socket.broadcast.emit('hostPosition', { roomId: hostRoom });
   });
 
-  // --- PLAYER MOVEMENT (ghost) ---
   socket.on('playerMove', ({ roomId }) => {
     if (socket.data.role === 'host') return;
     if (!roomId) return;
     playerRooms.set(socket.id, roomId);
   });
 
-  // --- HOST ACTIONS ---
   socket.on('hostAction', (data) => {
     if (socket.data.role !== 'host') return;
     if (!data || !data.kind) return;
     socket.broadcast.emit('hostAction', { kind: data.kind });
   });
 
-  // --- CONVERSATION START (host presses "2") ---
   socket.on('startConversation', () => {
     if (socket.data.role !== 'host') return;
-
-    // if already running, ignore
-    if (currentConversationId) {
-      console.log('startConversation ignored (already running)', currentConversationId);
-      return;
-    }
+    if (currentConversationId) return;
 
     const conversationId =
       Date.now().toString() + '-' + Math.random().toString(36).slice(2);
 
     currentConversationId = conversationId;
     conversationResponses = [];
-    conversationHostId = socket.id; // <-- NEW
+    conversationHostId = socket.id;
 
     console.log('Conversation started', conversationId);
-
-    // notify everyone (host + players)
     io.emit('conversationStart', { conversationId });
   });
 
-  // --- CONVERSATION END (host presses "3") ---
-// --- CONVERSATION END (host presses "3") ---
-socket.on('endConversation', () => {
-  if (socket.data.role !== 'host') return;
-  if (!currentConversationId) return;
+  socket.on('endConversation', () => {
+    if (socket.data.role !== 'host') return;
+    if (!currentConversationId) return;
 
-  const conversationId = currentConversationId;
-  console.log('Conversation ending (host pressed 3)', conversationId);
+    const conversationId = currentConversationId;
+    const chosen = pickRandomResponseOrNull();
+    const message = chosen && String(chosen).trim()
+      ? String(chosen)
+      : 'no response..';
 
-  const chosen = pickRandomResponseOrNull();
-  const message = (chosen && String(chosen).trim()) ? String(chosen) : 'no response..';
+    io.emit('conversationResult', { conversationId, message });
+    io.emit('conversationEnd', { conversationId });
 
-  // ✅ send to everyone (host + players)
-  io.emit('conversationResult', { conversationId, message });
+    clearConversationState();
+  });
 
-  // end for everyone (closes player input, etc.)
-  io.emit('conversationEnd', { conversationId });
-
-  clearConversationState();
-});
-
-  // --- PLAYER MESSAGES DURING CONVERSATION ---
   socket.on('playerMessage', ({ conversationId, text }) => {
     if (!currentConversationId) return;
     if (conversationId !== currentConversationId) return;
@@ -173,7 +155,6 @@ socket.on('endConversation', () => {
     console.log('Player response recorded', socket.id, trimmed);
   });
 
-  // --- PLAYER TYPING INDICATOR DURING CONVERSATION ---
   socket.on('playerTyping', ({ conversationId, typing }) => {
     if (!currentConversationId) return;
     if (conversationId !== currentConversationId) return;
@@ -185,30 +166,6 @@ socket.on('endConversation', () => {
     });
   });
 
-
-  // --- JOIN ---
-socket.on('join', ({ role }) => {
-  socket.data.role = role;
-  console.log(`Client ${socket.id} joined as ${role}`);
-
-  if (role === 'host') {
-    hostSocketId = socket.id;
-    socket.emit('initialHostPosition', { roomId: hostRoom });
-  } else {
-    if (hostConnected) {
-      socket.emit('hostPosition', { roomId: hostRoom });
-    }
-
-    // ✅ NEW: notify host that a player joined (host-only)
-    if (hostSocketId && hostConnected) {
-      io.to(hostSocketId).emit('playerJoined', {
-        socketId: socket.id
-      });
-    }
-  }
-});
-
-  // --- DISCONNECT ---
   socket.on('disconnect', () => {
     console.log('Client disconnected', socket.id);
 
@@ -222,7 +179,6 @@ socket.on('join', ({ role }) => {
 
       io.emit('hostOffline');
 
-      // if host leaves mid-conversation, end it for everyone
       if (currentConversationId) {
         const endedConversationId = currentConversationId;
         clearConversationState();
@@ -235,6 +191,7 @@ socket.on('join', ({ role }) => {
 // --- GHOST PLAYER UPDATER ---
 setInterval(() => {
   if (!hostConnected || !hostSocketId) return;
+
   const rooms = Array.from(playerRooms.values());
   if (!rooms.length) return;
 
