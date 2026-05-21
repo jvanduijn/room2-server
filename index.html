@@ -3,111 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Room 2 Max Controller</title>
-
+  <title>Fields Controller</title>
   <script src="/socket.io/socket.io.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
       margin: 0;
-      padding: 10px;
+      padding: 12px;
       min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
+      font-family: "Courier New", monospace;
+      background: #202805;
+      color: #dfff57;
+    }
+
+    .wrap {
+      min-height: calc(100vh - 24px);
+      border: 2px solid #dfff57;
+      border-radius: 22px;
+      padding: 12px;
+      background: #3f421d;
       display: flex;
       flex-direction: column;
+      gap: 10px;
     }
 
     h1 {
-      margin: 4px 0 10px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: 700;
+      margin: 0;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 42px;
+      font-weight: 400;
+      letter-spacing: -2px;
     }
 
     .status {
-      text-align: center;
-      font-size: 13px;
-      margin-bottom: 8px;
+      font-size: 12px;
       opacity: 0.75;
+      margin-top: -8px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
       flex: 1;
     }
 
     button {
-      width: 100%;
-      min-height: 58px;
-      border: none;
-      border-radius: 14px;
-      background: white;
-      color: black;
-      font-size: 25px;
+      border: 2px solid #dfff57;
+      border-radius: 18px;
+      background: #dfff57;
+      color: #3f421d;
+      font-family: "Courier New", monospace;
+      font-size: 20px;
       font-weight: 800;
-      cursor: pointer;
+      text-transform: lowercase;
+      min-height: 74px;
+      box-shadow: inset 0 0 0 2px #3f421d;
+    }
+
+    button:first-child {
+      grid-column: span 2;
+      background: #3f421d;
+      color: #dfff57;
+      font-size: 24px;
     }
 
     button:active {
-      transform: scale(0.97);
-      background: #bbb;
+      transform: scale(0.96);
+      filter: invert(1);
     }
 
     .last {
       text-align: center;
-      font-size: 13px;
-      margin-top: 8px;
+      font-size: 12px;
       opacity: 0.75;
     }
   </style>
 </head>
 
 <body>
-  <h1>Room 2 Controller</h1>
-  <div class="status" id="status">connecting...</div>
+  <div class="wrap">
+    <h1>fields</h1>
+    <div class="status" id="status">connecting...</div>
 
-  <div class="grid">
-    <button onclick="triggerMax('1')">Trigger 1</button>
-    <button onclick="triggerMax('2')">Trigger 2</button>
-    <button onclick="triggerMax('3')">Trigger 3</button>
-    <button onclick="triggerMax('4')">Trigger 4</button>
-    <button onclick="triggerMax('5')">Trigger 5</button>
-    <button onclick="triggerMax('6')">Trigger 6</button>
-    <button onclick="triggerMax('7')">Trigger 7</button>
+    <div class="grid">
+      <button onclick="triggerMax('1')">test pulse</button>
+      <button onclick="triggerMax('1')">module 1</button>
+      <button onclick="triggerMax('2')">module 2</button>
+      <button onclick="triggerMax('3')">module 3</button>
+      <button onclick="triggerMax('4')">module 4</button>
+      <button onclick="triggerMax('5')">module 5</button>
+      <button onclick="triggerMax('6')">module 6</button>
+      <button onclick="triggerMax('7')">module 7</button>
+    </div>
+
+    <div class="last" id="last">last sent: —</div>
   </div>
-
-  <div class="last" id="last">last sent: —</div>
 
   <script>
     const socket = io();
-
     const statusEl = document.getElementById("status");
     const lastEl = document.getElementById("last");
 
-    socket.on("connect", () => {
-      statusEl.textContent = "connected";
-    });
-
-    socket.on("disconnect", () => {
-      statusEl.textContent = "disconnected";
-    });
+    socket.on("connect", () => statusEl.textContent = "connected");
+    socket.on("disconnect", () => statusEl.textContent = "disconnected");
 
     function triggerMax(value) {
       socket.emit("maxTrigger", value);
       lastEl.textContent = "last sent: " + value;
-
-      if (navigator.vibrate) {
-        navigator.vibrate(20);
-      }
+      if (navigator.vibrate) navigator.vibrate(20);
     }
   </script>
 </body>
